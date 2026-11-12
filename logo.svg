@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 650 180" width="100%" height="100%">
+  <defs>
+    <linearGradient id="gradD" gradientUnits="userSpaceOnUse" x1="28" y1="32" x2="116" y2="128">
+      <stop offset="0%" stop-color="#00E5FF" />
+      <stop offset="100%" stop-color="#2979FF" />
+    </linearGradient>
+
+    <linearGradient id="gradC" gradientUnits="userSpaceOnUse" x1="68" y1="32" x2="164" y2="128">
+      <stop offset="0%" stop-color="#2979FF" />
+      <stop offset="100%" stop-color="#9D4EDD" />
+    </linearGradient>
+
+    <!-- Recorte limpio únicamente sobre el cuadrante inferior derecho para el cruce -->
+    <clipPath id="cruceInferior">
+      <rect x="68" y="80" width="70" height="70" />
+    </clipPath>
+  </defs>
+
+  <g transform="translate(15, 10)">
+    <!-- 1. Letra D completa y uniforme (grosor exacto 20px en todo el perímetro) -->
+    <path d="M 28,32 H 68 A 48,48 0 0,1 68,128 H 28 Z" fill="none" stroke="url(#gradD)" stroke-width="20" stroke-linejoin="miter" />
+
+    <!-- 2. Letra C completa y uniforme (pasa por encima en el cruce superior) -->
+    <path d="M 164,56 A 48,48 0 1,0 164,104" fill="none" stroke="url(#gradC)" stroke-width="20" stroke-linecap="butt" />
+
+    <!-- 3. Copia idéntica de la D recortada solo en el cruce inferior (sin bordes ni líneas extra) -->
+    <path d="M 28,32 H 68 A 48,48 0 0,1 68,128 H 28 Z" fill="none" stroke="url(#gradD)" stroke-width="20" stroke-linejoin="miter" clip-path="url(#cruceInferior)" />
+  </g>
+
+  <text x="215" y="94" font-family="-apple-system, BlinkMacSystemFont, &#39;SF Pro Display&#39;, &#39;Segoe UI&#39;, Roboto, sans-serif" font-weight="800" font-size="64" fill="#FFFFFF" letter-spacing="1.5">DC CORP</text>
+  <text x="217" y="132" font-family="-apple-system, BlinkMacSystemFont, &#39;SF Pro Text&#39;, &#39;Segoe UI&#39;, Roboto, sans-serif" font-weight="600" font-size="16" fill="#94A3B8">SOPORTE TECNOLÓGICO</text>
+</svg>
