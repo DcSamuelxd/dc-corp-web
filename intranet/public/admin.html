@@ -79,7 +79,7 @@
           </div>
           <div class="flex flex-wrap items-center gap-3">
             <div>
-              <label class="block text-[11px] font-medium text-[#6e6e73] mb-1">Grupo / Curso</label>
+              <label class="block text-[11px] font-medium text-[#6e6e73] mb-1">Grupo / Subgrupo</label>
               <select id="attGroupSelect" onchange="loadAttendanceSheet()" class="bg-white border border-black/10 rounded-xl px-3.5 py-2 text-xs font-medium min-w-[210px]"></select>
             </div>
             <div>
@@ -90,7 +90,7 @@
         </div>
 
         <div id="attendanceListContainer" class="py-6">
-          <p class="text-xs text-[#6e6e73] text-center py-8">No hay grupos asignados todavía.</p>
+          <p class="text-xs text-[#6e6e73] text-center py-8">Crea un grupo o subgrupo primero para tomar asistencia.</p>
         </div>
 
         <div class="flex items-center justify-between pt-4 border-t border-black/[0.06]">
@@ -112,13 +112,13 @@
 
           <form id="materialForm" class="space-y-4">
             <div>
-              <label class="block text-xs font-medium text-[#6e6e73] mb-1">Grupo destino *</label>
+              <label class="block text-xs font-medium text-[#6e6e73] mb-1">Grupo / Subgrupo destino *</label>
               <select id="matGroupSelect" required class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs font-medium"></select>
             </div>
 
             <div>
               <label class="block text-xs font-medium text-[#6e6e73] mb-1">Título del material *</label>
-              <input type="text" id="matTitle" required placeholder="Ej: Guía 03 - Integrales / Partitura"
+              <input type="text" id="matTitle" required placeholder="Ej: Guía 03 - Acordes / Partitura"
                 class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
             </div>
 
@@ -152,35 +152,35 @@
       </div>
     </section>
 
-    <!-- ==================== SECCIÓN 3: ALUMNADO (PARTICULARES vs SOL MUSIC) ==================== -->
+    <!-- ==================== SECCIÓN 3: ALUMNADO ==================== -->
     <section id="panel-alumnos" class="hidden space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         <div class="lg:col-span-5 space-y-6">
-          <!-- Crear Grupo (Solo Admin) -->
-          <div id="adminCreateGroupCard" class="glass-bento p-6">
-            <h3 class="text-base font-bold mb-1">1. Crear Grupo o Materia</h3>
-            <p class="text-xs text-[#6e6e73] mb-4">Clasifica cada curso en Particulares o Sol Music.</p>
+          <!-- Crear Grupo o Subgrupo (Admin crea en Particulares o Sol Music; Profesor crea Subgrupos en Sol Music) -->
+          <div class="glass-bento p-6">
+            <h3 id="groupCardTitle" class="text-base font-bold mb-1">1. Crear Grupo o Subgrupo</h3>
+            <p id="groupCardSubtitle" class="text-xs text-[#6e6e73] mb-4">Clasifica cada curso en Particulares o Sol Music.</p>
             <form id="groupForm" class="space-y-3">
-              <div>
+              <div id="groupCategoryWrapper">
                 <label class="block text-[11px] font-medium text-[#6e6e73] mb-1">Modalidad / División *</label>
-                <select id="groupCategory" required class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs font-semibold">
+                <select id="groupCategory" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs font-semibold">
                   <option value="Particulares">📘 Particulares (Matemáticas, Estadística, Música)</option>
                   <option value="Sol Music">🎵 Sol Music (Academia)</option>
                 </select>
               </div>
-              <input type="text" id="groupName" required placeholder="Nombre del grupo (ej: Guitarra Sol Music Sabatino)" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
+              <input type="text" id="groupName" required placeholder="Ej: Guitarras, Piano, Cuerdas, Cajón..." class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
               <input type="text" id="groupDesc" placeholder="Horario o descripción breve (opcional)" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
-              <button type="submit" class="w-full py-2.5 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition">
+              <button type="submit" id="btnCreateGroup" class="w-full py-2.5 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition">
                 + Agregar Grupo
               </button>
             </form>
             <div id="groupsTags" class="flex flex-wrap gap-2 mt-4 pt-4 border-t border-black/[0.06]"></div>
           </div>
 
-          <!-- Registrar Estudiante (Admin y Profesores en sus grupos asignados) -->
+          <!-- Registrar Estudiante -->
           <div class="glass-bento p-6">
-            <h3 class="text-base font-bold mb-1">Registrar Estudiante</h3>
+            <h3 class="text-base font-bold mb-1">2. Registrar Estudiante</h3>
             <p class="text-xs text-[#6e6e73] mb-4">Crea su usuario/DNI y contraseña para su portal.</p>
             <form id="studentForm" class="space-y-3">
               <input type="text" id="stuName" required placeholder="Nombre completo del estudiante" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
@@ -194,16 +194,16 @@
           </div>
         </div>
 
-        <!-- Directorio de Alumnado con División Particulares / Sol Music -->
+        <!-- Directorio de Alumnado -->
         <div class="lg:col-span-7 glass-bento p-6 sm:p-8">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
             <div>
-              <h3 class="text-lg font-bold">Directorio de Alumnado</h3>
+              <h3 class="text-lg font-bold" id="directoryTitle">Directorio de Alumnado</h3>
               <p class="text-xs text-[#6e6e73]" id="studentCount">0 alumnos</p>
             </div>
 
-            <!-- Filtro Segmented Control: Todos / Particulares / Sol Music -->
-            <div class="inline-flex p-1 rounded-xl bg-black/[0.05] text-xs font-semibold">
+            <!-- Filtro Segmented Control (Solo visible para Admin; Profesor ya ve solo Sol Music) -->
+            <div id="adminCategoryFilter" class="inline-flex p-1 rounded-xl bg-black/[0.05] text-xs font-semibold">
               <button onclick="setStudentCategoryFilter('Todos')" id="cat-Todos" class="cat-btn px-3 py-1.5 rounded-lg bg-white text-[#1d1d1f] shadow-sm transition">
                 Todos
               </button>
@@ -223,7 +223,7 @@
                   <th class="py-2.5 px-2">Estudiante</th>
                   <th class="py-2.5 px-2">Usuario / DNI</th>
                   <th class="py-2.5 px-2">División</th>
-                  <th class="py-2.5 px-2">Grupo</th>
+                  <th class="py-2.5 px-2">Subgrupo</th>
                   <th class="py-2.5 px-2 text-right">Acción</th>
                 </tr>
               </thead>
@@ -240,18 +240,12 @@
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         <div class="lg:col-span-5 glass-bento p-6 sm:p-8 h-fit">
-          <h3 class="text-base font-bold mb-1">Registrar Docente</h3>
-          <p class="text-xs text-[#6e6e73] mb-4">Crea cuentas para otros profesores y elige qué grupos pueden gestionar (incluye registrar alumnos en esos grupos).</p>
+          <h3 class="text-base font-bold mb-1">Registrar Docente Sol Music</h3>
+          <p class="text-xs text-[#6e6e73] mb-4">Los profesores tienen acceso exclusivo a <strong>Sol Music</strong>: pueden crear sus propios subgrupos (Guitarras, Piano, Cuerdas, etc.), registrar alumnos, pasar asistencia y subir materiales.</p>
           <form id="teacherForm" class="space-y-3">
             <input type="text" id="teaName" required placeholder="Nombre completo del profesor" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
             <input type="text" id="teaCode" required placeholder="Usuario de acceso (ej: prof.carlos)" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
             <input type="text" id="teaPass" required placeholder="Contraseña inicial (ej: Docente2026)" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
-            
-            <div class="pt-1">
-              <label class="block text-[11px] font-semibold text-[#6e6e73] mb-2">Grupos asignados a este profesor:</label>
-              <div id="teacherGroupsCheckboxes" class="space-y-1.5 max-h-40 overflow-y-auto p-3 rounded-xl bg-white border border-black/10 text-xs"></div>
-            </div>
-
             <button type="submit" class="w-full py-2.5 rounded-full bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold transition">
               + Crear Cuenta de Profesor
             </button>
@@ -260,7 +254,7 @@
 
         <div class="lg:col-span-7 glass-bento p-6 sm:p-8">
           <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-bold">Plana Docente Registrada</h3>
+            <h3 class="text-lg font-bold">Plana Docente Sol Music</h3>
             <span id="teacherCount" class="text-xs font-semibold text-amber-600">0 profesores</span>
           </div>
           <div id="teachersList" class="space-y-3"></div>
@@ -297,10 +291,16 @@
     if (isAdmin) {
       badge.innerText = 'Administrador';
     } else {
-      badge.innerText = 'Profesor';
+      badge.innerText = 'Profesor • Sol Music';
       badge.className = 'px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 text-[11px] font-semibold';
       document.querySelectorAll('.admin-only-tab').forEach(el => el.classList.add('hidden'));
-      document.getElementById('adminCreateGroupCard').classList.add('hidden');
+      document.getElementById('groupCategoryWrapper').classList.add('hidden');
+      document.getElementById('adminCategoryFilter').classList.add('hidden');
+      document.getElementById('groupCardTitle').innerText = '1. Crear Subgrupo en Sol Music';
+      document.getElementById('groupCardSubtitle').innerText = 'Crea tus talleres o secciones a tu gusto (ej: Guitarras, Piano, Cuerdas, Cajón).';
+      document.getElementById('btnCreateGroup').innerText = '+ Crear Subgrupo Sol Music';
+      document.getElementById('btnCreateGroup').className = 'w-full py-2.5 rounded-full bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold transition';
+      document.getElementById('directoryTitle').innerText = 'Alumnado Sol Music';
     }
 
     const authHeaders = () => ({ 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' });
@@ -361,38 +361,28 @@
       if (gRes.status === 401) return logout();
       groupsCache = await gRes.json();
 
-      // Todos los selectores de grupo (incluyendo stuGroupSelect para profesores y admin)
       const selects = ['attGroupSelect', 'matGroupSelect', 'stuGroupSelect'];
       selects.forEach(id => {
         const el = document.getElementById(id);
         const prev = el.value;
         el.innerHTML = groupsCache.length
-          ? groupsCache.map(g => `<option value="${g.id}">[${g.category || 'Particulares'}] ${g.name}</option>`).join('')
-          : '<option value="">Sin grupos asignados</option>';
+          ? groupsCache.map(g => `<option value="${g.id}">${isAdmin ? `[${g.category || 'Particulares'}] ` : ''}${g.name}</option>`).join('')
+          : '<option value="">Crea primero un subgrupo</option>';
         if (prev && groupsCache.some(g => String(g.id) === prev)) el.value = prev;
       });
 
+      document.getElementById('groupsTags').innerHTML = groupsCache.map(g => {
+        const isSol = g.category === 'Sol Music';
+        const pillClass = isSol ? 'bg-amber-500/15 text-amber-800' : 'bg-indigo-500/10 text-indigo-700';
+        return `
+          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full ${pillClass} text-xs font-medium">
+            ${isAdmin ? `<strong>${g.category || 'Particulares'}:</strong> ` : ''}${g.name}
+            <button onclick="deleteGroup(${g.id})" class="hover:text-red-600" title="Eliminar">&times;</button>
+          </span>
+        `;
+      }).join('');
+
       if (isAdmin) {
-        document.getElementById('groupsTags').innerHTML = groupsCache.map(g => {
-          const isSol = g.category === 'Sol Music';
-          const pillClass = isSol ? 'bg-amber-500/15 text-amber-800' : 'bg-indigo-500/10 text-indigo-700';
-          return `
-            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full ${pillClass} text-xs font-medium">
-              <strong>${g.category || 'Particulares'}:</strong> ${g.name}
-              <button onclick="deleteGroup(${g.id})" class="hover:text-red-600">&times;</button>
-            </span>
-          `;
-        }).join('');
-
-        document.getElementById('teacherGroupsCheckboxes').innerHTML = groupsCache.length
-          ? groupsCache.map(g => `
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" name="tea_groups" value="${g.id}" class="rounded text-amber-600">
-                <span><strong>[${g.category || 'Particulares'}]</strong> ${g.name}</span>
-              </label>
-            `).join('')
-          : '<p class="text-[#6e6e73]">Crea primero algún grupo en "Alumnado".</p>';
-
         await loadTeachers();
       }
 
@@ -406,15 +396,13 @@
       const teachers = await res.json();
       document.getElementById('teacherCount').innerText = `${teachers.length} profesores`;
       document.getElementById('teachersList').innerHTML = teachers.map(t => `
-        <div class="p-4 rounded-2xl bg-white/90 border border-black/[0.06] flex items-start justify-between gap-4">
-          <div class="space-y-1.5">
-            <h4 class="text-sm font-bold text-[#1d1d1f]">${t.full_name}</h4>
-            <p class="text-xs text-[#6e6e73] font-mono">Usuario: ${t.code}</p>
-            <div class="flex flex-wrap gap-1.5 pt-1">
-              ${t.groups.length
-                ? t.groups.map(g => `<span class="px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-700 text-[10px] font-semibold">[${g.category || 'Particulares'}] ${g.name}</span>`).join('')
-                : '<span class="text-[11px] text-[#6e6e73]">Sin grupos asignados</span>'}
+        <div class="p-4 rounded-2xl bg-white/90 border border-black/[0.06] flex items-center justify-between gap-4">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <h4 class="text-sm font-bold text-[#1d1d1f]">${t.full_name}</h4>
+              <span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 text-[10px] font-semibold">Sol Music</span>
             </div>
+            <p class="text-xs text-[#6e6e73] font-mono">Usuario: ${t.code}</p>
           </div>
           <button onclick="deleteTeacher(${t.id})" class="text-red-500 hover:text-red-700 text-xs p-1"><i class="fa-solid fa-trash"></i></button>
         </div>
@@ -422,10 +410,10 @@
     }
 
     async function loadStudents() {
-      const query = currentCategoryFilter !== 'Todos' ? `?category=${encodeURIComponent(currentCategoryFilter)}` : '';
+      const query = (isAdmin && currentCategoryFilter !== 'Todos') ? `?category=${encodeURIComponent(currentCategoryFilter)}` : '';
       const res = await fetch(`/intranet/api/admin/students${query}`, { headers: authHeaders() });
       const students = await res.json();
-      document.getElementById('studentCount').innerText = `${students.length} alumnos (${currentCategoryFilter})`;
+      document.getElementById('studentCount').innerText = `${students.length} alumnos${isAdmin ? ` (${currentCategoryFilter})` : ' en Sol Music'}`;
       document.getElementById('studentsTableBody').innerHTML = students.map(s => {
         const isSol = s.category === 'Sol Music';
         const divBadge = isSol
@@ -450,14 +438,14 @@
       const date = document.getElementById('attDateInput').value;
       const container = document.getElementById('attendanceListContainer');
       if (!groupId || !date) {
-        container.innerHTML = '<p class="text-xs text-[#6e6e73] text-center py-8">No hay grupos disponibles para tomar asistencia.</p>';
+        container.innerHTML = '<p class="text-xs text-[#6e6e73] text-center py-8">Crea primero un grupo o subgrupo en "Alumnado".</p>';
         return;
       }
       const res = await fetch(`/intranet/api/admin/attendance?group_id=${groupId}&date=${date}`, { headers: authHeaders() });
       const rows = await res.json();
 
       if (!rows.length) {
-        container.innerHTML = '<p class="text-xs text-[#6e6e73] text-center py-8">No hay alumnos asignados a este grupo todavía.</p>';
+        container.innerHTML = '<p class="text-xs text-[#6e6e73] text-center py-8">No hay alumnos asignados a este subgrupo todavía.</p>';
         return;
       }
 
@@ -530,7 +518,7 @@
         method: 'POST',
         headers: authHeaders(),
         body: JSON.stringify({
-          category: document.getElementById('groupCategory').value,
+          category: isAdmin ? document.getElementById('groupCategory').value : 'Sol Music',
           name: document.getElementById('groupName').value,
           description: document.getElementById('groupDesc').value
         })
@@ -567,15 +555,13 @@
 
     document.getElementById('teacherForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const group_ids = Array.from(document.querySelectorAll('input[name="tea_groups"]:checked')).map(cb => cb.value);
       const res = await fetch('/intranet/api/admin/teachers', {
         method: 'POST',
         headers: authHeaders(),
         body: JSON.stringify({
           full_name: document.getElementById('teaName').value,
           code: document.getElementById('teaCode').value,
-          password: document.getElementById('teaPass').value,
-          group_ids
+          password: document.getElementById('teaPass').value
         })
       });
       if (res.ok) {
@@ -617,7 +603,7 @@
     });
 
     async function deleteGroup(id) {
-      if (!confirm('¿Eliminar este grupo?')) return;
+      if (!confirm('¿Eliminar este grupo/subgrupo?')) return;
       await fetch(`/intranet/api/admin/groups/${id}`, { method: 'DELETE', headers: authHeaders() });
       loadAllData();
     }
