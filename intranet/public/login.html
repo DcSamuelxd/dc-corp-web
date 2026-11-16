@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Intranet Académica — DC CORP</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', sans-serif;
+      background-color: #f5f5f7;
+      background-image:
+        radial-gradient(at 15% 20%, rgba(0, 113, 227, 0.12) 0px, transparent 50%),
+        radial-gradient(at 85% 80%, rgba(124, 58, 237, 0.10) 0px, transparent 50%);
+      color: #1d1d1f;
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: saturate(180%) blur(26px);
+      -webkit-backdrop-filter: saturate(180%) blur(26px);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.06);
+      border-radius: 28px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between p-5">
+
+  <div class="max-w-5xl w-full mx-auto pt-3 flex items-center justify-between">
+    <a href="/" class="inline-flex items-center gap-2 text-xs font-medium text-[#6e6e73] hover:text-[#0071e3] transition">
+      <i class="fa-solid fa-chevron-left"></i> Volver a dccorp.lat
+    </a>
+    <span class="text-xs font-semibold text-[#0071e3]">Portal Académico</span>
+  </div>
+
+  <main class="w-full max-w-md mx-auto my-auto py-10">
+    <div class="glass-card p-8 sm:p-10">
+      <div class="text-center mb-8">
+        <img src="/logo.svg" alt="DC CORP" class="h-12 mx-auto mb-5">
+        <h1 class="text-2xl font-bold tracking-tight text-[#1d1d1f]">Iniciar sesión</h1>
+        <p class="text-xs sm:text-sm text-[#6e6e73] mt-1.5">
+          Accede a tu reporte de asistencias y materiales de estudio
+        </p>
+      </div>
+
+      <form id="loginForm" class="space-y-4">
+        <div>
+          <label class="block text-xs font-medium text-[#6e6e73] mb-1.5">Código de alumno o Usuario</label>
+          <input type="text" id="code" required autocomplete="username" placeholder="Ej: DNI o código asignado"
+            class="w-full bg-white/90 border border-black/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0071e3] transition">
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-[#6e6e73] mb-1.5">Contraseña</label>
+          <input type="password" id="password" required autocomplete="current-password" placeholder="••••••••"
+            class="w-full bg-white/90 border border-black/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#0071e3] transition">
+        </div>
+
+        <div id="errorBox" class="hidden p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-700 text-xs font-medium"></div>
+
+        <button type="submit" id="submitBtn"
+          class="w-full py-3.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-sm transition shadow-md shadow-[#0071e3]/20 mt-2">
+          Ingresar a la Intranet
+        </button>
+      </form>
+    </div>
+  </main>
+
+  <footer class="text-center text-[11px] text-[#6e6e73] pb-2">
+    DC CORP • Plataforma Académica — Víctor Samuel Castro Delgado
+  </footer>
+
+  <script>
+    const existingToken = localStorage.getItem('dc_token');
+    const existingRole = localStorage.getItem('dc_role');
+    if (existingToken && existingRole) {
+      window.location.href = existingRole === 'admin' ? '/intranet/admin.html' : '/intranet/student.html';
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errorBox = document.getElementById('errorBox');
+      const btn = document.getElementById('submitBtn');
+      errorBox.classList.add('hidden');
+      btn.disabled = true;
+      btn.innerText = 'Verificando...';
+
+      try {
+        const res = await fetch('/intranet/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            code: document.getElementById('code').value,
+            password: document.getElementById('password').value
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Error al iniciar sesión');
+
+        localStorage.setItem('dc_token', data.token);
+        localStorage.setItem('dc_role', data.role);
+        localStorage.setItem('dc_name', data.full_name);
+
+        window.location.href = data.role === 'admin' ? '/intranet/admin.html' : '/intranet/student.html';
+      } catch (err) {
+        errorBox.innerText = err.message;
+        errorBox.classList.remove('hidden');
+        btn.disabled = false;
+        btn.innerText = 'Ingresar a la Intranet';
+      }
+    });
+  </script>
+</body>
+</html>
