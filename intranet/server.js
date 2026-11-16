@@ -47,11 +47,13 @@ db.serialize(() => {
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT UNIQUE NOT NULL,
     category TEXT NOT NULL DEFAULT 'Particulares',
-    description TEXT
+    description TEXT,
+    created_by INTEGER
   )`);
 
-  // Migración suave por si la tabla groups ya existía sin la columna category
+  // Migraciones suaves si la tabla groups ya existía
   db.run(`ALTER TABLE groups ADD COLUMN category TEXT NOT NULL DEFAULT 'Particulares'`, () => {});
+  db.run(`ALTER TABLE groups ADD COLUMN created_by INTEGER`, () => {});
 
   db.run(`CREATE TABLE IF NOT EXISTS teacher_groups (
     teacher_id INTEGER NOT NULL,
@@ -120,13 +122,16 @@ function staffOnly(req, res, next) {
   next();
 }
 
+// Verifica acceso: Admin accede a todo; Profesor accede a cualquier grupo de 'Sol Music'
 function verifyGroupAccess(user, groupId, cb) {
   if (user.role === 'admin') return cb(true);
-  db.get(
-    `SELECT 1 FROM teacher_groups WHERE teacher_id = ? AND group_id = ?`,
-    [user.id, groupId],
-    (err, row) => cb(!!row)
-  );
+  if (user.role === 'teacher') {
+    db.get(`SELECT category FROM groups WHERE id = ?`, [groupId], (err, row) => {
+      cb(!!(row && row.category === 'Sol Music'));
+    });
+    return;
+  }
+  cb(false);
 }
 
 // ================= RUTAS DE AUTENTICACIÓN =================
@@ -160,63 +165,56 @@ app.post('/intranet/api/change-password', authMiddleware, (req, res) => {
   });
 });
 
-// ================= GRUPOS (Admin ve todos; Profesor ve los suyos) =================
+// ================= GRUPOS Y SUBGRUPOS (Admin ve todos; Profesor ve y crea subgrupos en 'Sol Music') =================
 app.get('/intranet/api/admin/groups', authMiddleware, staffOnly, (req, res) => {
   if (req.user.role === 'admin') {
     db.all(`SELECT * FROM groups ORDER BY category ASC, name ASC`, [], (err, rows) => res.json(rows || []));
   } else {
     db.all(
-      `SELECT g.* FROM groups g
-       INNER JOIN teacher_groups tg ON g.id = tg.group_id
-       WHERE tg.teacher_id = ? ORDER BY g.category ASC, g.name ASC`,
-      [req.user.id],
+      `SELECT * FROM groups WHERE category = 'Sol Music' ORDER BY name ASC`,
+      [],
       (err, rows) => res.json(rows || [])
     );
   }
 });
 
-app.post('/intranet/api/admin/groups', authMiddleware, adminOnly, (req, res) => {
+app.post('/intranet/api/admin/groups', authMiddleware, staffOnly, (req, res) => {
   const { name, category, description } = req.body;
-  if (!name) return res.status(400).json({ error: 'El nombre del grupo es obligatorio' });
-  const cat = category === 'Sol Music' ? 'Sol Music' : 'Particulares';
+  if (!name) return res.status(400).json({ error: 'El nombre del grupo o subgrupo es obligatorio' });
+
+  // Si es profesor, SIEMPRE se crea bajo 'Sol Music' (nunca Particulares)
+  const cat = req.user.role === 'admin'
+    ? (category === 'Sol Music' ? 'Sol Music' : 'Particulares')
+    : 'Sol Music';
+
   db.run(
-    `INSERT INTO groups (name, category, description) VALUES (?, ?, ?)`,
-    [name.trim(), cat, description || ''],
+    `INSERT INTO groups (name, category, description, created_by) VALUES (?, ?, ?, ?)`,
+    [name.trim(), cat, description || '', req.user.id],
     function (err) {
-      if (err) return res.status(400).json({ error: 'Ya existe un grupo con ese nombre' });
+      if (err) return res.status(400).json({ error: 'Ya existe un grupo o subgrupo con ese nombre' });
       res.json({ id: this.lastID, name: name.trim(), category: cat, description });
     }
   );
 });
 
-app.delete('/intranet/api/admin/groups/:id', authMiddleware, adminOnly, (req, res) => {
-  db.run(`DELETE FROM groups WHERE id = ?`, [req.params.id], () => {
-    db.run(`DELETE FROM teacher_groups WHERE group_id = ?`, [req.params.id], () => res.json({ ok: true }));
+app.delete('/intranet/api/admin/groups/:id', authMiddleware, staffOnly, (req, res) => {
+  verifyGroupAccess(req.user, req.params.id, (allowed) => {
+    if (!allowed) return res.status(403).json({ error: 'No tienes permiso para eliminar este grupo' });
+    db.run(`DELETE FROM groups WHERE id = ?`, [req.params.id], () => {
+      db.run(`DELETE FROM teacher_groups WHERE group_id = ?`, [req.params.id], () => res.json({ ok: true }));
+    });
   });
 });
 
 // ================= GESTIÓN DE PROFESORES (Solo Admin) =================
 app.get('/intranet/api/admin/teachers', authMiddleware, adminOnly, (req, res) => {
   db.all(`SELECT id, code, full_name FROM users WHERE role = 'teacher' ORDER BY full_name ASC`, [], (err, teachers) => {
-    if (!teachers || !teachers.length) return res.json([]);
-    db.all(
-      `SELECT tg.teacher_id, g.id AS group_id, g.name AS group_name, g.category
-       FROM teacher_groups tg INNER JOIN groups g ON tg.group_id = g.id`,
-      [],
-      (err2, links) => {
-        const map = {};
-        (links || []).forEach(l => {
-          if (!map[l.teacher_id]) map[l.teacher_id] = [];
-          map[l.teacher_id].push({ id: l.group_id, name: l.group_name, category: l.category });
-        });
-        res.json(teachers.map(t => ({ ...t, groups: map[t.id] || [] })));
-      }
-    );
+    res.json(teachers || []);
   });
 });
 
 app.post('/intranet/api/admin/teachers', authMiddleware, adminOnly, (req, res) => {
-  const { code, full_name, password, group_ids } = req.body;
+  const { code, full_name, password } = req.body;
   if (!code || !full_name || !password) {
     return res.status(400).json({ error: 'Nombre, usuario y contraseña del profesor son obligatorios' });
   }
@@ -226,14 +224,7 @@ app.post('/intranet/api/admin/teachers', authMiddleware, adminOnly, (req, res) =
     [code.trim(), full_name.trim(), hash],
     function (err) {
       if (err) return res.status(400).json({ error: 'Ese usuario/código ya está en uso' });
-      const teacherId = this.lastID;
-      if (Array.isArray(group_ids) && group_ids.length) {
-        const stmt = db.prepare(`INSERT OR IGNORE INTO teacher_groups (teacher_id, group_id) VALUES (?, ?)`);
-        group_ids.forEach(gid => stmt.run(teacherId, gid));
-        stmt.finalize(() => res.json({ id: teacherId }));
-      } else {
-        res.json({ id: teacherId });
-      }
+      res.json({ id: this.lastID });
     }
   );
 });
@@ -244,7 +235,7 @@ app.delete('/intranet/api/admin/teachers/:id', authMiddleware, adminOnly, (req, 
   });
 });
 
-// ================= GESTIÓN DE ESTUDIANTES (Admin y Profesores en sus grupos) =================
+// ================= GESTIÓN DE ESTUDIANTES (Admin ve todos; Profesores solo Sol Music) =================
 app.get('/intranet/api/admin/students', authMiddleware, staffOnly, (req, res) => {
   const { group_id, category } = req.query;
 
@@ -267,16 +258,11 @@ app.get('/intranet/api/admin/students', authMiddleware, staffOnly, (req, res) =>
     let sql = `SELECT u.id, u.code, u.full_name, u.group_id, g.name AS group_name, g.category
                FROM users u
                INNER JOIN groups g ON u.group_id = g.id
-               INNER JOIN teacher_groups tg ON g.id = tg.group_id
-               WHERE u.role = 'student' AND tg.teacher_id = ?`;
-    const params = [req.user.id];
+               WHERE u.role = 'student' AND g.category = 'Sol Music'`;
+    const params = [];
     if (group_id) {
       sql += ` AND u.group_id = ?`;
       params.push(group_id);
-    }
-    if (category && category !== 'Todos') {
-      sql += ` AND g.category = ?`;
-      params.push(category);
     }
     sql += ` ORDER BY u.full_name ASC`;
     db.all(sql, params, (err, rows) => res.json(rows || []));
@@ -289,7 +275,7 @@ app.post('/intranet/api/admin/students', authMiddleware, staffOnly, (req, res) =
     return res.status(400).json({ error: 'Todos los campos son obligatorios' });
   }
   verifyGroupAccess(req.user, group_id, (allowed) => {
-    if (!allowed) return res.status(403).json({ error: 'No tienes permiso para agregar alumnos a este grupo' });
+    if (!allowed) return res.status(403).json({ error: 'Solo puedes registrar alumnos en subgrupos de Sol Music' });
 
     const hash = bcrypt.hashSync(password, 10);
     db.run(
@@ -315,7 +301,7 @@ app.delete('/intranet/api/admin/students/:id', authMiddleware, staffOnly, (req, 
   });
 });
 
-// ================= ASISTENCIAS (Admin y Profesor en sus grupos) =================
+// ================= ASISTENCIAS (Admin y Profesor en Sol Music) =================
 app.get('/intranet/api/admin/attendance', authMiddleware, staffOnly, (req, res) => {
   const { group_id, date } = req.query;
   if (!group_id || !date) return res.status(400).json({ error: 'Falta grupo o fecha' });
@@ -356,7 +342,7 @@ app.post('/intranet/api/admin/attendance', authMiddleware, staffOnly, (req, res)
   });
 });
 
-// ================= MATERIALES (Admin y Profesor en sus grupos) =================
+// ================= MATERIALES (Admin y Profesor en Sol Music) =================
 app.get('/intranet/api/admin/materials', authMiddleware, staffOnly, (req, res) => {
   if (req.user.role === 'admin') {
     db.all(
@@ -369,10 +355,9 @@ app.get('/intranet/api/admin/materials', authMiddleware, staffOnly, (req, res) =
   } else {
     db.all(
       `SELECT m.*, g.name AS group_name, g.category FROM materials m
-       INNER JOIN teacher_groups tg ON m.group_id = tg.group_id
-       LEFT JOIN groups g ON m.group_id = g.id
-       WHERE tg.teacher_id = ? ORDER BY m.created_at DESC`,
-      [req.user.id],
+       INNER JOIN groups g ON m.group_id = g.id
+       WHERE g.category = 'Sol Music' ORDER BY m.created_at DESC`,
+      [],
       (err, rows) => res.json(rows || [])
     );
   }
@@ -383,7 +368,7 @@ app.post('/intranet/api/admin/materials', authMiddleware, staffOnly, upload.sing
   if (!group_id || !title) return res.status(400).json({ error: 'Grupo y título son obligatorios' });
 
   verifyGroupAccess(req.user, group_id, (allowed) => {
-    if (!allowed) return res.status(403).json({ error: 'No tienes permiso para publicar en este grupo' });
+    if (!allowed) return res.status(403).json({ error: 'Solo puedes publicar en subgrupos de Sol Music' });
 
     const fileName = req.file ? req.file.filename : null;
     const originalName = req.file ? req.file.originalname : null;
