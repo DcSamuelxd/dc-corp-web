@@ -10,7 +10,6 @@ const app = express();
 const PORT = 3001;
 const JWT_SECRET = process.env.JWT_SECRET || 'DCCORP_INTRANET_SECRET_2026_VSC';
 
-// Directorios persistentes (ignorados en git)
 const dataDir = path.join(__dirname, 'data');
 const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
@@ -19,7 +18,6 @@ if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 app.use(express.json());
 app.use('/intranet', express.static(path.join(__dirname, 'public')));
 
-// Configuración de subida de archivos
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadsDir),
   filename: (req, file, cb) => {
@@ -29,7 +27,6 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits: { fileSize: 50 * 1024 * 1024 } });
 
-// Inicialización de Base de Datos SQLite
 const db = new sqlite3.Database(path.join(dataDir, 'intranet.db'));
 
 db.serialize(() => {
@@ -45,7 +42,6 @@ db.serialize(() => {
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
 
-  // Migraciones suaves para usuarios existentes
   db.run(`ALTER TABLE users ADD COLUMN schedule TEXT`, () => {});
   db.run(`ALTER TABLE users ADD COLUMN monthly_quota INTEGER DEFAULT 8`, () => {});
 
@@ -80,7 +76,7 @@ db.serialize(() => {
     UNIQUE(student_id, date, session_type)
   )`);
 
-  // Migración suave si attendance ya existía con el índice antiguo UNIQUE(student_id, date)
+  // Migración suave si attendance tenía el índice antiguo
   db.all(`PRAGMA table_info(attendance)`, [], (err, cols) => {
     if (!err && Array.isArray(cols)) {
       const hasSessionType = cols.some(c => c.name === 'session_type');
@@ -119,7 +115,6 @@ db.serialize(() => {
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
 
-  // Usuario administrador inicial
   const adminCode = 'admin';
   const defaultPass = 'DcCorp2026!';
   db.get(`SELECT id FROM users WHERE code = ?`, [adminCode], (err, row) => {
@@ -134,7 +129,6 @@ db.serialize(() => {
   });
 });
 
-// Middlewares de Seguridad
 function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader) return res.status(401).json({ error: 'Token requerido' });
@@ -170,7 +164,7 @@ function verifyGroupAccess(user, groupId, cb) {
   cb(false);
 }
 
-// ================= RUTAS DE AUTENTICACIÓN =================
+// ================= AUTENTICACIÓN =================
 app.post('/intranet/api/login', (req, res) => {
   const { code, password } = req.body;
   if (!code || !password) return res.status(400).json({ error: 'Completa usuario y contraseña' });
@@ -241,7 +235,7 @@ app.delete('/intranet/api/admin/groups/:id', authMiddleware, staffOnly, (req, re
   });
 });
 
-// ================= GESTIÓN DE PROFESORES (Solo Admin) =================
+// ================= PROFESORES (Solo Admin) =================
 app.get('/intranet/api/admin/teachers', authMiddleware, adminOnly, (req, res) => {
   db.all(`SELECT id, code, full_name FROM users WHERE role = 'teacher' ORDER BY full_name ASC`, [], (err, teachers) => {
     res.json(teachers || []);
@@ -270,7 +264,7 @@ app.delete('/intranet/api/admin/teachers/:id', authMiddleware, adminOnly, (req, 
   });
 });
 
-// ================= GESTIÓN DE ESTUDIANTES (Con horario fijo y bloque mensual) =================
+// ================= ESTUDIANTES =================
 app.get('/intranet/api/admin/students', authMiddleware, staffOnly, (req, res) => {
   const { group_id, category } = req.query;
 
@@ -339,77 +333,95 @@ app.delete('/intranet/api/admin/students/:id', authMiddleware, staffOnly, (req, 
   });
 });
 
-// ================= ASISTENCIAS REGULARES (BLOQUE DE 8/MES) + REFORZAMIENTO =================
-app.get('/intranet/api/admin/attendance', authMiddleware, staffOnly, (req, res) => {
-  const { group_id, date, session_type } = req.query;
-  if (!group_id || !date) return res.status(400).json({ error: 'Falta grupo o fecha' });
-  const sType = session_type === 'Reforzamiento' ? 'Reforzamiento' : 'Regular';
-  const monthPrefix = date.slice(0, 7); // YYYY-MM
+// ================= ASISTENCIA SEMANAL GRÁFICA (Bloque 8/mes + Recuperación + Reforzamientos) =================
+app.get('/intranet/api/admin/weekly-attendance', authMiddleware, staffOnly, (req, res) => {
+  const { group_id, start_date, end_date } = req.query;
+  if (!group_id || !start_date || !end_date) {
+    return res.status(400).json({ error: 'Falta grupo o rango de semana' });
+  }
+  const monthPrefix = start_date.slice(0, 7);
 
   verifyGroupAccess(req.user, group_id, (allowed) => {
     if (!allowed) return res.status(403).json({ error: 'No tienes permiso sobre este grupo' });
+
     db.all(
       `SELECT u.id AS student_id, u.code, u.full_name, u.schedule, u.monthly_quota,
-              a.status, a.note, a.arrival_time, a.recorded_by_name,
               (SELECT COUNT(*) FROM attendance a2
                WHERE a2.student_id = u.id
-                 AND a2.session_type = 'Regular'
+                 AND a2.session_type IN ('Regular', 'Recuperacion')
                  AND substr(a2.date, 1, 7) = ?
                  AND a2.status IN ('Presente', 'Tardanza', 'Justificado')) AS used_this_month
        FROM users u
-       LEFT JOIN attendance a ON u.id = a.student_id AND a.date = ? AND a.session_type = ?
        WHERE u.role = 'student' AND u.group_id = ?
        ORDER BY u.full_name ASC`,
-      [monthPrefix, date, sType, group_id],
-      (err, rows) => res.json(rows || [])
+      [monthPrefix, group_id],
+      (err, students) => {
+        if (!students || !students.length) return res.json({ students: [], records: [] });
+
+        db.all(
+          `SELECT id, student_id, date, status, note, session_type, arrival_time, recorded_by_name
+           FROM attendance
+           WHERE group_id = ? AND date >= ? AND date <= ?`,
+          [group_id, start_date, end_date],
+          (err2, records) => {
+            res.json({ students, records: records || [] });
+          }
+        );
+      }
     );
   });
 });
 
-app.post('/intranet/api/admin/attendance', authMiddleware, staffOnly, (req, res) => {
-  const { group_id, date, session_type, records } = req.body;
-  if (!group_id || !date || !Array.isArray(records)) {
-    return res.status(400).json({ error: 'Datos de asistencia incompletos' });
+// Guarda, actualiza o elimina un registro individual al hacer clic en una celda de la semana
+app.post('/intranet/api/admin/attendance/cell', authMiddleware, staffOnly, (req, res) => {
+  const { student_id, group_id, date, status, session_type, arrival_time, note } = req.body;
+  if (!student_id || !group_id || !date) {
+    return res.status(400).json({ error: 'Datos incompletos' });
   }
-  const sType = session_type === 'Reforzamiento' ? 'Reforzamiento' : 'Regular';
-  const markerId = req.user.id;
-  const markerName = req.user.full_name;
+  const sType = ['Regular', 'Recuperacion', 'Reforzamiento'].includes(session_type) ? session_type : 'Regular';
 
   verifyGroupAccess(req.user, group_id, (allowed) => {
     if (!allowed) return res.status(403).json({ error: 'No tienes permiso sobre este grupo' });
 
-    const stmt = db.prepare(`
-      INSERT INTO attendance (student_id, group_id, date, status, note, session_type, arrival_time, recorded_by_id, recorded_by_name)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-      ON CONFLICT(student_id, date, session_type) DO UPDATE SET
-        status = excluded.status,
-        note = excluded.note,
-        group_id = excluded.group_id,
-        arrival_time = excluded.arrival_time,
-        recorded_by_id = excluded.recorded_by_id,
-        recorded_by_name = excluded.recorded_by_name
-    `);
+    // Si status viene vacío o 'Clear', borramos el registro de ese día/tipo
+    if (!status || status === 'Clear') {
+      db.run(
+        `DELETE FROM attendance WHERE student_id = ? AND date = ? AND session_type = ?`,
+        [student_id, date, sType],
+        (err) => {
+          if (err) return res.status(500).json({ error: 'Error limpiando registro' });
+          res.json({ ok: true, deleted: true });
+        }
+      );
+      return;
+    }
 
-    records.forEach(r => {
-      // En modo Reforzamiento, si un alumno no asistió al reforzamiento (status === 'No aplica'), no lo insertamos
-      if (sType === 'Reforzamiento' && r.status === 'No aplica') return;
-      stmt.run(
-        r.student_id,
+    db.run(
+      `INSERT INTO attendance (student_id, group_id, date, status, note, session_type, arrival_time, recorded_by_id, recorded_by_name)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(student_id, date, session_type) DO UPDATE SET
+         status = excluded.status,
+         note = excluded.note,
+         group_id = excluded.group_id,
+         arrival_time = excluded.arrival_time,
+         recorded_by_id = excluded.recorded_by_id,
+         recorded_by_name = excluded.recorded_by_name`,
+      [
+        student_id,
         group_id,
         date,
-        r.status,
-        r.note || '',
+        status,
+        note || '',
         sType,
-        sType === 'Reforzamiento' ? (r.arrival_time || '') : '',
-        markerId,
-        markerName
-      );
-    });
-
-    stmt.finalize((err) => {
-      if (err) return res.status(500).json({ error: 'Error guardando asistencias' });
-      res.json({ ok: true });
-    });
+        arrival_time || '',
+        req.user.id,
+        req.user.full_name
+      ],
+      function (err) {
+        if (err) return res.status(500).json({ error: 'Error guardando asistencia' });
+        res.json({ ok: true, recorded_by_name: req.user.full_name });
+      }
+    );
   });
 });
 
@@ -470,7 +482,7 @@ app.delete('/intranet/api/admin/materials/:id', authMiddleware, staffOnly, (req,
   });
 });
 
-// ================= RUTAS DEL ESTUDIANTE =================
+// ================= PORTAL DEL ESTUDIANTE =================
 app.get('/intranet/api/student/dashboard', authMiddleware, (req, res) => {
   db.get(
     `SELECT u.id, u.code, u.full_name, u.group_id, u.schedule, u.monthly_quota,
