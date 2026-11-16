@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Portal Académico — DC CORP</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', sans-serif;
+      background-color: #f5f5f7;
+      background-image:
+        radial-gradient(at 15% 15%, rgba(0, 113, 227, 0.08) 0px, transparent 50%),
+        radial-gradient(at 85% 85%, rgba(16, 185, 129, 0.07) 0px, transparent 50%);
+      color: #1d1d1f;
+    }
+    .apple-nav {
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: saturate(180%) blur(20px);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+    }
+    .glass-bento {
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: saturate(180%) blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.045);
+      border-radius: 24px;
+    }
+  </style>
+</head>
+<body class="min-h-screen pb-16">
+
+  <header class="sticky top-0 z-40 apple-nav">
+    <div class="max-w-5xl mx-auto px-5 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <img src="/logo.svg" alt="DC CORP" class="h-10">
+        <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 text-[11px] font-semibold">Estudiante</span>
+      </div>
+      <button onclick="logout()" class="px-4 py-1.5 rounded-full bg-black/5 hover:bg-red-500/10 hover:text-red-600 text-xs font-medium transition">
+        Cerrar sesión
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-5 pt-8 space-y-8">
+
+    <!-- Cabecera Bienvenida -->
+    <div class="glass-bento p-7 sm:p-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div>
+        <span id="groupBadge" class="inline-block px-3 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-xs font-semibold mb-2">Cargando curso...</span>
+        <h1 class="text-2xl sm:text-3xl font-bold tracking-tight" id="studentName">Bienvenido</h1>
+        <p class="text-xs text-[#6e6e73] mt-1" id="studentCode"></p>
+      </div>
+      <div class="flex gap-4 text-center">
+        <div class="px-5 py-3 rounded-2xl bg-white/90 border border-black/[0.06]">
+          <span class="block text-2xl font-bold text-[#0071e3]" id="statPct">100%</span>
+          <span class="text-[11px] text-[#6e6e73]">Asistencia</span>
+        </div>
+        <div class="px-5 py-3 rounded-2xl bg-white/90 border border-black/[0.06]">
+          <span class="block text-2xl font-bold text-[#1d1d1f]" id="statTotal">0</span>
+          <span class="text-[11px] text-[#6e6e73]">Sesiones</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
+      <!-- Columna Materiales de Estudio -->
+      <div class="lg:col-span-7 glass-bento p-6 sm:p-8">
+        <div class="flex items-center justify-between mb-5">
+          <div>
+            <h2 class="text-lg font-bold">Materiales de Estudio</h2>
+            <p class="text-xs text-[#6e6e73]">Guías, archivos y enlaces compartidos por el profesor Víctor Castro</p>
+          </div>
+          <i class="fa-solid fa-book-open text-[#0071e3] text-lg"></i>
+        </div>
+        <div id="studentMaterials" class="space-y-3"></div>
+      </div>
+
+      <!-- Columna Reporte de Asistencias -->
+      <div class="lg:col-span-5 glass-bento p-6 sm:p-8">
+        <div class="flex items-center justify-between mb-5">
+          <div>
+            <h2 class="text-lg font-bold">Historial de Asistencia</h2>
+            <p class="text-xs text-[#6e6e73]">Registro detallado por sesión</p>
+          </div>
+          <i class="fa-solid fa-calendar-check text-emerald-600 text-lg"></i>
+        </div>
+        <div id="studentAttendances" class="space-y-2.5 max-h-[460px] overflow-y-auto pr-1"></div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <script>
+    const token = localStorage.getItem('dc_token');
+    if (!token) window.location.href = '/intranet';
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = '/intranet';
+    }
+
+    async function loadStudentPortal() {
+      const res = await fetch('/intranet/api/student/dashboard', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.status === 401) return logout();
+      const data = await res.json();
+
+      document.getElementById('studentName').innerText = `Hola, ${data.student.full_name}`;
+      document.getElementById('studentCode').innerText = `Código de estudiante: ${data.student.code}`;
+      document.getElementById('groupBadge').innerText = data.student.group_name || 'Sin grupo asignado';
+
+      const total = data.attendances.length;
+      const valid = data.attendances.filter(a => a.status === 'Presente' || a.status === 'Tardanza' || a.status === 'Justificado').length;
+      const pct = total > 0 ? Math.round((valid / total) * 100) : 100;
+      document.getElementById('statPct').innerText = `${pct}%`;
+      document.getElementById('statTotal').innerText = total;
+
+      document.getElementById('studentMaterials').innerHTML = data.materials.map(m => `
+        <div class="p-4 rounded-2xl bg-white/90 border border-black/[0.06] space-y-2">
+          <div class="flex items-start justify-between gap-2">
+            <h3 class="text-sm font-bold text-[#1d1d1f]">${m.title}</h3>
+            <span class="text-[10px] text-[#6e6e73] shrink-0">${new Date(m.created_at).toLocaleDateString('es-PE')}</span>
+          </div>
+          ${m.description ? `<p class="text-xs text-[#6e6e73] leading-relaxed">${m.description}</p>` : ''}
+          <div class="flex flex-wrap gap-2 pt-1">
+            ${m.file_name ? `
+              <a href="/intranet/api/files/${m.file_name}?token=${token}" target="_blank"
+                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-medium transition">
+                <i class="fa-solid fa-download"></i> Descargar (${m.original_name})
+              </a>` : ''}
+            ${m.external_url ? `
+              <a href="${m.external_url}" target="_blank"
+                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-black/5 hover:bg-black/10 text-[#1d1d1f] text-xs font-medium transition">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir enlace
+              </a>` : ''}
+          </div>
+        </div>
+      `).join('') || '<p class="text-xs text-[#6e6e73] text-center py-8">El profesor aún no ha subido materiales para tu grupo.</p>';
+
+      const badgeStyles = {
+        'Presente': 'bg-emerald-500/10 text-emerald-700',
+        'Tardanza': 'bg-amber-500/10 text-amber-700',
+        'Falta': 'bg-red-500/10 text-red-700',
+        'Justificado': 'bg-sky-500/10 text-sky-700'
+      };
+
+      document.getElementById('studentAttendances').innerHTML = data.attendances.map(a => `
+        <div class="p-3.5 rounded-2xl bg-white/90 border border-black/[0.06] flex items-center justify-between gap-3">
+          <div>
+            <p class="text-xs font-semibold text-[#1d1d1f]">${a.date}</p>
+            ${a.note ? `<p class="text-[11px] text-[#6e6e73]">${a.note}</p>` : ''}
+          </div>
+          <span class="px-3 py-1 rounded-full text-[11px] font-semibold ${badgeStyles[a.status] || 'bg-black/5'}">${a.status}</span>
+        </div>
+      `).join('') || '<p class="text-xs text-[#6e6e73] text-center py-8">Aún no tienes asistencias registradas.</p>';
+    }
+
+    loadStudentPortal();
+  </script>
+</body>
+</html>
