@@ -1,0 +1,3 @@
+node_modules/
+intranet/data/
+intranet/uploads/
