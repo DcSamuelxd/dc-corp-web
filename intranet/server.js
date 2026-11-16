@@ -40,8 +40,14 @@ db.serialize(() => {
     password_hash TEXT NOT NULL,
     role TEXT NOT NULL DEFAULT 'student',
     group_id INTEGER,
+    schedule TEXT,
+    monthly_quota INTEGER DEFAULT 8,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
+
+  // Migraciones suaves para usuarios existentes
+  db.run(`ALTER TABLE users ADD COLUMN schedule TEXT`, () => {});
+  db.run(`ALTER TABLE users ADD COLUMN monthly_quota INTEGER DEFAULT 8`, () => {});
 
   db.run(`CREATE TABLE IF NOT EXISTS groups (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -51,7 +57,6 @@ db.serialize(() => {
     created_by INTEGER
   )`);
 
-  // Migraciones suaves si la tabla groups ya existía
   db.run(`ALTER TABLE groups ADD COLUMN category TEXT NOT NULL DEFAULT 'Particulares'`, () => {});
   db.run(`ALTER TABLE groups ADD COLUMN created_by INTEGER`, () => {});
 
@@ -68,8 +73,40 @@ db.serialize(() => {
     date TEXT NOT NULL,
     status TEXT NOT NULL,
     note TEXT,
-    UNIQUE(student_id, date)
+    session_type TEXT NOT NULL DEFAULT 'Regular',
+    arrival_time TEXT,
+    recorded_by_id INTEGER,
+    recorded_by_name TEXT,
+    UNIQUE(student_id, date, session_type)
   )`);
+
+  // Migración suave si attendance ya existía con el índice antiguo UNIQUE(student_id, date)
+  db.all(`PRAGMA table_info(attendance)`, [], (err, cols) => {
+    if (!err && Array.isArray(cols)) {
+      const hasSessionType = cols.some(c => c.name === 'session_type');
+      if (!hasSessionType) {
+        db.serialize(() => {
+          db.run(`ALTER TABLE attendance RENAME TO attendance_old`);
+          db.run(`CREATE TABLE attendance (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            student_id INTEGER NOT NULL,
+            group_id INTEGER NOT NULL,
+            date TEXT NOT NULL,
+            status TEXT NOT NULL,
+            note TEXT,
+            session_type TEXT NOT NULL DEFAULT 'Regular',
+            arrival_time TEXT,
+            recorded_by_id INTEGER,
+            recorded_by_name TEXT,
+            UNIQUE(student_id, date, session_type)
+          )`);
+          db.run(`INSERT INTO attendance (id, student_id, group_id, date, status, note, session_type)
+                  SELECT id, student_id, group_id, date, status, note, 'Regular' FROM attendance_old`);
+          db.run(`DROP TABLE attendance_old`);
+        });
+      }
+    }
+  });
 
   db.run(`CREATE TABLE IF NOT EXISTS materials (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -122,7 +159,6 @@ function staffOnly(req, res, next) {
   next();
 }
 
-// Verifica acceso: Admin accede a todo; Profesor accede a cualquier grupo de 'Sol Music'
 function verifyGroupAccess(user, groupId, cb) {
   if (user.role === 'admin') return cb(true);
   if (user.role === 'teacher') {
@@ -165,7 +201,7 @@ app.post('/intranet/api/change-password', authMiddleware, (req, res) => {
   });
 });
 
-// ================= GRUPOS Y SUBGRUPOS (Admin ve todos; Profesor ve y crea subgrupos en 'Sol Music') =================
+// ================= GRUPOS Y SUBGRUPOS =================
 app.get('/intranet/api/admin/groups', authMiddleware, staffOnly, (req, res) => {
   if (req.user.role === 'admin') {
     db.all(`SELECT * FROM groups ORDER BY category ASC, name ASC`, [], (err, rows) => res.json(rows || []));
@@ -182,7 +218,6 @@ app.post('/intranet/api/admin/groups', authMiddleware, staffOnly, (req, res) => 
   const { name, category, description } = req.body;
   if (!name) return res.status(400).json({ error: 'El nombre del grupo o subgrupo es obligatorio' });
 
-  // Si es profesor, SIEMPRE se crea bajo 'Sol Music' (nunca Particulares)
   const cat = req.user.role === 'admin'
     ? (category === 'Sol Music' ? 'Sol Music' : 'Particulares')
     : 'Sol Music';
@@ -235,12 +270,12 @@ app.delete('/intranet/api/admin/teachers/:id', authMiddleware, adminOnly, (req, 
   });
 });
 
-// ================= GESTIÓN DE ESTUDIANTES (Admin ve todos; Profesores solo Sol Music) =================
+// ================= GESTIÓN DE ESTUDIANTES (Con horario fijo y bloque mensual) =================
 app.get('/intranet/api/admin/students', authMiddleware, staffOnly, (req, res) => {
   const { group_id, category } = req.query;
 
   if (req.user.role === 'admin') {
-    let sql = `SELECT u.id, u.code, u.full_name, u.group_id, g.name AS group_name, g.category
+    let sql = `SELECT u.id, u.code, u.full_name, u.group_id, u.schedule, u.monthly_quota, g.name AS group_name, g.category
                FROM users u LEFT JOIN groups g ON u.group_id = g.id
                WHERE u.role = 'student'`;
     const params = [];
@@ -255,7 +290,7 @@ app.get('/intranet/api/admin/students', authMiddleware, staffOnly, (req, res) =>
     sql += ` ORDER BY u.full_name ASC`;
     db.all(sql, params, (err, rows) => res.json(rows || []));
   } else {
-    let sql = `SELECT u.id, u.code, u.full_name, u.group_id, g.name AS group_name, g.category
+    let sql = `SELECT u.id, u.code, u.full_name, u.group_id, u.schedule, u.monthly_quota, g.name AS group_name, g.category
                FROM users u
                INNER JOIN groups g ON u.group_id = g.id
                WHERE u.role = 'student' AND g.category = 'Sol Music'`;
@@ -270,17 +305,20 @@ app.get('/intranet/api/admin/students', authMiddleware, staffOnly, (req, res) =>
 });
 
 app.post('/intranet/api/admin/students', authMiddleware, staffOnly, (req, res) => {
-  const { code, full_name, password, group_id } = req.body;
+  const { code, full_name, password, group_id, schedule, monthly_quota } = req.body;
   if (!code || !full_name || !password || !group_id) {
-    return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+    return res.status(400).json({ error: 'Nombre, usuario, contraseña y grupo son obligatorios' });
   }
+  const quota = parseInt(monthly_quota, 10) || 8;
+
   verifyGroupAccess(req.user, group_id, (allowed) => {
     if (!allowed) return res.status(403).json({ error: 'Solo puedes registrar alumnos en subgrupos de Sol Music' });
 
     const hash = bcrypt.hashSync(password, 10);
     db.run(
-      `INSERT INTO users (code, full_name, password_hash, role, group_id) VALUES (?, ?, ?, 'student', ?)`,
-      [code.trim(), full_name.trim(), hash, group_id],
+      `INSERT INTO users (code, full_name, password_hash, role, group_id, schedule, monthly_quota)
+       VALUES (?, ?, ?, 'student', ?, ?, ?)`,
+      [code.trim(), full_name.trim(), hash, group_id, (schedule || '').trim(), quota],
       function (err) {
         if (err) return res.status(400).json({ error: 'Ese código/usuario ya está registrado' });
         res.json({ id: this.lastID });
@@ -301,40 +339,73 @@ app.delete('/intranet/api/admin/students/:id', authMiddleware, staffOnly, (req, 
   });
 });
 
-// ================= ASISTENCIAS (Admin y Profesor en Sol Music) =================
+// ================= ASISTENCIAS REGULARES (BLOQUE DE 8/MES) + REFORZAMIENTO =================
 app.get('/intranet/api/admin/attendance', authMiddleware, staffOnly, (req, res) => {
-  const { group_id, date } = req.query;
+  const { group_id, date, session_type } = req.query;
   if (!group_id || !date) return res.status(400).json({ error: 'Falta grupo o fecha' });
+  const sType = session_type === 'Reforzamiento' ? 'Reforzamiento' : 'Regular';
+  const monthPrefix = date.slice(0, 7); // YYYY-MM
 
   verifyGroupAccess(req.user, group_id, (allowed) => {
     if (!allowed) return res.status(403).json({ error: 'No tienes permiso sobre este grupo' });
     db.all(
-      `SELECT u.id AS student_id, u.code, u.full_name, a.status, a.note
+      `SELECT u.id AS student_id, u.code, u.full_name, u.schedule, u.monthly_quota,
+              a.status, a.note, a.arrival_time, a.recorded_by_name,
+              (SELECT COUNT(*) FROM attendance a2
+               WHERE a2.student_id = u.id
+                 AND a2.session_type = 'Regular'
+                 AND substr(a2.date, 1, 7) = ?
+                 AND a2.status IN ('Presente', 'Tardanza', 'Justificado')) AS used_this_month
        FROM users u
-       LEFT JOIN attendance a ON u.id = a.student_id AND a.date = ?
+       LEFT JOIN attendance a ON u.id = a.student_id AND a.date = ? AND a.session_type = ?
        WHERE u.role = 'student' AND u.group_id = ?
        ORDER BY u.full_name ASC`,
-      [date, group_id],
+      [monthPrefix, date, sType, group_id],
       (err, rows) => res.json(rows || [])
     );
   });
 });
 
 app.post('/intranet/api/admin/attendance', authMiddleware, staffOnly, (req, res) => {
-  const { group_id, date, records } = req.body;
+  const { group_id, date, session_type, records } = req.body;
   if (!group_id || !date || !Array.isArray(records)) {
     return res.status(400).json({ error: 'Datos de asistencia incompletos' });
   }
+  const sType = session_type === 'Reforzamiento' ? 'Reforzamiento' : 'Regular';
+  const markerId = req.user.id;
+  const markerName = req.user.full_name;
+
   verifyGroupAccess(req.user, group_id, (allowed) => {
     if (!allowed) return res.status(403).json({ error: 'No tienes permiso sobre este grupo' });
+
     const stmt = db.prepare(`
-      INSERT INTO attendance (student_id, group_id, date, status, note)
-      VALUES (?, ?, ?, ?, ?)
-      ON CONFLICT(student_id, date) DO UPDATE SET status = excluded.status, note = excluded.note, group_id = excluded.group_id
+      INSERT INTO attendance (student_id, group_id, date, status, note, session_type, arrival_time, recorded_by_id, recorded_by_name)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(student_id, date, session_type) DO UPDATE SET
+        status = excluded.status,
+        note = excluded.note,
+        group_id = excluded.group_id,
+        arrival_time = excluded.arrival_time,
+        recorded_by_id = excluded.recorded_by_id,
+        recorded_by_name = excluded.recorded_by_name
     `);
+
     records.forEach(r => {
-      stmt.run(r.student_id, group_id, date, r.status, r.note || '');
+      // En modo Reforzamiento, si un alumno no asistió al reforzamiento (status === 'No aplica'), no lo insertamos
+      if (sType === 'Reforzamiento' && r.status === 'No aplica') return;
+      stmt.run(
+        r.student_id,
+        group_id,
+        date,
+        r.status,
+        r.note || '',
+        sType,
+        sType === 'Reforzamiento' ? (r.arrival_time || '') : '',
+        markerId,
+        markerName
+      );
     });
+
     stmt.finalize((err) => {
       if (err) return res.status(500).json({ error: 'Error guardando asistencias' });
       res.json({ ok: true });
@@ -342,7 +413,7 @@ app.post('/intranet/api/admin/attendance', authMiddleware, staffOnly, (req, res)
   });
 });
 
-// ================= MATERIALES (Admin y Profesor en Sol Music) =================
+// ================= MATERIALES =================
 app.get('/intranet/api/admin/materials', authMiddleware, staffOnly, (req, res) => {
   if (req.user.role === 'admin') {
     db.all(
@@ -402,14 +473,16 @@ app.delete('/intranet/api/admin/materials/:id', authMiddleware, staffOnly, (req,
 // ================= RUTAS DEL ESTUDIANTE =================
 app.get('/intranet/api/student/dashboard', authMiddleware, (req, res) => {
   db.get(
-    `SELECT u.id, u.code, u.full_name, u.group_id, g.name AS group_name, g.category, g.description AS group_desc
+    `SELECT u.id, u.code, u.full_name, u.group_id, u.schedule, u.monthly_quota,
+            g.name AS group_name, g.category, g.description AS group_desc
      FROM users u LEFT JOIN groups g ON u.group_id = g.id WHERE u.id = ?`,
     [req.user.id],
     (err, student) => {
       if (!student) return res.status(404).json({ error: 'Estudiante no encontrado' });
 
       db.all(
-        `SELECT date, status, note FROM attendance WHERE student_id = ? ORDER BY date DESC`,
+        `SELECT date, status, note, session_type, arrival_time, recorded_by_name
+         FROM attendance WHERE student_id = ? ORDER BY date DESC, id DESC`,
         [student.id],
         (err2, attendances) => {
           db.all(
