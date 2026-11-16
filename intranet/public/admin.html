@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panel Administrador — Intranet DC CORP</title>
+  <title>Panel Docente y Administración — Intranet DC CORP</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -37,10 +37,10 @@
     <div class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
       <div class="flex items-center gap-3">
         <img src="/logo.svg" alt="DC CORP" class="h-10">
-        <span class="px-2.5 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[11px] font-semibold">Admin</span>
+        <span id="roleBadge" class="px-2.5 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[11px] font-semibold">Admin</span>
       </div>
       <div class="flex items-center gap-4">
-        <span class="hidden sm:inline text-xs font-medium text-[#6e6e73]" id="adminName">Víctor Castro</span>
+        <span class="hidden sm:inline text-xs font-medium text-[#6e6e73]" id="userName">Usuario</span>
         <button onclick="openPassModal()" class="text-xs text-[#424245] hover:text-[#0071e3] transition" title="Cambiar contraseña">
           <i class="fa-solid fa-key"></i>
         </button>
@@ -62,7 +62,10 @@
         <i class="fa-solid fa-folder-plus mr-1.5 text-indigo-600"></i> Subir Materiales
       </button>
       <button onclick="switchTab('alumnos')" id="tab-alumnos" class="tab-btn px-5 py-2 rounded-xl text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition">
-        <i class="fa-solid fa-users mr-1.5 text-emerald-600"></i> Alumnos y Grupos
+        <i class="fa-solid fa-users mr-1.5 text-emerald-600"></i> Alumnado
+      </button>
+      <button onclick="switchTab('profesores')" id="tab-profesores" class="admin-only-tab tab-btn px-5 py-2 rounded-xl text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition">
+        <i class="fa-solid fa-chalkboard-user mr-1.5 text-amber-600"></i> Profesores
       </button>
     </div>
 
@@ -77,7 +80,7 @@
           <div class="flex flex-wrap items-center gap-3">
             <div>
               <label class="block text-[11px] font-medium text-[#6e6e73] mb-1">Grupo / Curso</label>
-              <select id="attGroupSelect" onchange="loadAttendanceSheet()" class="bg-white border border-black/10 rounded-xl px-3.5 py-2 text-xs font-medium min-w-[190px]"></select>
+              <select id="attGroupSelect" onchange="loadAttendanceSheet()" class="bg-white border border-black/10 rounded-xl px-3.5 py-2 text-xs font-medium min-w-[210px]"></select>
             </div>
             <div>
               <label class="block text-[11px] font-medium text-[#6e6e73] mb-1">Fecha de clase</label>
@@ -87,7 +90,7 @@
         </div>
 
         <div id="attendanceListContainer" class="py-6">
-          <p class="text-xs text-[#6e6e73] text-center py-8">Crea un grupo y registra alumnos para comenzar a tomar asistencia.</p>
+          <p class="text-xs text-[#6e6e73] text-center py-8">No hay grupos asignados todavía.</p>
         </div>
 
         <div class="flex items-center justify-between pt-4 border-t border-black/[0.06]">
@@ -103,7 +106,6 @@
     <section id="panel-materiales" class="hidden space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        <!-- Formulario de Subida -->
         <div class="lg:col-span-5 glass-bento p-6 sm:p-8 h-fit">
           <h2 class="text-lg font-bold mb-1">Adjuntar Material de Estudio</h2>
           <p class="text-xs text-[#6e6e73] mb-5">Sube PDFs, guías, partituras, audios o enlaces dirigidos a un grupo.</p>
@@ -116,7 +118,7 @@
 
             <div>
               <label class="block text-xs font-medium text-[#6e6e73] mb-1">Título del material *</label>
-              <input type="text" id="matTitle" required placeholder="Ej: Guía 03 - Integrales Definidas / Partitura"
+              <input type="text" id="matTitle" required placeholder="Ej: Guía 03 - Integrales / Partitura"
                 class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
             </div>
 
@@ -127,7 +129,7 @@
             </div>
 
             <div>
-              <label class="block text-xs font-medium text-[#6e6e73] mb-1">Archivo adjunto (PDF, Word, Excel, MP3, GPX, ZIP)</label>
+              <label class="block text-xs font-medium text-[#6e6e73] mb-1">Archivo adjunto (PDF, Word, Excel, MP3, ZIP)</label>
               <input type="file" id="matFile" class="w-full text-xs text-[#6e6e73] file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#0071e3]/10 file:text-[#0071e3] hover:file:bg-[#0071e3]/20">
             </div>
 
@@ -142,7 +144,6 @@
           </form>
         </div>
 
-        <!-- Lista de Materiales Publicados -->
         <div class="lg:col-span-7 glass-bento p-6 sm:p-8">
           <h2 class="text-lg font-bold mb-4">Materiales Publicados</h2>
           <div id="materialsList" class="space-y-3"></div>
@@ -151,19 +152,24 @@
       </div>
     </section>
 
-    <!-- ==================== SECCIÓN 3: ALUMNOS Y GRUPOS ==================== -->
+    <!-- ==================== SECCIÓN 3: ALUMNADO (PARTICULARES vs SOL MUSIC) ==================== -->
     <section id="panel-alumnos" class="hidden space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        <!-- Crear Grupo y Crear Alumno -->
         <div class="lg:col-span-5 space-y-6">
-          
-          <!-- Nuevo Grupo -->
-          <div class="glass-bento p-6">
+          <!-- Crear Grupo (Solo Admin) -->
+          <div id="adminCreateGroupCard" class="glass-bento p-6">
             <h3 class="text-base font-bold mb-1">1. Crear Grupo o Materia</h3>
-            <p class="text-xs text-[#6e6e73] mb-4">Ej: Matemáticas Pre, Estadística Tesis, Guitarra Nivel 1.</p>
+            <p class="text-xs text-[#6e6e73] mb-4">Clasifica cada curso en Particulares o Sol Music.</p>
             <form id="groupForm" class="space-y-3">
-              <input type="text" id="groupName" required placeholder="Nombre del grupo" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
+              <div>
+                <label class="block text-[11px] font-medium text-[#6e6e73] mb-1">Modalidad / División *</label>
+                <select id="groupCategory" required class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs font-semibold">
+                  <option value="Particulares">📘 Particulares (Matemáticas, Estadística, Música)</option>
+                  <option value="Sol Music">🎵 Sol Music (Academia)</option>
+                </select>
+              </div>
+              <input type="text" id="groupName" required placeholder="Nombre del grupo (ej: Guitarra Sol Music Sabatino)" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
               <input type="text" id="groupDesc" placeholder="Horario o descripción breve (opcional)" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
               <button type="submit" class="w-full py-2.5 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition">
                 + Agregar Grupo
@@ -172,10 +178,10 @@
             <div id="groupsTags" class="flex flex-wrap gap-2 mt-4 pt-4 border-t border-black/[0.06]"></div>
           </div>
 
-          <!-- Nuevo Estudiante -->
+          <!-- Registrar Estudiante (Admin y Profesores en sus grupos asignados) -->
           <div class="glass-bento p-6">
-            <h3 class="text-base font-bold mb-1">2. Registrar Estudiante</h3>
-            <p class="text-xs text-[#6e6e73] mb-4">Asigna un usuario/DNI y contraseña para que ingrese a su portal.</p>
+            <h3 class="text-base font-bold mb-1">Registrar Estudiante</h3>
+            <p class="text-xs text-[#6e6e73] mb-4">Crea su usuario/DNI y contraseña para su portal.</p>
             <form id="studentForm" class="space-y-3">
               <input type="text" id="stuName" required placeholder="Nombre completo del estudiante" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
               <input type="text" id="stuCode" required placeholder="Usuario o DNI de acceso (ej: 74859612)" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
@@ -186,21 +192,37 @@
               </button>
             </form>
           </div>
-
         </div>
 
-        <!-- Directorio de Estudiantes -->
+        <!-- Directorio de Alumnado con División Particulares / Sol Music -->
         <div class="lg:col-span-7 glass-bento p-6 sm:p-8">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-bold">Estudiantes Matriculados</h3>
-            <span id="studentCount" class="text-xs font-semibold text-[#0071e3]">0 alumnos</span>
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+            <div>
+              <h3 class="text-lg font-bold">Directorio de Alumnado</h3>
+              <p class="text-xs text-[#6e6e73]" id="studentCount">0 alumnos</p>
+            </div>
+
+            <!-- Filtro Segmented Control: Todos / Particulares / Sol Music -->
+            <div class="inline-flex p-1 rounded-xl bg-black/[0.05] text-xs font-semibold">
+              <button onclick="setStudentCategoryFilter('Todos')" id="cat-Todos" class="cat-btn px-3 py-1.5 rounded-lg bg-white text-[#1d1d1f] shadow-sm transition">
+                Todos
+              </button>
+              <button onclick="setStudentCategoryFilter('Particulares')" id="cat-Particulares" class="cat-btn px-3 py-1.5 rounded-lg text-[#6e6e73] hover:text-[#1d1d1f] transition">
+                Particulares
+              </button>
+              <button onclick="setStudentCategoryFilter('Sol Music')" id="cat-Sol Music" class="cat-btn px-3 py-1.5 rounded-lg text-[#6e6e73] hover:text-[#1d1d1f] transition">
+                Sol Music
+              </button>
+            </div>
           </div>
+
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
               <thead>
                 <tr class="border-b border-black/[0.08] text-[11px] uppercase text-[#6e6e73]">
                   <th class="py-2.5 px-2">Estudiante</th>
                   <th class="py-2.5 px-2">Usuario / DNI</th>
+                  <th class="py-2.5 px-2">División</th>
                   <th class="py-2.5 px-2">Grupo</th>
                   <th class="py-2.5 px-2 text-right">Acción</th>
                 </tr>
@@ -213,12 +235,46 @@
       </div>
     </section>
 
+    <!-- ==================== SECCIÓN 4: PROFESORES (SOLO ADMIN) ==================== -->
+    <section id="panel-profesores" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <div class="lg:col-span-5 glass-bento p-6 sm:p-8 h-fit">
+          <h3 class="text-base font-bold mb-1">Registrar Docente</h3>
+          <p class="text-xs text-[#6e6e73] mb-4">Crea cuentas para otros profesores y elige qué grupos pueden gestionar (incluye registrar alumnos en esos grupos).</p>
+          <form id="teacherForm" class="space-y-3">
+            <input type="text" id="teaName" required placeholder="Nombre completo del profesor" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
+            <input type="text" id="teaCode" required placeholder="Usuario de acceso (ej: prof.carlos)" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
+            <input type="text" id="teaPass" required placeholder="Contraseña inicial (ej: Docente2026)" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
+            
+            <div class="pt-1">
+              <label class="block text-[11px] font-semibold text-[#6e6e73] mb-2">Grupos asignados a este profesor:</label>
+              <div id="teacherGroupsCheckboxes" class="space-y-1.5 max-h-40 overflow-y-auto p-3 rounded-xl bg-white border border-black/10 text-xs"></div>
+            </div>
+
+            <button type="submit" class="w-full py-2.5 rounded-full bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold transition">
+              + Crear Cuenta de Profesor
+            </button>
+          </form>
+        </div>
+
+        <div class="lg:col-span-7 glass-bento p-6 sm:p-8">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold">Plana Docente Registrada</h3>
+            <span id="teacherCount" class="text-xs font-semibold text-amber-600">0 profesores</span>
+          </div>
+          <div id="teachersList" class="space-y-3"></div>
+        </div>
+
+      </div>
+    </section>
+
   </main>
 
-  <!-- Modal Cambio de Contraseña Admin -->
+  <!-- Modal Cambio de Contraseña -->
   <div id="passModal" class="hidden fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="glass-bento p-6 max-w-sm w-full bg-white">
-      <h3 class="text-base font-bold mb-2">Cambiar contraseña de Administrador</h3>
+      <h3 class="text-base font-bold mb-2">Cambiar mi contraseña</h3>
       <input type="password" id="newAdminPass" placeholder="Nueva contraseña (mín. 6 caracteres)" class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2.5 text-xs mb-4">
       <div class="flex justify-end gap-2">
         <button onclick="document.getElementById('passModal').classList.add('hidden')" class="px-4 py-2 rounded-full text-xs font-medium text-[#6e6e73]">Cancelar</button>
@@ -229,11 +285,23 @@
 
   <script>
     const token = localStorage.getItem('dc_token');
-    if (!token || localStorage.getItem('dc_role') !== 'admin') {
+    const role = localStorage.getItem('dc_role');
+    if (!token || (role !== 'admin' && role !== 'teacher')) {
       window.location.href = '/intranet';
     }
-    document.getElementById('adminName').innerText = localStorage.getItem('dc_name') || 'Administrador';
+    const isAdmin = role === 'admin';
+    document.getElementById('userName').innerText = localStorage.getItem('dc_name') || 'Usuario';
     document.getElementById('attDateInput').valueAsDate = new Date();
+
+    const badge = document.getElementById('roleBadge');
+    if (isAdmin) {
+      badge.innerText = 'Administrador';
+    } else {
+      badge.innerText = 'Profesor';
+      badge.className = 'px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 text-[11px] font-semibold';
+      document.querySelectorAll('.admin-only-tab').forEach(el => el.classList.add('hidden'));
+      document.getElementById('adminCreateGroupCard').classList.add('hidden');
+    }
 
     const authHeaders = () => ({ 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' });
 
@@ -260,9 +328,10 @@
     }
 
     function switchTab(tab) {
-      ['asistencia', 'materiales', 'alumnos'].forEach(t => {
+      ['asistencia', 'materiales', 'alumnos', 'profesores'].forEach(t => {
         document.getElementById(`panel-${t}`).classList.toggle('hidden', t !== tab);
         const btn = document.getElementById(`tab-${t}`);
+        if (!btn || btn.classList.contains('hidden')) return;
         if (t === tab) {
           btn.className = "tab-btn px-5 py-2 rounded-xl bg-white text-[#1d1d1f] shadow-sm text-xs font-semibold transition";
         } else {
@@ -272,48 +341,108 @@
     }
 
     let groupsCache = [];
+    let currentCategoryFilter = 'Todos';
+
+    function setStudentCategoryFilter(cat) {
+      currentCategoryFilter = cat;
+      ['Todos', 'Particulares', 'Sol Music'].forEach(c => {
+        const btn = document.getElementById(`cat-${c}`);
+        if (c === cat) {
+          btn.className = "cat-btn px-3 py-1.5 rounded-lg bg-white text-[#1d1d1f] shadow-sm transition";
+        } else {
+          btn.className = "cat-btn px-3 py-1.5 rounded-lg text-[#6e6e73] hover:text-[#1d1d1f] transition";
+        }
+      });
+      loadStudents();
+    }
 
     async function loadAllData() {
       const gRes = await fetch('/intranet/api/admin/groups', { headers: authHeaders() });
       if (gRes.status === 401) return logout();
       groupsCache = await gRes.json();
 
+      // Todos los selectores de grupo (incluyendo stuGroupSelect para profesores y admin)
       const selects = ['attGroupSelect', 'matGroupSelect', 'stuGroupSelect'];
       selects.forEach(id => {
         const el = document.getElementById(id);
         const prev = el.value;
         el.innerHTML = groupsCache.length
-          ? groupsCache.map(g => `<option value="${g.id}">${g.name}</option>`).join('')
-          : '<option value="">Sin grupos creados</option>';
+          ? groupsCache.map(g => `<option value="${g.id}">[${g.category || 'Particulares'}] ${g.name}</option>`).join('')
+          : '<option value="">Sin grupos asignados</option>';
         if (prev && groupsCache.some(g => String(g.id) === prev)) el.value = prev;
       });
 
-      document.getElementById('groupsTags').innerHTML = groupsCache.map(g => `
-        <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-700 text-xs font-medium">
-          ${g.name}
-          <button onclick="deleteGroup(${g.id})" class="hover:text-red-600">&times;</button>
-        </span>
-      `).join('');
+      if (isAdmin) {
+        document.getElementById('groupsTags').innerHTML = groupsCache.map(g => {
+          const isSol = g.category === 'Sol Music';
+          const pillClass = isSol ? 'bg-amber-500/15 text-amber-800' : 'bg-indigo-500/10 text-indigo-700';
+          return `
+            <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full ${pillClass} text-xs font-medium">
+              <strong>${g.category || 'Particulares'}:</strong> ${g.name}
+              <button onclick="deleteGroup(${g.id})" class="hover:text-red-600">&times;</button>
+            </span>
+          `;
+        }).join('');
+
+        document.getElementById('teacherGroupsCheckboxes').innerHTML = groupsCache.length
+          ? groupsCache.map(g => `
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" name="tea_groups" value="${g.id}" class="rounded text-amber-600">
+                <span><strong>[${g.category || 'Particulares'}]</strong> ${g.name}</span>
+              </label>
+            `).join('')
+          : '<p class="text-[#6e6e73]">Crea primero algún grupo en "Alumnado".</p>';
+
+        await loadTeachers();
+      }
 
       await loadStudents();
       await loadAttendanceSheet();
       await loadMaterials();
     }
 
+    async function loadTeachers() {
+      const res = await fetch('/intranet/api/admin/teachers', { headers: authHeaders() });
+      const teachers = await res.json();
+      document.getElementById('teacherCount').innerText = `${teachers.length} profesores`;
+      document.getElementById('teachersList').innerHTML = teachers.map(t => `
+        <div class="p-4 rounded-2xl bg-white/90 border border-black/[0.06] flex items-start justify-between gap-4">
+          <div class="space-y-1.5">
+            <h4 class="text-sm font-bold text-[#1d1d1f]">${t.full_name}</h4>
+            <p class="text-xs text-[#6e6e73] font-mono">Usuario: ${t.code}</p>
+            <div class="flex flex-wrap gap-1.5 pt-1">
+              ${t.groups.length
+                ? t.groups.map(g => `<span class="px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-700 text-[10px] font-semibold">[${g.category || 'Particulares'}] ${g.name}</span>`).join('')
+                : '<span class="text-[11px] text-[#6e6e73]">Sin grupos asignados</span>'}
+            </div>
+          </div>
+          <button onclick="deleteTeacher(${t.id})" class="text-red-500 hover:text-red-700 text-xs p-1"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      `).join('') || '<p class="text-xs text-[#6e6e73] text-center py-8">Aún no hay otros profesores registrados.</p>';
+    }
+
     async function loadStudents() {
-      const res = await fetch('/intranet/api/admin/students', { headers: authHeaders() });
+      const query = currentCategoryFilter !== 'Todos' ? `?category=${encodeURIComponent(currentCategoryFilter)}` : '';
+      const res = await fetch(`/intranet/api/admin/students${query}`, { headers: authHeaders() });
       const students = await res.json();
-      document.getElementById('studentCount').innerText = `${students.length} alumnos`;
-      document.getElementById('studentsTableBody').innerHTML = students.map(s => `
-        <tr>
-          <td class="py-3 px-2 font-semibold text-[#1d1d1f]">${s.full_name}</td>
-          <td class="py-3 px-2 text-[#6e6e73] font-mono">${s.code}</td>
-          <td class="py-3 px-2"><span class="px-2.5 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] font-medium">${s.group_name || 'Sin grupo'}</span></td>
-          <td class="py-3 px-2 text-right">
-            <button onclick="deleteStudent(${s.id})" class="text-red-500 hover:text-red-700 text-xs"><i class="fa-solid fa-trash"></i></button>
-          </td>
-        </tr>
-      `).join('') || '<tr><td colspan="4" class="py-6 text-center text-[#6e6e73]">Aún no hay estudiantes registrados.</td></tr>';
+      document.getElementById('studentCount').innerText = `${students.length} alumnos (${currentCategoryFilter})`;
+      document.getElementById('studentsTableBody').innerHTML = students.map(s => {
+        const isSol = s.category === 'Sol Music';
+        const divBadge = isSol
+          ? '<span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 font-semibold text-[11px]">Sol Music</span>'
+          : '<span class="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 font-semibold text-[11px]">Particulares</span>';
+        return `
+          <tr>
+            <td class="py-3 px-2 font-semibold text-[#1d1d1f]">${s.full_name}</td>
+            <td class="py-3 px-2 text-[#6e6e73] font-mono">${s.code}</td>
+            <td class="py-3 px-2">${divBadge}</td>
+            <td class="py-3 px-2"><span class="px-2.5 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] font-medium">${s.group_name || 'Sin grupo'}</span></td>
+            <td class="py-3 px-2 text-right">
+              <button onclick="deleteStudent(${s.id})" class="text-red-500 hover:text-red-700 text-xs"><i class="fa-solid fa-trash"></i></button>
+            </td>
+          </tr>
+        `;
+      }).join('') || '<tr><td colspan="5" class="py-6 text-center text-[#6e6e73]">No hay estudiantes registrados en esta vista.</td></tr>';
     }
 
     async function loadAttendanceSheet() {
@@ -321,7 +450,7 @@
       const date = document.getElementById('attDateInput').value;
       const container = document.getElementById('attendanceListContainer');
       if (!groupId || !date) {
-        container.innerHTML = '<p class="text-xs text-[#6e6e73] text-center py-8">Crea primero un grupo en la pestaña "Alumnos y Grupos".</p>';
+        container.innerHTML = '<p class="text-xs text-[#6e6e73] text-center py-8">No hay grupos disponibles para tomar asistencia.</p>';
         return;
       }
       const res = await fetch(`/intranet/api/admin/attendance?group_id=${groupId}&date=${date}`, { headers: authHeaders() });
@@ -382,7 +511,7 @@
       document.getElementById('materialsList').innerHTML = mats.map(m => `
         <div class="p-4 rounded-2xl bg-white/90 border border-black/[0.06] flex items-start justify-between gap-4">
           <div class="space-y-1">
-            <span class="px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 text-[10px] font-semibold">${m.group_name || 'General'}</span>
+            <span class="px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 text-[10px] font-semibold">[${m.category || 'Particulares'}] ${m.group_name || 'General'}</span>
             <h4 class="text-sm font-bold text-[#1d1d1f]">${m.title}</h4>
             ${m.description ? `<p class="text-xs text-[#6e6e73]">${m.description}</p>` : ''}
             <div class="flex flex-wrap gap-3 pt-1 text-xs">
@@ -392,7 +521,7 @@
           </div>
           <button onclick="deleteMaterial(${m.id})" class="text-red-500 hover:text-red-700 text-xs p-1"><i class="fa-solid fa-trash"></i></button>
         </div>
-      `).join('') || '<p class="text-xs text-[#6e6e73] text-center py-8">Aún no has publicado materiales.</p>';
+      `).join('') || '<p class="text-xs text-[#6e6e73] text-center py-8">Aún no hay materiales publicados.</p>';
     }
 
     document.getElementById('groupForm').addEventListener('submit', async (e) => {
@@ -401,6 +530,7 @@
         method: 'POST',
         headers: authHeaders(),
         body: JSON.stringify({
+          category: document.getElementById('groupCategory').value,
           name: document.getElementById('groupName').value,
           description: document.getElementById('groupDesc').value
         })
@@ -429,6 +559,28 @@
       if (res.ok) {
         document.getElementById('studentForm').reset();
         loadAllData();
+      } else {
+        const d = await res.json();
+        alert(d.error);
+      }
+    });
+
+    document.getElementById('teacherForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const group_ids = Array.from(document.querySelectorAll('input[name="tea_groups"]:checked')).map(cb => cb.value);
+      const res = await fetch('/intranet/api/admin/teachers', {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({
+          full_name: document.getElementById('teaName').value,
+          code: document.getElementById('teaCode').value,
+          password: document.getElementById('teaPass').value,
+          group_ids
+        })
+      });
+      if (res.ok) {
+        document.getElementById('teacherForm').reset();
+        loadTeachers();
       } else {
         const d = await res.json();
         alert(d.error);
@@ -474,6 +626,12 @@
       if (!confirm('¿Eliminar este estudiante y su historial de asistencias?')) return;
       await fetch(`/intranet/api/admin/students/${id}`, { method: 'DELETE', headers: authHeaders() });
       loadAllData();
+    }
+
+    async function deleteTeacher(id) {
+      if (!confirm('¿Eliminar esta cuenta de profesor?')) return;
+      await fetch(`/intranet/api/admin/teachers/${id}`, { method: 'DELETE', headers: authHeaders() });
+      loadTeachers();
     }
 
     async function deleteMaterial(id) {
