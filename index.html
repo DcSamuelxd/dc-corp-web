@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DC CORP — Soporte PC, Redes LAN, Videovigilancia & Ensamble Pro</title>
+  <title>DC CORP — Ingeniería TI, Asesoría Estadística & Formación Académica</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 
   <!-- Google Fonts: Inter (Estética SF Pro Apple) -->
@@ -22,21 +22,16 @@
 
   <script>
     tailwind.config = {
-      darkMode: 'class',
       theme: {
         extend: {
           colors: {
             apple: {
-              bg: '#000000',
-              surface: '#111113',
-              card: '#161618',
-              elevated: '#1d1d1f',
-              border: 'rgba(255, 255, 255, 0.1)',
+              bg: '#ffffff',
+              surface: '#f5f5f7',
               blue: '#0071e3',
               blueHover: '#0077ed',
-              cyan: '#2997ff',
-              text: '#f5f5f7',
-              muted: '#86868b'
+              ink: '#1d1d1f',
+              muted: '#6e6e73'
             }
           },
           fontFamily: {
@@ -49,8 +44,8 @@
 
   <style>
     body {
-      background-color: #000000;
-      color: #f5f5f7;
+      background-color: #ffffff;
+      color: #1d1d1f;
       font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', sans-serif;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
@@ -59,35 +54,42 @@
 
     /* Barra de navegación translúcida estilo macOS / Apple.com */
     .apple-nav {
-      background: rgba(0, 0, 0, 0.72);
-      backdrop-filter: saturate(180%) blur(20px);
-      -webkit-backdrop-filter: saturate(180%) blur(20px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.72);
+      backdrop-filter: saturate(180%) blur(22px);
+      -webkit-backdrop-filter: saturate(180%) blur(22px);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.07);
     }
 
-    /* Tarjetas Bento Grid estilo Apple */
-    .bento-card {
-      background: #141416;
-      border: 1px solid rgba(255, 255, 255, 0.08);
+    /* Tarjetas Bento Grid estilo vidrio esmerilado Apple */
+    .glass-bento {
+      background: rgba(255, 255, 255, 0.68);
+      backdrop-filter: saturate(180%) blur(26px);
+      -webkit-backdrop-filter: saturate(180%) blur(26px);
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      box-shadow: 0 10px 36px rgba(0, 0, 0, 0.045), 0 1px 3px rgba(0, 0, 0, 0.03);
       border-radius: 28px;
-      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease, background 0.4s ease;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease, border-color 0.4s ease;
     }
 
-    .bento-card:hover {
+    .glass-bento:hover {
       transform: translateY(-4px);
-      border-color: rgba(255, 255, 255, 0.18);
-      background: #18181b;
+      box-shadow: 0 22px 48px rgba(0, 0, 0, 0.075), 0 1px 4px rgba(0, 113, 227, 0.08);
+      border-color: rgba(0, 113, 227, 0.25);
     }
 
-    /* Degradado de texto estilo Apple Pro */
+    /* Fondo ambiental sutil para resaltar la translucidez */
+    .ambient-light-bg {
+      background-color: #f5f5f7;
+      background-image:
+        radial-gradient(at 12% 15%, rgba(0, 113, 227, 0.09) 0px, transparent 50%),
+        radial-gradient(at 88% 20%, rgba(138, 43, 226, 0.07) 0px, transparent 50%),
+        radial-gradient(at 50% 88%, rgba(16, 185, 129, 0.06) 0px, transparent 55%);
+    }
+
     .apple-gradient-text {
-      background: linear-gradient(135deg, #ffffff 15%, #38bdf8 55%, #a855f7 100%);
+      background: linear-gradient(135deg, #0071e3 0%, #00a2ff 50%, #7c3aed 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-    }
-
-    .apple-subtle-gradient {
-      background: radial-gradient(circle at 50% 0%, rgba(41, 151, 255, 0.12) 0%, rgba(0, 0, 0, 0) 65%);
     }
 
     #webgl-canvas {
@@ -96,109 +98,110 @@
       width: 100%;
       height: 100%;
       z-index: 1;
-      opacity: 0.65;
+      opacity: 0.72;
     }
   </style>
 </head>
 <body class="selection:bg-[#0071e3] selection:text-white">
 
-  <!-- ================= NAVBAR ESTILO APPLE ================= -->
+  <!-- ================= NAVBAR TRANSLÚCIDO ESTILO APPLE ================= -->
   <header class="fixed top-0 left-0 w-full z-50 apple-nav transition-all duration-300" id="navbar">
     <div class="max-w-6xl mx-auto px-5 sm:px-8 h-16 sm:h-20 flex items-center justify-between">
 
-      <!-- Logo Vectorial DC CORP -->
-      <a href="#hero" class="flex items-center shrink-0 transition-opacity hover:opacity-85">
-        <img src="/logo.svg" alt="DC CORP - Soporte Tecnológico" class="h-12 sm:h-14 w-auto object-contain">
+      <!-- Logo Vectorial -->
+      <a href="#hero" class="flex items-center shrink-0 transition-opacity hover:opacity-80">
+        <img src="/logo.svg" alt="DC CORP" class="h-12 sm:h-14 w-auto object-contain">
       </a>
 
-      <!-- Enlaces minimalistas centrados -->
-      <nav class="hidden md:flex items-center gap-8 text-xs font-medium tracking-wide text-[#a1a1a6]">
-        <a href="#servicios" class="hover:text-white transition-colors">Soluciones</a>
-        <a href="#diagnostico" class="hover:text-white transition-colors">Diagnóstico</a>
-        <a href="#cotizador" class="hover:text-white transition-colors">Cotizador</a>
-        <a href="#catalogo" class="hover:text-white transition-colors">Equipos Pro</a>
-        <a href="#nosotros" class="hover:text-white transition-colors">Fundador</a>
-        <a href="#contacto" class="hover:text-white transition-colors">Contacto</a>
+      <!-- Enlaces minimalistas -->
+      <nav class="hidden md:flex items-center gap-7 text-xs font-medium tracking-wide text-[#424245]">
+        <a href="#tecnologia" class="hover:text-[#0071e3] transition-colors">Tecnología TI</a>
+        <a href="#academia" class="hover:text-[#0071e3] transition-colors">Estadística & Clases</a>
+        <a href="#diagnostico" class="hover:text-[#0071e3] transition-colors">Diagnóstico</a>
+        <a href="#cotizador" class="hover:text-[#0071e3] transition-colors">Cotizador</a>
+        <a href="#catalogo" class="hover:text-[#0071e3] transition-colors">Equipos</a>
+        <a href="#nosotros" class="hover:text-[#0071e3] transition-colors">Perfil</a>
       </nav>
 
-      <!-- Botón píldora Apple Blue -->
-      <div class="hidden md:flex items-center">
+      <!-- Botón píldora -->
+      <div class="hidden md:flex items-center gap-3">
         <a href="#cotizador" class="px-4 py-2 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-medium transition-all shadow-sm">
           Cotizar
         </a>
       </div>
 
-      <!-- Menú móvil -->
-      <button id="mobileMenuBtn" class="md:hidden p-2 text-[#f5f5f7] hover:opacity-75 transition" aria-label="Abrir Menú">
+      <!-- Botón menú móvil -->
+      <button id="mobileMenuBtn" class="md:hidden p-2 text-[#1d1d1f] hover:opacity-70 transition" aria-label="Abrir Menú">
         <i class="fa-solid fa-bars text-lg" id="menuIcon"></i>
       </button>
     </div>
 
-    <!-- Dropdown móvil estilo iOS -->
-    <div id="mobileMenu" class="hidden md:hidden bg-black/95 backdrop-blur-2xl border-b border-white/10 px-6 pt-3 pb-6 space-y-2">
-      <a href="#servicios" class="mobile-link block py-2.5 text-sm text-[#f5f5f7] border-b border-white/5">Soluciones</a>
-      <a href="#diagnostico" class="mobile-link block py-2.5 text-sm text-[#f5f5f7] border-b border-white/5">Auto-Diagnóstico</a>
-      <a href="#cotizador" class="mobile-link block py-2.5 text-sm text-[#f5f5f7] border-b border-white/5">Cotizador Online</a>
-      <a href="#catalogo" class="mobile-link block py-2.5 text-sm text-[#f5f5f7] border-b border-white/5">Equipos Pro</a>
-      <a href="#nosotros" class="mobile-link block py-2.5 text-sm text-[#f5f5f7] border-b border-white/5">Fundador</a>
-      <a href="#contacto" class="mobile-link block py-2.5 text-sm text-[#f5f5f7]">Contacto</a>
+    <!-- Dropdown móvil translúcido -->
+    <div id="mobileMenu" class="hidden md:hidden bg-white/90 backdrop-blur-2xl border-b border-black/10 px-6 pt-3 pb-6 space-y-2">
+      <a href="#tecnologia" class="mobile-link block py-2.5 text-sm text-[#1d1d1f] border-b border-black/5">Tecnología & Redes TI</a>
+      <a href="#academia" class="mobile-link block py-2.5 text-sm text-[#1d1d1f] border-b border-black/5">Estadística, Matemáticas & Música</a>
+      <a href="#diagnostico" class="mobile-link block py-2.5 text-sm text-[#1d1d1f] border-b border-black/5">Auto-Diagnóstico PC</a>
+      <a href="#cotizador" class="mobile-link block py-2.5 text-sm text-[#1d1d1f] border-b border-black/5">Cotizador Online</a>
+      <a href="#catalogo" class="mobile-link block py-2.5 text-sm text-[#1d1d1f] border-b border-black/5">Configuraciones Pro</a>
+      <a href="#nosotros" class="mobile-link block py-2.5 text-sm text-[#1d1d1f]">Perfil & Contacto</a>
       <div class="pt-3">
         <a href="#cotizador" class="mobile-link block w-full text-center py-3 rounded-full bg-[#0071e3] text-white text-sm font-medium">
-          Cotizar Servicio
+          Solicitar Cotización
         </a>
       </div>
     </div>
   </header>
 
-  <!-- ================= HERO SECTION ESTILO KEYNOTE ================= -->
-  <section id="hero" class="relative min-h-screen flex items-center justify-center pt-24 pb-16 overflow-hidden">
+  <!-- ================= HERO SECTION LUMINOSO ================= -->
+  <section id="hero" class="relative min-h-screen flex items-center justify-center pt-24 pb-16 overflow-hidden bg-white">
     
-    <!-- Canvas 3D Interactivo sutil en el fondo -->
+    <!-- Canvas 3D Interactivo -->
     <canvas id="webgl-canvas"></canvas>
-    <div class="absolute inset-0 bg-gradient-to-b from-black/40 via-black/75 to-black z-10 pointer-events-none"></div>
+    <div class="absolute inset-0 bg-gradient-to-b from-white/50 via-white/80 to-white z-10 pointer-events-none"></div>
 
     <div class="relative z-20 max-w-5xl mx-auto px-5 sm:px-8 text-center">
       
-      <!-- Etiqueta superior sutil -->
-      <p class="text-xs sm:text-sm font-semibold tracking-widest uppercase text-[#2997ff] mb-4">
-        Ingeniería & Soporte Tecnológico en Lima
-      </p>
+      <!-- Píldora superior translúcida -->
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/80 backdrop-blur-xl border border-black/[0.08] shadow-sm text-xs font-semibold text-[#0071e3] mb-6">
+        <span class="w-2 h-2 rounded-full bg-[#0071e3]"></span>
+        <span>Ingeniería TI • Análisis Estadístico • Formación Personalizada</span>
+      </div>
 
-      <!-- Titular monumental estilo Apple -->
-      <h1 class="font-bold text-4xl sm:text-6xl lg:text-[72px] text-[#f5f5f7] tracking-[-0.03em] leading-[1.05] mb-6">
-        Potencia tu hardware.<br>
-        <span class="apple-gradient-text">Conecta sin límites.</span>
+      <!-- Titular estilo Apple -->
+      <h1 class="font-bold text-4xl sm:text-6xl lg:text-[70px] text-[#1d1d1f] tracking-[-0.03em] leading-[1.06] mb-6">
+        Precisión técnica.<br>
+        <span class="apple-gradient-text">Claridad académica.</span>
       </h1>
 
-      <!-- Subtítulo limpio -->
-      <p class="max-w-2xl mx-auto text-base sm:text-xl text-[#86868b] font-normal leading-relaxed mb-10">
-        Soporte técnico especializado para PC y laptops, cableado estructurado LAN Cat6, sistemas de videovigilancia CCTV y ensamble de computadoras a medida.
+      <!-- Subtítulo integral -->
+      <p class="max-w-2xl mx-auto text-base sm:text-xl text-[#6e6e73] font-normal leading-relaxed mb-10">
+        Infraestructura tecnológica, soporte de hardware y redes LAN en Lima; junto con asesoría estadística para investigación y clases particulares de matemáticas y música.
       </p>
 
-      <!-- Botones estilo píldora -->
+      <!-- Botones píldora -->
       <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14">
-        <a href="https://wa.me/51992507489?text=Hola%20DC%20CORP,%20necesito%20soporte%20técnico,%20cableado%20o%20ensamble%20de%20PC." target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto px-7 py-3.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-medium text-sm sm:text-base flex items-center justify-center gap-2.5 transition-all">
+        <a href="https://wa.me/51992507489?text=Hola%20Víctor,%20quisiera%20consultar%20por%20tus%20servicios%20de%20tecnología%20o%20asesoría%20académica." target="_blank" rel="noopener noreferrer" class="w-full sm:w-auto px-7 py-3.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-medium text-sm sm:text-base flex items-center justify-center gap-2.5 transition-all shadow-md shadow-[#0071e3]/20">
           <i class="fa-brands fa-whatsapp text-lg"></i>
-          <span>Hablar con un especialista</span>
+          <span>Contacto directo</span>
         </a>
-        <a href="#diagnostico" class="w-full sm:w-auto px-7 py-3.5 rounded-full bg-white/10 hover:bg-white/15 text-[#f5f5f7] font-medium text-sm sm:text-base flex items-center justify-center gap-2 transition-all backdrop-blur-md">
-          <span>Diagnosticar mi equipo</span>
-          <i class="fa-solid fa-chevron-right text-xs text-[#2997ff]"></i>
+        <a href="#cotizador" class="w-full sm:w-auto px-7 py-3.5 rounded-full bg-white/80 hover:bg-white text-[#1d1d1f] border border-black/10 font-medium text-sm sm:text-base flex items-center justify-center gap-2 transition-all backdrop-blur-xl shadow-sm">
+          <span>Calcular presupuesto</span>
+          <i class="fa-solid fa-chevron-right text-xs text-[#0071e3]"></i>
         </a>
       </div>
 
-      <!-- Controles minimalistas de la red 3D -->
-      <div class="inline-flex flex-wrap items-center justify-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/10 backdrop-blur-xl text-xs text-[#86868b]">
-        <span class="px-2 flex items-center gap-1.5">
-          <span class="w-1.5 h-1.5 rounded-full bg-[#2997ff]"></span> Red 3D Interactiva:
+      <!-- Controles translúcidos 3D -->
+      <div class="inline-flex flex-wrap items-center justify-center gap-1.5 px-3 py-1.5 rounded-full bg-white/75 border border-black/[0.08] backdrop-blur-2xl shadow-sm text-xs text-[#6e6e73]">
+        <span class="px-2 flex items-center gap-1.5 font-medium">
+          <span class="w-1.5 h-1.5 rounded-full bg-[#0071e3]"></span> Red 3D:
         </span>
-        <button id="btnSwitchMesh" class="px-3 py-1 rounded-full hover:bg-white/10 text-[#f5f5f7] transition">
+        <button id="btnSwitchMesh" class="px-3 py-1 rounded-full hover:bg-black/5 text-[#1d1d1f] transition">
           Topología
         </button>
-        <button id="btnPulseNetwork" class="px-3 py-1 rounded-full hover:bg-white/10 text-[#f5f5f7] transition">
+        <button id="btnPulseNetwork" class="px-3 py-1 rounded-full hover:bg-black/5 text-[#1d1d1f] transition">
           Pulso LAN
         </button>
-        <button id="btnResetCamera" class="px-3 py-1 rounded-full hover:bg-white/10 text-[#f5f5f7] transition">
+        <button id="btnResetCamera" class="px-3 py-1 rounded-full hover:bg-black/5 text-[#1d1d1f] transition">
           Centrar
         </button>
       </div>
@@ -206,89 +209,88 @@
     </div>
   </section>
 
-  <!-- ================= BENTO GRID: SERVICIOS PRINCIPALES ================= -->
-  <section id="servicios" class="py-24 sm:py-32 apple-subtle-gradient border-t border-white/[0.06]">
+  <!-- ================= DIVISIÓN 1: TECNOLOGÍA E INFRAESTRUCTURA TI ================= -->
+  <section id="tecnologia" class="py-24 sm:py-32 ambient-light-bg border-t border-black/[0.06]">
     <div class="max-w-6xl mx-auto px-5 sm:px-8">
       
       <div class="max-w-3xl mb-16">
-        <p class="text-xs font-semibold uppercase tracking-widest text-[#2997ff] mb-2">Soluciones Integrales</p>
-        <h2 class="text-3xl sm:text-5xl font-bold tracking-[-0.025em] text-[#f5f5f7] leading-tight">
-          Diseñado para rendimiento continuo y cero interrupciones.
+        <p class="text-xs font-semibold uppercase tracking-widest text-[#0071e3] mb-2">DC CORP • Tecnología</p>
+        <h2 class="text-3xl sm:text-5xl font-bold tracking-[-0.025em] text-[#1d1d1f] leading-tight">
+          Infraestructura y hardware diseñados para rendir sin pausas.
         </h2>
       </div>
 
-      <!-- Bento Grid de 4 Tarjetas -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-        <!-- Bento 1 -->
-        <div class="bento-card p-8 sm:p-10 flex flex-col justify-between">
+        <!-- Bento TI 1 -->
+        <div class="glass-bento p-8 sm:p-10 flex flex-col justify-between">
           <div>
-            <div class="w-12 h-12 rounded-2xl bg-[#0071e3]/15 text-[#2997ff] flex items-center justify-center text-xl mb-6">
+            <div class="w-12 h-12 rounded-2xl bg-[#0071e3]/10 text-[#0071e3] flex items-center justify-center text-xl mb-6">
               <i class="fa-solid fa-microchip"></i>
             </div>
-            <h3 class="text-2xl font-bold text-[#f5f5f7] tracking-tight mb-3">Soporte Técnico PC & Laptops</h3>
-            <p class="text-[#86868b] text-sm sm:text-base leading-relaxed mb-6">
-              Mantenimiento preventivo y correctivo de precisión: cambio de pasta térmica de alta conductividad, limpieza interna profunda, migración a SSD NVMe y optimización del sistema operativo.
+            <h3 class="text-2xl font-bold text-[#1d1d1f] tracking-tight mb-3">Soporte Técnico PC & Laptops</h3>
+            <p class="text-[#6e6e73] text-sm sm:text-base leading-relaxed mb-6">
+              Mantenimiento preventivo y correctivo de precisión: cambio de pasta térmica de alta conductividad, limpieza interna profunda, clonación a SSD NVMe y optimización del sistema.
             </p>
           </div>
-          <div class="flex flex-wrap gap-2 pt-4 border-t border-white/[0.06] text-xs text-[#a1a1a6]">
-            <span class="px-3 py-1 rounded-full bg-white/[0.04]">Mantenimiento Térmico</span>
-            <span class="px-3 py-1 rounded-full bg-white/[0.04]">Upgrade SSD / RAM</span>
-            <span class="px-3 py-1 rounded-full bg-white/[0.04]">Respaldo Seguro</span>
+          <div class="flex flex-wrap gap-2 pt-4 border-t border-black/[0.06] text-xs text-[#424245]">
+            <span class="px-3 py-1 rounded-full bg-black/[0.04]">Mantenimiento Térmico</span>
+            <span class="px-3 py-1 rounded-full bg-black/[0.04]">Upgrade SSD / RAM</span>
+            <span class="px-3 py-1 rounded-full bg-black/[0.04]">Respaldo Seguro</span>
           </div>
         </div>
 
-        <!-- Bento 2 -->
-        <div class="bento-card p-8 sm:p-10 flex flex-col justify-between">
+        <!-- Bento TI 2 -->
+        <div class="glass-bento p-8 sm:p-10 flex flex-col justify-between">
           <div>
-            <div class="w-12 h-12 rounded-2xl bg-sky-500/15 text-sky-400 flex items-center justify-center text-xl mb-6">
+            <div class="w-12 h-12 rounded-2xl bg-sky-500/10 text-sky-600 flex items-center justify-center text-xl mb-6">
               <i class="fa-solid fa-network-wired"></i>
             </div>
-            <h3 class="text-2xl font-bold text-[#f5f5f7] tracking-tight mb-3">Cableado Estructurado LAN</h3>
-            <p class="text-[#86868b] text-sm sm:text-base leading-relaxed mb-6">
-              Instalación de puntos de red en cable 100 % cobre Cat6 y Cat6A. Peinado y rotulado profesional de gabinetes, patch panels, switches y cobertura Wi-Fi estable en toda tu oficina o hogar.
+            <h3 class="text-2xl font-bold text-[#1d1d1f] tracking-tight mb-3">Cableado Estructurado LAN</h3>
+            <p class="text-[#6e6e73] text-sm sm:text-base leading-relaxed mb-6">
+              Instalación de puntos de red en cable 100 % cobre Cat6 y Cat6A. Peinado y rotulado profesional de gabinetes, patch panels, switches y cobertura Wi-Fi estable.
             </p>
           </div>
-          <div class="flex flex-wrap gap-2 pt-4 border-t border-white/[0.06] text-xs text-[#a1a1a6]">
-            <span class="px-3 py-1 rounded-full bg-white/[0.04]">Cat6 / Cat6A</span>
-            <span class="px-3 py-1 rounded-full bg-white/[0.04]">Peinado de Racks</span>
-            <span class="px-3 py-1 rounded-full bg-white/[0.04]">Wi-Fi Empresarial</span>
+          <div class="flex flex-wrap gap-2 pt-4 border-t border-black/[0.06] text-xs text-[#424245]">
+            <span class="px-3 py-1 rounded-full bg-black/[0.04]">Cat6 / Cat6A</span>
+            <span class="px-3 py-1 rounded-full bg-black/[0.04]">Peinado de Racks</span>
+            <span class="px-3 py-1 rounded-full bg-black/[0.04]">Wi-Fi Empresarial</span>
           </div>
         </div>
 
-        <!-- Bento 3 -->
-        <div class="bento-card p-8 sm:p-10 flex flex-col justify-between">
+        <!-- Bento TI 3 -->
+        <div class="glass-bento p-8 sm:p-10 flex flex-col justify-between">
           <div>
-            <div class="w-12 h-12 rounded-2xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center text-xl mb-6">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center text-xl mb-6">
               <i class="fa-solid fa-video"></i>
             </div>
-            <h3 class="text-2xl font-bold text-[#f5f5f7] tracking-tight mb-3">Videovigilancia Inteligente CCTV</h3>
-            <p class="text-[#86868b] text-sm sm:text-base leading-relaxed mb-6">
-              Sistemas de seguridad IP y HD (Hikvision, Dahua) con grabación continua 24/7 y monitoreo en tiempo real desde tu iPhone o Android con alertas instantáneas.
+            <h3 class="text-2xl font-bold text-[#1d1d1f] tracking-tight mb-3">Videovigilancia Inteligente CCTV</h3>
+            <p class="text-[#6e6e73] text-sm sm:text-base leading-relaxed mb-6">
+              Sistemas de seguridad IP y HD (Hikvision, Dahua) con grabación continua 24/7 y monitoreo en tiempo real desde iPhone o Android con alertas instantáneas.
             </p>
           </div>
-          <div class="flex flex-wrap gap-2 pt-4 border-t border-white/[0.06] text-xs text-[#a1a1a6]">
-            <span class="px-3 py-1 rounded-full bg-white/[0.04]">Visión Nocturna</span>
-            <span class="px-3 py-1 rounded-full bg-white/[0.04]">Acceso Remoto App</span>
-            <span class="px-3 py-1 rounded-full bg-white/[0.04]">DVR / NVR Pro</span>
+          <div class="flex flex-wrap gap-2 pt-4 border-t border-black/[0.06] text-xs text-[#424245]">
+            <span class="px-3 py-1 rounded-full bg-black/[0.04]">Visión Nocturna</span>
+            <span class="px-3 py-1 rounded-full bg-black/[0.04]">Acceso Remoto App</span>
+            <span class="px-3 py-1 rounded-full bg-black/[0.04]">DVR / NVR Pro</span>
           </div>
         </div>
 
-        <!-- Bento 4 -->
-        <div class="bento-card p-8 sm:p-10 flex flex-col justify-between">
+        <!-- Bento TI 4 -->
+        <div class="glass-bento p-8 sm:p-10 flex flex-col justify-between">
           <div>
-            <div class="w-12 h-12 rounded-2xl bg-purple-500/15 text-purple-400 flex items-center justify-center text-xl mb-6">
+            <div class="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-600 flex items-center justify-center text-xl mb-6">
               <i class="fa-solid fa-desktop"></i>
             </div>
-            <h3 class="text-2xl font-bold text-[#f5f5f7] tracking-tight mb-3">Ensamble & Provisión de PCs</h3>
-            <p class="text-[#86868b] text-sm sm:text-base leading-relaxed mb-6">
-              Computadoras configuradas pieza por pieza según tu flujo de trabajo: estaciones de ingeniería y diseño, equipos corporativos silenciosos o PCs gamer con gestión de cables impecable.
+            <h3 class="text-2xl font-bold text-[#1d1d1f] tracking-tight mb-3">Ensamble & Provisión de PCs</h3>
+            <p class="text-[#6e6e73] text-sm sm:text-base leading-relaxed mb-6">
+              Computadoras configuradas pieza por pieza según tu flujo de trabajo: estaciones de ingeniería y diseño, equipos corporativos silenciosos o PCs gamer.
             </p>
           </div>
-          <div class="flex flex-wrap gap-2 pt-4 border-t border-white/[0.06] text-xs text-[#a1a1a6]">
-            <span class="px-3 py-1 rounded-full bg-white/[0.04]">Workstations</span>
-            <span class="px-3 py-1 rounded-full bg-white/[0.04]">Garantía 1 Año</span>
-            <span class="px-3 py-1 rounded-full bg-white/[0.04]">Sin Sobrecostos</span>
+          <div class="flex flex-wrap gap-2 pt-4 border-t border-black/[0.06] text-xs text-[#424245]">
+            <span class="px-3 py-1 rounded-full bg-black/[0.04]">Workstations</span>
+            <span class="px-3 py-1 rounded-full bg-black/[0.04]">Garantía 1 Año</span>
+            <span class="px-3 py-1 rounded-full bg-black/[0.04]">Sin Sobrecostos</span>
           </div>
         </div>
 
@@ -296,61 +298,147 @@
     </div>
   </section>
 
+  <!-- ================= DIVISIÓN 2: ASESORÍA ESTADÍSTICA, MATEMÁTICAS Y MÚSICA ================= -->
+  <section id="academia" class="py-24 sm:py-32 bg-white border-t border-black/[0.06]">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8">
+      
+      <div class="max-w-3xl mb-16">
+        <p class="text-xs font-semibold uppercase tracking-widest text-indigo-600 mb-2">Asesoría & Formación Personalizada</p>
+        <h2 class="text-3xl sm:text-5xl font-bold tracking-[-0.025em] text-[#1d1d1f] leading-tight">
+          Rigor analítico en tus proyectos. Metodología clara en tu aprendizaje.
+        </h2>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Bento Academia 1: Estadística -->
+        <div class="glass-bento p-8 sm:p-9 bg-[#f5f5f7]/65 flex flex-col justify-between">
+          <div>
+            <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-600 flex items-center justify-center text-xl mb-6">
+              <i class="fa-solid fa-chart-line"></i>
+            </div>
+            <span class="text-[11px] font-semibold uppercase tracking-wider text-indigo-600">Investigación & Tesis</span>
+            <h3 class="text-2xl font-bold text-[#1d1d1f] tracking-tight mt-1 mb-3">Asesoría en Proyectos de Estadística</h3>
+            <p class="text-[#6e6e73] text-sm leading-relaxed mb-6">
+              Acompañamiento metodológico y procesamiento de datos para tesis, artículos científicos e informes cuantitativos. Tablas, gráficos listos para sustentación e interpretación clara de resultados.
+            </p>
+            <ul class="text-xs space-y-2.5 text-[#1d1d1f] border-t border-black/[0.06] pt-5 mb-8">
+              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-indigo-600"></i> Estadística descriptiva e inferencial</li>
+              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-indigo-600"></i> Pruebas de hipótesis, correlación y regresión</li>
+              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-indigo-600"></i> Procesamiento en SPSS, R, Python y Excel</li>
+              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-indigo-600"></i> Validación de instrumentos (Alfa de Cronbach)</li>
+            </ul>
+          </div>
+          <a href="https://wa.me/51992507489?text=Hola%20Víctor,%20necesito%20asesoría%20estadística%20para%20mi%20proyecto%20o%20tesis." target="_blank" class="w-full text-center py-3 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition shadow-sm">
+            Consultar Proyecto Estadístico
+          </a>
+        </div>
+
+        <!-- Bento Academia 2: Matemáticas -->
+        <div class="glass-bento p-8 sm:p-9 bg-[#f5f5f7]/65 flex flex-col justify-between">
+          <div>
+            <div class="w-12 h-12 rounded-2xl bg-[#0071e3]/10 text-[#0071e3] flex items-center justify-center text-xl mb-6">
+              <i class="fa-solid fa-square-root-variable"></i>
+            </div>
+            <span class="text-[11px] font-semibold uppercase tracking-wider text-[#0071e3]">Nivel Escolar & Universitario</span>
+            <h3 class="text-2xl font-bold text-[#1d1d1f] tracking-tight mt-1 mb-3">Clases Particulares de Matemáticas</h3>
+            <p class="text-[#6e6e73] text-sm leading-relaxed mb-6">
+              Sesiones individuales presenciales o virtuales enfocadas en comprender el razonamiento paso a paso, resolver guías prácticas y preparar exámenes con seguridad.
+            </p>
+            <ul class="text-xs space-y-2.5 text-[#1d1d1f] border-t border-black/[0.06] pt-5 mb-8">
+              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-[#0071e3]"></i> Álgebra, Geometría, Trigonometría y Aritmética</li>
+              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-[#0071e3]"></i> Cálculo Diferencial, Integral y Álgebra Lineal</li>
+              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-[#0071e3]"></i> Preparación preuniversitaria y nivelación</li>
+              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-[#0071e3]"></i> Material de práctica personalizado por sesión</li>
+            </ul>
+          </div>
+          <a href="https://wa.me/51992507489?text=Hola%20Víctor,%20quisiera%20agendar%20clases%20particulares%20de%20matemáticas." target="_blank" class="w-full text-center py-3 rounded-full bg-white hover:bg-[#f5f5f7] text-[#1d1d1f] border border-black/10 text-xs font-semibold transition">
+            Agendar Clase de Matemáticas
+          </a>
+        </div>
+
+        <!-- Bento Academia 3: Música -->
+        <div class="glass-bento p-8 sm:p-9 bg-[#f5f5f7]/65 flex flex-col justify-between">
+          <div>
+            <div class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-600 flex items-center justify-center text-xl mb-6">
+              <i class="fa-solid fa-music"></i>
+            </div>
+            <span class="text-[11px] font-semibold uppercase tracking-wider text-amber-600">Práctica & Teoría Musical</span>
+            <h3 class="text-2xl font-bold text-[#1d1d1f] tracking-tight mt-1 mb-3">Clases Particulares de Música</h3>
+            <p class="text-[#6e6e73] text-sm leading-relaxed mb-6">
+              Formación musical adaptada a tu ritmo y estilo: desde tus primeros acordes y lectura rítmica hasta armonía moderna, ensamble e interpretación en vivo.
+            </p>
+            <ul class="text-xs space-y-2.5 text-[#1d1d1f] border-t border-black/[0.06] pt-5 mb-8">
+              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-amber-600"></i> Guitarra acústica, eléctrica y bajo eléctrico</li>
+              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-amber-600"></i> Piano / teclado y percusión latina</li>
+              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-amber-600"></i> Lectura de partituras, armonía y oído musical</li>
+              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-amber-600"></i> Para niños, jóvenes y adultos desde cero</li>
+            </ul>
+          </div>
+          <a href="https://wa.me/51992507489?text=Hola%20Víctor,%20quisiera%20información%20sobre%20las%20clases%20particulares%20de%20música." target="_blank" class="w-full text-center py-3 rounded-full bg-white hover:bg-[#f5f5f7] text-[#1d1d1f] border border-black/10 text-xs font-semibold transition">
+            Agendar Clase de Música
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
   <!-- ================= AUTO-DIAGNÓSTICO INTERACTIVO ================= -->
-  <section id="diagnostico" class="py-24 bg-[#0a0a0c] border-y border-white/[0.06]">
+  <section id="diagnostico" class="py-24 ambient-light-bg border-y border-black/[0.06]">
     <div class="max-w-5xl mx-auto px-5 sm:px-8">
       
       <div class="text-center max-w-2xl mx-auto mb-12">
-        <p class="text-xs font-semibold uppercase tracking-widest text-[#2997ff] mb-2">Asistente de Diagnóstico</p>
-        <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-[#f5f5f7]">¿Qué ocurre con tu equipo?</h2>
-        <p class="text-[#86868b] text-sm sm:text-base mt-3">
-          Selecciona el síntoma que notas para obtener una evaluación técnica preliminar.
+        <p class="text-xs font-semibold uppercase tracking-widest text-[#0071e3] mb-2">Asistente Técnico</p>
+        <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-[#1d1d1f]">¿Qué ocurre con tu equipo?</h2>
+        <p class="text-[#6e6e73] text-sm sm:text-base mt-3">
+          Selecciona el síntoma que notas para obtener una evaluación preliminar inmediata.
         </p>
       </div>
 
       <!-- Pills selectoras -->
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 mb-8">
-        <button onclick="selectSymptom('slowness')" class="symptom-btn p-4 rounded-2xl border border-[#0071e3] bg-[#0071e3]/15 text-white text-xs font-medium flex flex-col items-center gap-2.5 transition" data-sym="slowness">
-          <i class="fa-solid fa-gauge-simple-high text-lg text-[#2997ff]"></i>
+        <button onclick="selectSymptom('slowness')" class="symptom-btn p-4 rounded-2xl border border-[#0071e3] bg-white/90 text-[#0071e3] text-xs font-semibold flex flex-col items-center gap-2.5 transition shadow-sm" data-sym="slowness">
+          <i class="fa-solid fa-gauge-simple-high text-lg"></i>
           <span>Lentitud</span>
         </button>
-        <button onclick="selectSymptom('overheating')" class="symptom-btn p-4 rounded-2xl border border-white/10 bg-[#141416] text-[#a1a1a6] text-xs font-medium flex flex-col items-center gap-2.5 transition hover:border-white/25" data-sym="overheating">
+        <button onclick="selectSymptom('overheating')" class="symptom-btn p-4 rounded-2xl border border-black/[0.08] bg-white/60 text-[#424245] text-xs font-medium flex flex-col items-center gap-2.5 transition hover:bg-white" data-sym="overheating">
           <i class="fa-solid fa-temperature-high text-lg"></i>
           <span>Calienta / Apaga</span>
         </button>
-        <button onclick="selectSymptom('bsod')" class="symptom-btn p-4 rounded-2xl border border-white/10 bg-[#141416] text-[#a1a1a6] text-xs font-medium flex flex-col items-center gap-2.5 transition hover:border-white/25" data-sym="bsod">
+        <button onclick="selectSymptom('bsod')" class="symptom-btn p-4 rounded-2xl border border-black/[0.08] bg-white/60 text-[#424245] text-xs font-medium flex flex-col items-center gap-2.5 transition hover:bg-white" data-sym="bsod">
           <i class="fa-solid fa-triangle-exclamation text-lg"></i>
           <span>Pantalla Azul</span>
         </button>
-        <button onclick="selectSymptom('novideo')" class="symptom-btn p-4 rounded-2xl border border-white/10 bg-[#141416] text-[#a1a1a6] text-xs font-medium flex flex-col items-center gap-2.5 transition hover:border-white/25" data-sym="novideo">
+        <button onclick="selectSymptom('novideo')" class="symptom-btn p-4 rounded-2xl border border-black/[0.08] bg-white/60 text-[#424245] text-xs font-medium flex flex-col items-center gap-2.5 transition hover:bg-white" data-sym="novideo">
           <i class="fa-solid fa-display text-lg"></i>
           <span>Sin Video</span>
         </button>
-        <button onclick="selectSymptom('network')" class="symptom-btn p-4 rounded-2xl border border-white/10 bg-[#141416] text-[#a1a1a6] text-xs font-medium flex flex-col items-center gap-2.5 transition hover:border-white/25" data-sym="network">
+        <button onclick="selectSymptom('network')" class="symptom-btn p-4 rounded-2xl border border-black/[0.08] bg-white/60 text-[#424245] text-xs font-medium flex flex-col items-center gap-2.5 transition hover:bg-white" data-sym="network">
           <i class="fa-solid fa-wifi text-lg"></i>
           <span>Red Inestable</span>
         </button>
-        <button onclick="selectSymptom('cctv')" class="symptom-btn p-4 rounded-2xl border border-white/10 bg-[#141416] text-[#a1a1a6] text-xs font-medium flex flex-col items-center gap-2.5 transition hover:border-white/25" data-sym="cctv">
+        <button onclick="selectSymptom('cctv')" class="symptom-btn p-4 rounded-2xl border border-black/[0.08] bg-white/60 text-[#424245] text-xs font-medium flex flex-col items-center gap-2.5 transition hover:bg-white" data-sym="cctv">
           <i class="fa-solid fa-video-slash text-lg"></i>
           <span>Cámaras Offline</span>
         </button>
       </div>
 
-      <!-- Resultado estilo tarjeta Apple -->
-      <div id="diagResultBox" class="bento-card p-7 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+      <!-- Resultado translúcido -->
+      <div id="diagResultBox" class="glass-bento p-7 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div class="space-y-2.5">
-          <span id="diagTitle" class="text-xs font-semibold uppercase tracking-wider text-[#2997ff] block">
+          <span id="diagTitle" class="text-xs font-semibold uppercase tracking-wider text-[#0071e3] block">
             Diagnóstico preliminar: Lentitud en inicio y carga
           </span>
-          <p id="diagDescription" class="text-[#f5f5f7] text-sm sm:text-base leading-relaxed">
+          <p id="diagDescription" class="text-[#1d1d1f] text-sm sm:text-base leading-relaxed">
             Frecuentemente provocado por discos mecánicos (HDD) degradados, saturación de registros de Windows o memoria RAM insuficiente para la multitarea moderna.
           </p>
-          <p id="diagSolution" class="text-xs sm:text-sm text-emerald-400 font-medium pt-1">
+          <p id="diagSolution" class="text-xs sm:text-sm text-emerald-600 font-semibold pt-1">
             ✓ Solución DC CORP: Clonación a SSD M.2 NVMe ultrarrápido y optimización de sistema.
           </p>
         </div>
 
-        <a id="diagContactBtn" href="https://wa.me/51992507489?text=Hola%20Víctor,%20mi%20PC%20presenta%20lentitud%20extrema%20y%20quisiera%20cotizar%20un%20mantenimiento%20o%20repotenciación." target="_blank" class="shrink-0 px-6 py-3 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-medium text-xs sm:text-sm flex items-center gap-2 transition">
+        <a id="diagContactBtn" href="https://wa.me/51992507489?text=Hola%20Víctor,%20mi%20PC%20presenta%20lentitud%20extrema%20y%20quisiera%20cotizar%20un%20mantenimiento%20o%20repotenciación." target="_blank" class="shrink-0 px-6 py-3 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-medium text-xs sm:text-sm flex items-center gap-2 transition shadow-sm">
           <i class="fa-brands fa-whatsapp text-base"></i>
           <span>Agendar Revisión</span>
         </a>
@@ -359,88 +447,104 @@
     </div>
   </section>
 
-  <!-- ================= COTIZADOR INTERACTIVO ================= -->
-  <section id="cotizador" class="py-24 sm:py-32 bg-black">
-    <div class="max-w-4xl mx-auto px-5 sm:px-8">
+  <!-- ================= COTIZADOR UNIFICADO (TI + ESTADÍSTICA + CLASES) ================= -->
+  <section id="cotizador" class="py-24 sm:py-32 bg-white">
+    <div class="max-w-5xl mx-auto px-5 sm:px-8">
       
       <div class="text-center max-w-2xl mx-auto mb-12">
-        <p class="text-xs font-semibold uppercase tracking-widest text-[#2997ff] mb-2">Presupuesto Instantáneo</p>
-        <h2 class="text-3xl sm:text-5xl font-bold tracking-tight text-[#f5f5f7]">Calcula tu servicio.</h2>
-        <p class="text-[#86868b] text-sm sm:text-base mt-3">
-          Configura las especificaciones de tu requerimiento y envía la cotización lista por WhatsApp.
+        <p class="text-xs font-semibold uppercase tracking-widest text-[#0071e3] mb-2">Presupuesto Instantáneo</p>
+        <h2 class="text-3xl sm:text-5xl font-bold tracking-tight text-[#1d1d1f]">Cotiza tu servicio o clase.</h2>
+        <p class="text-[#6e6e73] text-sm sm:text-base mt-3">
+          Elige el área que necesitas, personaliza el alcance y envía tu solicitud lista por WhatsApp.
         </p>
       </div>
 
-      <div class="bento-card p-6 sm:p-10">
+      <div class="glass-bento p-6 sm:p-10 bg-[#f5f5f7]/65">
         <form id="quoteForm" class="space-y-8" onsubmit="event.preventDefault(); sendToWhatsApp();">
           
-          <!-- 1. Servicio -->
+          <!-- 1. Categoría (6 opciones: 4 TI + 2 Académicas) -->
           <div>
-            <label class="block text-xs font-semibold uppercase tracking-wider text-[#86868b] mb-3">
-              1. Elige la categoría
+            <label class="block text-xs font-semibold uppercase tracking-wider text-[#6e6e73] mb-3">
+              1. Elige la especialidad
             </label>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
               
               <label class="cursor-pointer">
                 <input type="radio" name="service_type" value="Servicio Técnico PC / Laptop" data-base-cost="70" class="peer sr-only" checked onchange="updateServiceInputs()">
-                <div class="p-4 rounded-2xl border border-white/10 bg-[#1c1c1e] peer-checked:border-[#0071e3] peer-checked:bg-[#0071e3]/15 text-[#a1a1a6] peer-checked:text-white transition flex flex-col items-center text-center gap-2">
-                  <i class="fa-solid fa-wrench text-lg text-[#2997ff]"></i>
-                  <span class="text-xs font-medium">Soporte PC / Laptop</span>
+                <div class="p-3.5 rounded-2xl border border-black/[0.08] bg-white/80 peer-checked:border-[#0071e3] peer-checked:bg-[#0071e3]/[0.08] text-[#424245] peer-checked:text-[#0071e3] transition flex flex-col items-center text-center gap-2 shadow-sm h-full justify-center">
+                  <i class="fa-solid fa-wrench text-base text-[#0071e3]"></i>
+                  <span class="text-[11px] font-semibold leading-tight">Soporte PC / Laptop</span>
                 </div>
               </label>
 
               <label class="cursor-pointer">
                 <input type="radio" name="service_type" value="Cableado de Red LAN (Cat6)" data-base-cost="60" class="peer sr-only" onchange="updateServiceInputs()">
-                <div class="p-4 rounded-2xl border border-white/10 bg-[#1c1c1e] peer-checked:border-[#0071e3] peer-checked:bg-[#0071e3]/15 text-[#a1a1a6] peer-checked:text-white transition flex flex-col items-center text-center gap-2">
-                  <i class="fa-solid fa-network-wired text-lg text-[#2997ff]"></i>
-                  <span class="text-xs font-medium">Cableado Red LAN</span>
+                <div class="p-3.5 rounded-2xl border border-black/[0.08] bg-white/80 peer-checked:border-[#0071e3] peer-checked:bg-[#0071e3]/[0.08] text-[#424245] peer-checked:text-[#0071e3] transition flex flex-col items-center text-center gap-2 shadow-sm h-full justify-center">
+                  <i class="fa-solid fa-network-wired text-base text-[#0071e3]"></i>
+                  <span class="text-[11px] font-semibold leading-tight">Cableado Red LAN</span>
                 </div>
               </label>
 
               <label class="cursor-pointer">
                 <input type="radio" name="service_type" value="CCTV y Videovigilancia" data-base-cost="120" class="peer sr-only" onchange="updateServiceInputs()">
-                <div class="p-4 rounded-2xl border border-white/10 bg-[#1c1c1e] peer-checked:border-[#0071e3] peer-checked:bg-[#0071e3]/15 text-[#a1a1a6] peer-checked:text-white transition flex flex-col items-center text-center gap-2">
-                  <i class="fa-solid fa-video text-lg text-[#2997ff]"></i>
-                  <span class="text-xs font-medium">Videovigilancia CCTV</span>
+                <div class="p-3.5 rounded-2xl border border-black/[0.08] bg-white/80 peer-checked:border-[#0071e3] peer-checked:bg-[#0071e3]/[0.08] text-[#424245] peer-checked:text-[#0071e3] transition flex flex-col items-center text-center gap-2 shadow-sm h-full justify-center">
+                  <i class="fa-solid fa-video text-base text-[#0071e3]"></i>
+                  <span class="text-[11px] font-semibold leading-tight">Cámaras CCTV</span>
                 </div>
               </label>
 
               <label class="cursor-pointer">
                 <input type="radio" name="service_type" value="Ensamble y Venta de PC" data-base-cost="1350" class="peer sr-only" onchange="updateServiceInputs()">
-                <div class="p-4 rounded-2xl border border-white/10 bg-[#1c1c1e] peer-checked:border-[#0071e3] peer-checked:bg-[#0071e3]/15 text-[#a1a1a6] peer-checked:text-white transition flex flex-col items-center text-center gap-2">
-                  <i class="fa-solid fa-desktop text-lg text-[#2997ff]"></i>
-                  <span class="text-xs font-medium">Ensamble de PC</span>
+                <div class="p-3.5 rounded-2xl border border-black/[0.08] bg-white/80 peer-checked:border-[#0071e3] peer-checked:bg-[#0071e3]/[0.08] text-[#424245] peer-checked:text-[#0071e3] transition flex flex-col items-center text-center gap-2 shadow-sm h-full justify-center">
+                  <i class="fa-solid fa-desktop text-base text-[#0071e3]"></i>
+                  <span class="text-[11px] font-semibold leading-tight">Ensamble de PC</span>
+                </div>
+              </label>
+
+              <label class="cursor-pointer">
+                <input type="radio" name="service_type" value="Asesoría en Proyectos de Estadística" data-base-cost="150" class="peer sr-only" onchange="updateServiceInputs()">
+                <div class="p-3.5 rounded-2xl border border-black/[0.08] bg-white/80 peer-checked:border-indigo-600 peer-checked:bg-indigo-600/[0.08] text-[#424245] peer-checked:text-indigo-600 transition flex flex-col items-center text-center gap-2 shadow-sm h-full justify-center">
+                  <i class="fa-solid fa-chart-line text-base text-indigo-600"></i>
+                  <span class="text-[11px] font-semibold leading-tight">Asesoría Estadística</span>
+                </div>
+              </label>
+
+              <label class="cursor-pointer">
+                <input type="radio" name="service_type" value="Clases Particulares (Matemáticas / Música)" data-base-cost="45" class="peer sr-only" onchange="updateServiceInputs()">
+                <div class="p-3.5 rounded-2xl border border-black/[0.08] bg-white/80 peer-checked:border-amber-600 peer-checked:bg-amber-500/[0.08] text-[#424245] peer-checked:text-amber-700 transition flex flex-col items-center text-center gap-2 shadow-sm h-full justify-center">
+                  <i class="fa-solid fa-graduation-cap text-base text-amber-600"></i>
+                  <span class="text-[11px] font-semibold leading-tight">Clases Mate / Música</span>
                 </div>
               </label>
 
             </div>
           </div>
 
-          <!-- 2. Opciones -->
+          <!-- 2. Opciones dinámicas -->
           <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <label id="scaleLabel" for="projectScale" class="block text-xs font-medium text-[#86868b] mb-2">
-                2. Tipo de Intervención
+              <label id="scaleLabel" for="projectScale" class="block text-xs font-medium text-[#6e6e73] mb-2">
+                2. Alcance del servicio
               </label>
-              <select id="projectScale" onchange="calculateLiveQuote()" class="w-full bg-[#1c1c1e] border border-white/10 rounded-xl px-4 py-3 text-[#f5f5f7] focus:outline-none focus:border-[#0071e3] transition text-sm">
+              <select id="projectScale" onchange="calculateLiveQuote()" class="w-full bg-white border border-black/10 rounded-xl px-4 py-3 text-[#1d1d1f] focus:outline-none focus:border-[#0071e3] transition text-sm">
               </select>
             </div>
 
             <div>
-              <label for="urgencyLevel" class="block text-xs font-medium text-[#86868b] mb-2">
+              <label for="urgencyLevel" class="block text-xs font-medium text-[#6e6e73] mb-2">
                 3. Modalidad
               </label>
-              <select id="urgencyLevel" onchange="calculateLiveQuote()" class="w-full bg-[#1c1c1e] border border-white/10 rounded-xl px-4 py-3 text-[#f5f5f7] focus:outline-none focus:border-[#0071e3] transition text-sm">
-                <option value="En Taller / Visita Programada" data-urgency-mult="1.0">Taller o Visita Programada</option>
-                <option value="A Domicilio / Oficina (Mismo día)" data-urgency-mult="1.25">A Domicilio Express (Hoy)</option>
+              <select id="urgencyLevel" onchange="calculateLiveQuote()" class="w-full bg-white border border-black/10 rounded-xl px-4 py-3 text-[#1d1d1f] focus:outline-none focus:border-[#0071e3] transition text-sm">
+                <option value="Virtual / Taller / Programado" data-urgency-mult="1.0">Virtual / Taller / Programado</option>
+                <option value="Presencial a Domicilio / Urgente" data-urgency-mult="1.2">Presencial a Domicilio / Urgente</option>
               </select>
             </div>
 
             <div>
-              <label for="currencySelect" class="block text-xs font-medium text-[#86868b] mb-2">
+              <label for="currencySelect" class="block text-xs font-medium text-[#6e6e73] mb-2">
                 4. Moneda
               </label>
-              <select id="currencySelect" onchange="calculateLiveQuote()" class="w-full bg-[#1c1c1e] border border-white/10 rounded-xl px-4 py-3 text-[#f5f5f7] focus:outline-none focus:border-[#0071e3] transition text-sm">
+              <select id="currencySelect" onchange="calculateLiveQuote()" class="w-full bg-white border border-black/10 rounded-xl px-4 py-3 text-[#1d1d1f] focus:outline-none focus:border-[#0071e3] transition text-sm">
                 <option value="PEN">Soles (S/.)</option>
                 <option value="USD">Dólares (USD $)</option>
               </select>
@@ -450,37 +554,37 @@
           <!-- 3. Datos -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label for="clientName" class="block text-xs font-medium text-[#86868b] mb-1.5">Tu nombre o empresa</label>
-              <input type="text" id="clientName" placeholder="Ej: Jorge Mendoza" oninput="calculateLiveQuote()" class="w-full bg-[#1c1c1e] border border-white/10 rounded-xl px-4 py-3 text-[#f5f5f7] text-sm focus:outline-none focus:border-[#0071e3]">
+              <label for="clientName" class="block text-xs font-medium text-[#6e6e73] mb-1.5">Tu nombre o institución</label>
+              <input type="text" id="clientName" placeholder="Ej: Jorge Mendoza" oninput="calculateLiveQuote()" class="w-full bg-white border border-black/10 rounded-xl px-4 py-3 text-[#1d1d1f] text-sm focus:outline-none focus:border-[#0071e3]">
             </div>
             <div>
-              <label for="clientLocation" class="block text-xs font-medium text-[#86868b] mb-1.5">Distrito en Lima</label>
-              <input type="text" id="clientLocation" placeholder="Ej: Surco, San Borja, Pachacámac..." oninput="calculateLiveQuote()" class="w-full bg-[#1c1c1e] border border-white/10 rounded-xl px-4 py-3 text-[#f5f5f7] text-sm focus:outline-none focus:border-[#0071e3]">
+              <label for="clientLocation" class="block text-xs font-medium text-[#6e6e73] mb-1.5">Distrito o Modalidad Virtual</label>
+              <input type="text" id="clientLocation" placeholder="Ej: Surco, San Borja, Virtual Zoom/Meet..." oninput="calculateLiveQuote()" class="w-full bg-white border border-black/10 rounded-xl px-4 py-3 text-[#1d1d1f] text-sm focus:outline-none focus:border-[#0071e3]">
             </div>
           </div>
 
-          <!-- Total estilo Apple Checkout -->
-          <div class="p-6 rounded-2xl bg-[#1c1c1e] border border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <!-- Total -->
+          <div class="p-6 rounded-2xl bg-white/90 border border-black/[0.06] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
             <div>
-              <span class="text-xs text-[#86868b] block">Inversión estimada</span>
+              <span class="text-xs text-[#6e6e73] block">Inversión estimada</span>
               <div class="flex items-baseline gap-2 mt-1">
-                <span id="priceDisplay" class="text-3xl sm:text-4xl font-bold tracking-tight text-white">S/. 70.00</span>
-                <span class="text-xs text-[#86868b]">referencial</span>
+                <span id="priceDisplay" class="text-3xl sm:text-4xl font-bold tracking-tight text-[#1d1d1f]">S/. 70.00</span>
+                <span class="text-xs text-[#6e6e73]">referencial</span>
               </div>
             </div>
-            <div class="sm:text-right text-xs text-[#a1a1a6] space-y-1">
-              <span class="text-emerald-400 font-medium block">✓ Diagnóstico preliminar sin costo</span>
+            <div class="sm:text-right text-xs text-[#424245] space-y-1">
+              <span class="text-emerald-600 font-semibold block">✓ Evaluación inicial sin costo</span>
               <span>Atención directa por Víctor Castro</span>
             </div>
           </div>
 
-          <!-- Vista previa limpia -->
-          <div class="p-4 rounded-2xl bg-black/60 border border-white/[0.06] text-xs">
-            <span class="text-[#86868b] block mb-2 font-medium">Resumen del mensaje:</span>
-            <p id="quotePreview" class="text-[#d2d2d7] leading-relaxed whitespace-pre-line"></p>
+          <!-- Vista previa -->
+          <div class="p-4 rounded-2xl bg-white/70 border border-black/[0.06] text-xs">
+            <span class="text-[#6e6e73] block mb-2 font-medium">Resumen del mensaje:</span>
+            <p id="quotePreview" class="text-[#1d1d1f] leading-relaxed whitespace-pre-line"></p>
           </div>
 
-          <button type="submit" class="w-full py-4 px-6 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-sm sm:text-base transition-all flex items-center justify-center gap-2.5">
+          <button type="submit" class="w-full py-4 px-6 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-sm sm:text-base transition-all flex items-center justify-center gap-2.5 shadow-md shadow-[#0071e3]/20">
             <i class="fa-brands fa-whatsapp text-xl"></i>
             <span>Enviar Cotización por WhatsApp</span>
           </button>
@@ -491,81 +595,81 @@
   </section>
 
   <!-- ================= CATÁLOGO DE EQUIPOS PRO ================= -->
-  <section id="catalogo" class="py-24 bg-[#0a0a0c] border-t border-white/[0.06]">
+  <section id="catalogo" class="py-24 ambient-light-bg border-t border-black/[0.06]">
     <div class="max-w-6xl mx-auto px-5 sm:px-8">
       
       <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-14">
         <div>
-          <p class="text-xs font-semibold uppercase tracking-widest text-[#2997ff] mb-2">Hardware a Medida</p>
-          <h2 class="text-3xl sm:text-5xl font-bold tracking-tight text-[#f5f5f7]">Configuraciones Pro.</h2>
+          <p class="text-xs font-semibold uppercase tracking-widest text-[#0071e3] mb-2">Hardware a Medida</p>
+          <h2 class="text-3xl sm:text-5xl font-bold tracking-tight text-[#1d1d1f]">Configuraciones Pro.</h2>
         </div>
-        <p class="text-xs text-[#86868b]">Componentes nuevos con 1 año de garantía oficial</p>
+        <p class="text-xs text-[#6e6e73]">Componentes nuevos con 1 año de garantía oficial</p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         
         <!-- Setup 1 -->
-        <div class="bento-card p-8 flex flex-col justify-between">
+        <div class="glass-bento p-8 flex flex-col justify-between">
           <div>
-            <span class="text-[11px] font-semibold uppercase tracking-wider text-[#2997ff]">Oficina & Estudio</span>
-            <h3 class="text-2xl font-bold text-[#f5f5f7] mt-1 mb-1">DC Office Pro</h3>
-            <p class="text-sm font-medium text-[#a1a1a6] mb-5">Desde S/. 1,290</p>
-            <p class="text-[#86868b] text-xs leading-relaxed mb-6">
-              Fluidez total para facturación, gestión administrativa, Office y videollamadas simultáneas.
+            <span class="text-[11px] font-semibold uppercase tracking-wider text-[#0071e3]">Oficina & Estudio</span>
+            <h3 class="text-2xl font-bold text-[#1d1d1f] mt-1 mb-1">DC Office Pro</h3>
+            <p class="text-sm font-medium text-[#6e6e73] mb-5">Desde S/. 1,290</p>
+            <p class="text-[#6e6e73] text-xs leading-relaxed mb-6">
+              Fluidez total para facturación, gestión administrativa, Office, SPSS/R y videollamadas simultáneas.
             </p>
-            <ul class="text-xs space-y-3 text-[#d2d2d7] border-t border-white/[0.06] pt-5 mb-8">
-              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-[#2997ff]"></i> Intel Core i3 / AMD Ryzen 3</li>
-              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-[#2997ff]"></i> 16 GB RAM DDR4 3200MHz</li>
-              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-[#2997ff]"></i> SSD 500GB NVMe Ultrarrápido</li>
-              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-[#2997ff]"></i> Chasis compacto y silencioso</li>
+            <ul class="text-xs space-y-3 text-[#1d1d1f] border-t border-black/[0.06] pt-5 mb-8">
+              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-[#0071e3]"></i> Intel Core i3 / AMD Ryzen 3</li>
+              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-[#0071e3]"></i> 16 GB RAM DDR4 3200MHz</li>
+              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-[#0071e3]"></i> SSD 500GB NVMe Ultrarrápido</li>
+              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-[#0071e3]"></i> Chasis compacto y silencioso</li>
             </ul>
           </div>
-          <a href="https://wa.me/51992507489?text=Hola%20DC%20CORP,%20estoy%20interesado%20en%20la%20configuración%20DC%20Office%20Pro." target="_blank" class="w-full text-center py-3 rounded-full bg-white/10 hover:bg-white/15 text-white text-xs font-medium transition">
+          <a href="https://wa.me/51992507489?text=Hola%20DC%20CORP,%20estoy%20interesado%20en%20la%20configuración%20DC%20Office%20Pro." target="_blank" class="w-full text-center py-3 rounded-full bg-white hover:bg-[#f5f5f7] text-[#1d1d1f] border border-black/10 text-xs font-semibold transition">
             Solicitar Proforma
           </a>
         </div>
 
-        <!-- Setup 2 (Destacado) -->
-        <div class="bento-card p-8 border-[#0071e3]/50 relative flex flex-col justify-between bg-gradient-to-b from-[#161b26] to-[#141416]">
+        <!-- Setup 2 -->
+        <div class="glass-bento p-8 border-[#0071e3]/40 relative flex flex-col justify-between bg-white/90">
           <div>
             <div class="flex items-center justify-between">
-              <span class="text-[11px] font-semibold uppercase tracking-wider text-[#2997ff]">Diseño & Ingeniería</span>
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-[#0071e3]">Diseño & Ciencia de Datos</span>
               <span class="px-2.5 py-0.5 rounded-full bg-[#0071e3] text-white text-[10px] font-semibold">Recomendado</span>
             </div>
-            <h3 class="text-2xl font-bold text-[#f5f5f7] mt-1 mb-1">DC Creator Studio</h3>
-            <p class="text-sm font-medium text-[#a1a1a6] mb-5">Desde S/. 2,650</p>
-            <p class="text-[#86868b] text-xs leading-relaxed mb-6">
-              Potencia gráfica para AutoCAD, Adobe Creative Cloud, edición 4K y modelado 3D estable.
+            <h3 class="text-2xl font-bold text-[#1d1d1f] mt-1 mb-1">DC Creator Studio</h3>
+            <p class="text-sm font-medium text-[#6e6e73] mb-5">Desde S/. 2,650</p>
+            <p class="text-[#6e6e73] text-xs leading-relaxed mb-6">
+              Potencia gráfica y cómputo multinúcleo para AutoCAD, producción musical DAW, Adobe y análisis de datos.
             </p>
-            <ul class="text-xs space-y-3 text-[#d2d2d7] border-t border-white/[0.06] pt-5 mb-8">
-              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-[#2997ff]"></i> Intel Core i5 / AMD Ryzen 5</li>
-              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-[#2997ff]"></i> 32 GB RAM Dual-Channel</li>
-              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-[#2997ff]"></i> Gráficos NVIDIA GeForce RTX</li>
-              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-[#2997ff]"></i> SSD 1TB NVMe PCIe 4.0</li>
+            <ul class="text-xs space-y-3 text-[#1d1d1f] border-t border-black/[0.06] pt-5 mb-8">
+              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-[#0071e3]"></i> Intel Core i5 / AMD Ryzen 5</li>
+              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-[#0071e3]"></i> 32 GB RAM Dual-Channel</li>
+              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-[#0071e3]"></i> Gráficos NVIDIA GeForce RTX</li>
+              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-[#0071e3]"></i> SSD 1TB NVMe PCIe 4.0</li>
             </ul>
           </div>
-          <a href="https://wa.me/51992507489?text=Hola%20DC%20CORP,%20estoy%20interesado%20en%20la%20Workstation%20DC%20Creator%20Studio." target="_blank" class="w-full text-center py-3 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-medium transition">
+          <a href="https://wa.me/51992507489?text=Hola%20DC%20CORP,%20estoy%20interesado%20en%20la%20Workstation%20DC%20Creator%20Studio." target="_blank" class="w-full text-center py-3 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold transition shadow-sm">
             Solicitar Proforma
           </a>
         </div>
 
         <!-- Setup 3 -->
-        <div class="bento-card p-8 flex flex-col justify-between">
+        <div class="glass-bento p-8 flex flex-col justify-between">
           <div>
-            <span class="text-[11px] font-semibold uppercase tracking-wider text-purple-400">Gaming & Rendimiento</span>
-            <h3 class="text-2xl font-bold text-[#f5f5f7] mt-1 mb-1">DC Elite BattleRig</h3>
-            <p class="text-sm font-medium text-[#a1a1a6] mb-5">Desde S/. 3,490</p>
-            <p class="text-[#86868b] text-xs leading-relaxed mb-6">
+            <span class="text-[11px] font-semibold uppercase tracking-wider text-purple-600">Gaming & Rendimiento</span>
+            <h3 class="text-2xl font-bold text-[#1d1d1f] mt-1 mb-1">DC Elite BattleRig</h3>
+            <p class="text-sm font-medium text-[#6e6e73] mb-5">Desde S/. 3,490</p>
+            <p class="text-[#6e6e73] text-xs leading-relaxed mb-6">
               Altas tasas de cuadros en 1080p/1440p, flujo térmico optimizado y fuente certificada 80+ Gold.
             </p>
-            <ul class="text-xs space-y-3 text-[#d2d2d7] border-t border-white/[0.06] pt-5 mb-8">
-              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-purple-400"></i> Intel Core i7 / AMD Ryzen 7</li>
-              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-purple-400"></i> 32 GB RAM DDR5 High-Speed</li>
-              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-purple-400"></i> GPU RTX Serie 40 con DLSS 3</li>
-              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-purple-400"></i> Refrigeración Líquida o Doble Torre</li>
+            <ul class="text-xs space-y-3 text-[#1d1d1f] border-t border-black/[0.06] pt-5 mb-8">
+              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-purple-600"></i> Intel Core i7 / AMD Ryzen 7</li>
+              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-purple-600"></i> 32 GB RAM DDR5 High-Speed</li>
+              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-purple-600"></i> GPU RTX Serie 40 con DLSS 3</li>
+              <li class="flex items-center gap-2.5"><i class="fa-solid fa-check text-purple-600"></i> Refrigeración Líquida o Doble Torre</li>
             </ul>
           </div>
-          <a href="https://wa.me/51992507489?text=Hola%20DC%20CORP,%20estoy%20interesado%20en%20el%20ensamble%20DC%20Elite%20BattleRig." target="_blank" class="w-full text-center py-3 rounded-full bg-white/10 hover:bg-white/15 text-white text-xs font-medium transition">
+          <a href="https://wa.me/51992507489?text=Hola%20DC%20CORP,%20estoy%20interesado%20en%20el%20ensamble%20DC%20Elite%20BattleRig." target="_blank" class="w-full text-center py-3 rounded-full bg-white hover:bg-[#f5f5f7] text-[#1d1d1f] border border-black/10 text-xs font-semibold transition">
             Solicitar Proforma
           </a>
         </div>
@@ -574,63 +678,62 @@
     </div>
   </section>
 
-  <!-- ================= SOBRE EL FUNDADOR (CON FOTO CORPORATIVA) ================= -->
-  <section id="nosotros" class="py-24 sm:py-32 bg-black border-t border-white/[0.06]">
+  <!-- ================= SOBRE VÍCTOR CASTRO (CON FOTO CORPORATIVA) ================= -->
+  <section id="nosotros" class="py-24 sm:py-32 bg-white border-t border-black/[0.06]">
     <div class="max-w-6xl mx-auto px-5 sm:px-8">
-      <div class="bento-card p-8 sm:p-14 overflow-hidden">
+      <div class="glass-bento p-8 sm:p-14 bg-[#f5f5f7]/60 overflow-hidden">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
           
           <!-- Retrato Corporativo -->
           <div class="lg:col-span-5 flex flex-col items-center">
-            <div class="relative w-full max-w-[320px] aspect-[4/5] rounded-[24px] overflow-hidden border border-white/15 bg-[#1c1c1e] shadow-2xl">
+            <div class="relative w-full max-w-[320px] aspect-[4/5] rounded-[24px] overflow-hidden border border-black/10 bg-white shadow-xl">
               <img 
                 src="/fotocorporativa.jpg" 
                 onerror="if(!this.dataset.triedPng){this.dataset.triedPng='1';this.src='/fotocorporativa.png';}else if(!this.dataset.triedWebp){this.dataset.triedWebp='1';this.src='/fotocorporativa.webp';}else{this.style.display='none';document.getElementById('photoFallback').classList.remove('hidden');}"
-                alt="Víctor Samuel Castro Delgado - Fundador de DC CORP" 
+                alt="Víctor Samuel Castro Delgado" 
                 class="w-full h-full object-cover object-top transition-transform duration-700 hover:scale-105"
               >
-              <!-- Respaldo elegante si la imagen aún no está subida -->
-              <div id="photoFallback" class="hidden w-full h-full flex flex-col items-center justify-center text-[#86868b] p-6 text-center">
-                <i class="fa-solid fa-user-tie text-5xl text-[#2997ff] mb-3"></i>
-                <span class="text-xs font-medium text-[#f5f5f7]">Víctor Samuel Castro Delgado</span>
-                <span class="text-[11px] mt-1">Fundador de DC CORP</span>
+              <div id="photoFallback" class="hidden w-full h-full flex flex-col items-center justify-center text-[#6e6e73] p-6 text-center">
+                <i class="fa-solid fa-user-tie text-5xl text-[#0071e3] mb-3"></i>
+                <span class="text-xs font-semibold text-[#1d1d1f]">Víctor Samuel Castro Delgado</span>
+                <span class="text-[11px] mt-1">DC CORP • Ingeniería & Academia</span>
               </div>
 
-              <!-- Etiqueta minimalista estilo Apple sobre la foto -->
-              <div class="absolute bottom-3 left-3 right-3 px-4 py-2.5 rounded-2xl bg-black/70 backdrop-blur-xl border border-white/10">
-                <p class="text-xs font-semibold text-white">Víctor Samuel Castro Delgado</p>
-                <p class="text-[11px] text-[#2997ff]">Fundador & Especialista Principal</p>
+              <!-- Tarjeta flotante translúcida estilo iOS sobre la foto -->
+              <div class="absolute bottom-3 left-3 right-3 px-4 py-2.5 rounded-2xl bg-white/80 backdrop-blur-xl border border-white/70 shadow-sm">
+                <p class="text-xs font-bold text-[#1d1d1f]">Víctor Samuel Castro Delgado</p>
+                <p class="text-[11px] font-medium text-[#0071e3]">Ingeniería TI • Estadística • Música</p>
               </div>
             </div>
           </div>
 
-          <!-- Historia y propuesta de valor -->
+          <!-- Perfil Multidisciplinario -->
           <div class="lg:col-span-7 space-y-6">
-            <span class="inline-block px-3 py-1 rounded-full bg-white/[0.06] text-[#2997ff] text-xs font-medium">
-              Trato Directo y Transparente
+            <span class="inline-block px-3.5 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-xs font-semibold">
+              Atención Directa y Especializada
             </span>
-            <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-[#f5f5f7] leading-tight">
-              Ingeniería aplicada con claridad, sin tecnicismos innecesarios ni sorpresas.
+            <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-[#1d1d1f] leading-tight">
+              Soluciones tecnológicas sólidas, análisis de datos riguroso y enseñanza personalizada.
             </h2>
-            <p class="text-[#a1a1a6] text-sm sm:text-base leading-relaxed">
-              En <strong class="text-white font-semibold">DC CORP</strong> tratas directamente con quien diagnostica, repara y optimiza tu infraestructura. Cada intervención se explica paso a paso para que sepas exactamente qué componente requiere mantenimiento o mejora.
+            <p class="text-[#424245] text-sm sm:text-base leading-relaxed">
+              Desde <strong class="text-[#1d1d1f] font-semibold">DC CORP</strong> integro tres disciplinas que comparten un mismo estándar de precisión: el despliegue de redes, hardware y sistemas CCTV; el procesamiento y análisis estadístico para proyectos de investigación; y la docencia particular en matemáticas y música.
             </p>
-            <p class="text-[#86868b] text-sm sm:text-base leading-relaxed">
-              Desde el peinado limpio de un rack de comunicaciones hasta el ensamble de una estación de trabajo de alto rendimiento, cuidamos cada detalle técnico y estético.
+            <p class="text-[#6e6e73] text-sm sm:text-base leading-relaxed">
+              Ya sea que necesites optimizar la infraestructura tecnológica de tu oficina, validar estadísticamente los resultados de tu tesis o dominar un tema de cálculo o instrumento musical, trabajamos con un plan claro y adaptado a tus objetivos.
             </p>
 
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-white/[0.08]">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-black/[0.08]">
               <div>
-                <span class="block text-lg font-bold text-white">Lima</span>
-                <span class="text-xs text-[#86868b]">Atención presencial y remota</span>
+                <span class="block text-lg font-bold text-[#1d1d1f]">Presencial & Online</span>
+                <span class="text-xs text-[#6e6e73]">Lima y atención virtual</span>
               </div>
               <div>
-                <span class="block text-lg font-bold text-[#2997ff]">Garantía</span>
-                <span class="text-xs text-[#86868b]">Respaldo en cada servicio</span>
+                <span class="block text-lg font-bold text-[#0071e3]">100% Personalizado</span>
+                <span class="text-xs text-[#6e6e73]">Trato directo sin intermediarios</span>
               </div>
               <div>
-                <span class="block text-lg font-bold text-emerald-400">992 507 489</span>
-                <span class="text-xs text-[#86868b]">Contacto directo WhatsApp</span>
+                <span class="block text-lg font-bold text-emerald-600">992 507 489</span>
+                <span class="text-xs text-[#6e6e73]">Contacto directo WhatsApp</span>
               </div>
             </div>
           </div>
@@ -641,83 +744,85 @@
   </section>
 
   <!-- ================= CONTACTO ================= -->
-  <section id="contacto" class="py-24 bg-[#0a0a0c] border-t border-white/[0.06]">
+  <section id="contacto" class="py-24 ambient-light-bg border-t border-black/[0.06]">
     <div class="max-w-6xl mx-auto px-5 sm:px-8">
       
       <div class="max-w-2xl mb-14">
-        <p class="text-xs font-semibold uppercase tracking-widest text-[#2997ff] mb-2">Contacto</p>
-        <h2 class="text-3xl sm:text-5xl font-bold tracking-tight text-[#f5f5f7]">Hablemos de tu proyecto.</h2>
+        <p class="text-xs font-semibold uppercase tracking-widest text-[#0071e3] mb-2">Contacto</p>
+        <h2 class="text-3xl sm:text-5xl font-bold tracking-tight text-[#1d1d1f]">Conversemos hoy.</h2>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
         <div class="lg:col-span-5 space-y-4">
-          <div class="bento-card p-6 flex items-center gap-4">
-            <div class="w-11 h-11 rounded-full bg-emerald-500/15 text-emerald-400 flex items-center justify-center text-lg shrink-0">
+          <div class="glass-bento p-6 flex items-center gap-4">
+            <div class="w-11 h-11 rounded-full bg-emerald-500/15 text-emerald-600 flex items-center justify-center text-lg shrink-0">
               <i class="fa-brands fa-whatsapp"></i>
             </div>
             <div>
-              <p class="text-xs text-[#86868b]">WhatsApp Directo</p>
-              <a href="https://wa.me/51992507489" target="_blank" class="text-white hover:text-[#2997ff] font-semibold text-base transition">
+              <p class="text-xs text-[#6e6e73]">WhatsApp Directo</p>
+              <a href="https://wa.me/51992507489" target="_blank" class="text-[#1d1d1f] hover:text-[#0071e3] font-semibold text-base transition">
                 +51 992 507 489
               </a>
             </div>
           </div>
 
-          <div class="bento-card p-6 flex items-center gap-4">
-            <div class="w-11 h-11 rounded-full bg-[#0071e3]/15 text-[#2997ff] flex items-center justify-center text-lg shrink-0">
+          <div class="glass-bento p-6 flex items-center gap-4">
+            <div class="w-11 h-11 rounded-full bg-[#0071e3]/10 text-[#0071e3] flex items-center justify-center text-lg shrink-0">
               <i class="fa-solid fa-location-dot"></i>
             </div>
             <div>
-              <p class="text-xs text-[#86868b]">Cobertura</p>
-              <p class="text-white font-semibold text-base">Lima Metropolitana, Perú</p>
+              <p class="text-xs text-[#6e6e73]">Modalidad & Ubicación</p>
+              <p class="text-[#1d1d1f] font-semibold text-base">Lima Metropolitana & Virtual</p>
             </div>
           </div>
 
-          <div class="bento-card p-6 flex items-center gap-4">
-            <div class="w-11 h-11 rounded-full bg-purple-500/15 text-purple-400 flex items-center justify-center text-lg shrink-0">
+          <div class="glass-bento p-6 flex items-center gap-4">
+            <div class="w-11 h-11 rounded-full bg-purple-500/10 text-purple-600 flex items-center justify-center text-lg shrink-0">
               <i class="fa-solid fa-clock"></i>
             </div>
             <div>
-              <p class="text-xs text-[#86868b]">Horario</p>
-              <p class="text-white font-semibold text-base">Lun – Sáb: 8:30 AM – 7:30 PM</p>
+              <p class="text-xs text-[#6e6e73]">Horario de Atención</p>
+              <p class="text-[#1d1d1f] font-semibold text-base">Lun – Sáb: 8:30 AM – 8:00 PM</p>
             </div>
           </div>
         </div>
 
         <div class="lg:col-span-7">
-          <div class="bento-card p-8">
+          <div class="glass-bento p-8">
             <form id="contactForm" onsubmit="event.preventDefault(); submitContactForm();" class="space-y-5">
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-xs font-medium text-[#86868b] mb-1.5">Nombre *</label>
-                  <input type="text" id="formName" required placeholder="Carlos Ramírez" class="w-full bg-[#1c1c1e] border border-white/10 rounded-xl px-4 py-3 text-[#f5f5f7] text-sm focus:outline-none focus:border-[#0071e3] transition">
+                  <label class="block text-xs font-medium text-[#6e6e73] mb-1.5">Nombre *</label>
+                  <input type="text" id="formName" required placeholder="Carlos Ramírez" class="w-full bg-white/90 border border-black/10 rounded-xl px-4 py-3 text-[#1d1d1f] text-sm focus:outline-none focus:border-[#0071e3] transition">
                 </div>
                 <div>
-                  <label class="block text-xs font-medium text-[#86868b] mb-1.5">Teléfono *</label>
-                  <input type="tel" id="formPhone" required placeholder="+51 900 000 000" class="w-full bg-[#1c1c1e] border border-white/10 rounded-xl px-4 py-3 text-[#f5f5f7] text-sm focus:outline-none focus:border-[#0071e3] transition">
+                  <label class="block text-xs font-medium text-[#6e6e73] mb-1.5">Teléfono *</label>
+                  <input type="tel" id="formPhone" required placeholder="+51 900 000 000" class="w-full bg-white/90 border border-black/10 rounded-xl px-4 py-3 text-[#1d1d1f] text-sm focus:outline-none focus:border-[#0071e3] transition">
                 </div>
               </div>
 
               <div>
-                <label class="block text-xs font-medium text-[#86868b] mb-1.5">Servicio *</label>
-                <select id="formServiceInterest" class="w-full bg-[#1c1c1e] border border-white/10 rounded-xl px-4 py-3 text-[#f5f5f7] text-sm focus:outline-none focus:border-[#0071e3] transition">
+                <label class="block text-xs font-medium text-[#6e6e73] mb-1.5">Área de consulta *</label>
+                <select id="formServiceInterest" class="w-full bg-white/90 border border-black/10 rounded-xl px-4 py-3 text-[#1d1d1f] text-sm focus:outline-none focus:border-[#0071e3] transition">
                   <option value="Soporte Técnico de PC / Laptop">Soporte Técnico de PC / Laptop</option>
                   <option value="Cableado de Red LAN y Wi-Fi">Cableado de Red LAN y Wi-Fi</option>
                   <option value="Instalación de Cámaras CCTV">Instalación de Cámaras de Seguridad (CCTV)</option>
                   <option value="Ensamble y Cotización de Computadora">Ensamble y Cotización de Computadora</option>
-                  <option value="Otro / Consulta General">Otro / Consulta General</option>
+                  <option value="Asesoría en Proyecto de Estadística / Tesis">Asesoría en Proyecto de Estadística / Tesis</option>
+                  <option value="Clases Particulares de Matemáticas">Clases Particulares de Matemáticas</option>
+                  <option value="Clases Particulares de Música">Clases Particulares de Música</option>
                 </select>
               </div>
 
               <div>
-                <label class="block text-xs font-medium text-[#86868b] mb-1.5">Detalle del requerimiento *</label>
-                <textarea id="formMessage" required rows="3" placeholder="Cuéntanos brevemente qué necesitas..." class="w-full bg-[#1c1c1e] border border-white/10 rounded-xl px-4 py-3 text-[#f5f5f7] text-sm focus:outline-none focus:border-[#0071e3] transition resize-none"></textarea>
+                <label class="block text-xs font-medium text-[#6e6e73] mb-1.5">Detalle del requerimiento *</label>
+                <textarea id="formMessage" required rows="3" placeholder="Cuéntame brevemente qué necesitas..." class="w-full bg-white/90 border border-black/10 rounded-xl px-4 py-3 text-[#1d1d1f] text-sm focus:outline-none focus:border-[#0071e3] transition resize-none"></textarea>
               </div>
 
               <div id="contactStatusBox" class="hidden p-3 rounded-xl text-xs font-medium"></div>
 
-              <button type="submit" class="w-full py-3.5 px-6 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-medium text-sm transition-all flex items-center justify-center gap-2">
+              <button type="submit" class="w-full py-3.5 px-6 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white font-semibold text-sm transition-all flex items-center justify-center gap-2 shadow-sm">
                 <i class="fa-brands fa-whatsapp text-lg"></i>
                 <span>Iniciar Chat en WhatsApp</span>
               </button>
@@ -729,22 +834,22 @@
     </div>
   </section>
 
-  <!-- ================= FOOTER MINIMALISTA ESTILO APPLE ================= -->
-  <footer class="bg-black border-t border-white/[0.08] py-12 text-[#86868b] text-xs">
+  <!-- ================= FOOTER CLARO MINIMALISTA ================= -->
+  <footer class="bg-white border-t border-black/[0.08] py-12 text-[#6e6e73] text-xs">
     <div class="max-w-6xl mx-auto px-5 sm:px-8">
       
-      <div class="flex flex-col md:flex-row items-center justify-between gap-6 pb-8 border-b border-white/[0.06]">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-6 pb-8 border-b border-black/[0.06]">
         <a href="#hero" class="flex items-center shrink-0">
-          <img src="/logo.svg" alt="DC CORP - Soporte Tecnológico" class="h-12 w-auto object-contain">
+          <img src="/logo.svg" alt="DC CORP" class="h-12 w-auto object-contain">
         </a>
 
         <div class="flex flex-wrap justify-center gap-6">
-          <a href="#servicios" class="hover:text-white transition">Soluciones</a>
-          <a href="#diagnostico" class="hover:text-white transition">Diagnóstico</a>
-          <a href="#cotizador" class="hover:text-white transition">Cotizador</a>
-          <a href="#catalogo" class="hover:text-white transition">Equipos</a>
-          <a href="#nosotros" class="hover:text-white transition">Fundador</a>
-          <a href="#contacto" class="hover:text-white transition">Contacto</a>
+          <a href="#tecnologia" class="hover:text-[#1d1d1f] transition">Tecnología TI</a>
+          <a href="#academia" class="hover:text-[#1d1d1f] transition">Estadística & Clases</a>
+          <a href="#diagnostico" class="hover:text-[#1d1d1f] transition">Diagnóstico</a>
+          <a href="#cotizador" class="hover:text-[#1d1d1f] transition">Cotizador</a>
+          <a href="#catalogo" class="hover:text-[#1d1d1f] transition">Equipos</a>
+          <a href="#nosotros" class="hover:text-[#1d1d1f] transition">Perfil</a>
         </div>
 
         <div>Lima, Perú • +51 992 507 489</div>
@@ -759,15 +864,15 @@
   </footer>
 
   <!-- ================= BOTÓN FLOTANTE WHATSAPP ================= -->
-  <a href="https://wa.me/51992507489?text=Hola%20DC%20CORP,%20necesito%20asistencia%20técnica,%20redes%20o%20ensamble%20de%20PC." 
+  <a href="https://wa.me/51992507489?text=Hola%20Víctor,%20quisiera%20consultar%20por%20tus%20servicios%20de%20tecnología%20o%20asesoría%20académica." 
      target="_blank" 
      rel="noopener noreferrer" 
-     class="fixed bottom-6 right-6 z-50 w-13 h-13 p-3.5 rounded-full bg-[#25D366] hover:brightness-110 text-white flex items-center justify-center shadow-2xl transition-transform duration-300 hover:scale-105"
+     class="fixed bottom-6 right-6 z-50 w-13 h-13 p-3.5 rounded-full bg-[#25D366] hover:brightness-105 text-white flex items-center justify-center shadow-lg transition-transform duration-300 hover:scale-105"
      title="Chatear por WhatsApp">
     <i class="fa-brands fa-whatsapp text-2xl"></i>
   </a>
 
-  <!-- ================= SCRIPTS (THREE.JS + LÓGICA) ================= -->
+  <!-- ================= SCRIPTS (THREE.JS LIGHT + LÓGICA UNIFICADA) ================= -->
   <script>
     let scene, camera, renderer;
     let nodeGroup, wireframeIcosahedron, particleSystem;
@@ -782,7 +887,7 @@
       const height = container.clientHeight || window.innerHeight;
 
       scene = new THREE.Scene();
-      scene.fog = new THREE.FogExp2(0x000000, 0.003);
+      scene.fog = new THREE.FogExp2(0xffffff, 0.0032);
 
       camera = new THREE.PerspectiveCamera(55, width / height, 0.1, 1000);
       camera.position.z = 85;
@@ -791,27 +896,25 @@
       renderer.setSize(width, height);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-      const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
       scene.add(ambientLight);
 
-      const cyanPoint = new THREE.PointLight(0x2997ff, 2.2, 120);
-      cyanPoint.position.set(30, 25, 40);
-      scene.add(cyanPoint);
+      const bluePoint = new THREE.PointLight(0x0071e3, 1.8, 120);
+      bluePoint.position.set(30, 25, 40);
+      scene.add(bluePoint);
 
-      const violetPoint = new THREE.PointLight(0xa855f7, 2.0, 120);
-      violetPoint.position.set(-30, -25, 40);
-      scene.add(violetPoint);
+      const purplePoint = new THREE.PointLight(0x7c3aed, 1.6, 120);
+      purplePoint.position.set(-30, -25, 40);
+      scene.add(purplePoint);
 
       nodeGroup = new THREE.Group();
       scene.add(nodeGroup);
 
       const rackGeo = new THREE.BoxGeometry(4, 4, 4);
       const rackMat = new THREE.MeshStandardMaterial({
-        color: 0x2997ff,
-        emissive: 0x0071e3,
-        emissiveIntensity: 0.7,
+        color: 0x0071e3,
         roughness: 0.25,
-        metalness: 0.8
+        metalness: 0.2
       });
       const rackMesh = new THREE.Mesh(rackGeo, rackMat);
       nodeGroup.add(rackMesh);
@@ -821,17 +924,13 @@
       const camGeo = new THREE.SphereGeometry(0.85, 14, 14);
 
       const pcMat = new THREE.MeshStandardMaterial({
-        color: 0x38bdf8,
-        emissive: 0x0284c7,
-        emissiveIntensity: 0.4,
-        roughness: 0.3
+        color: 0x0284c7,
+        roughness: 0.35
       });
 
       const camMat = new THREE.MeshStandardMaterial({
-        color: 0x34d399,
-        emissive: 0x059669,
-        emissiveIntensity: 0.4,
-        roughness: 0.3
+        color: 0x059669,
+        roughness: 0.35
       });
 
       const nodes = [rackMesh];
@@ -848,9 +947,9 @@
       }
 
       const lineMaterial = new THREE.LineBasicMaterial({
-        color: 0x2997ff,
+        color: 0x0071e3,
         transparent: true,
-        opacity: 0.25
+        opacity: 0.22
       });
 
       const lineGeometry = new THREE.BufferGeometry();
@@ -874,27 +973,27 @@
 
       const icoGeometry = new THREE.IcosahedronGeometry(22, 2);
       const icoMaterial = new THREE.MeshBasicMaterial({
-        color: 0xa855f7,
+        color: 0x7c3aed,
         wireframe: true,
         transparent: true,
-        opacity: 0.15
+        opacity: 0.16
       });
       wireframeIcosahedron = new THREE.Mesh(icoGeometry, icoMaterial);
       wireframeIcosahedron.visible = false;
       nodeGroup.add(wireframeIcosahedron);
 
       const particleGeo = new THREE.BufferGeometry();
-      const pCount = 150;
+      const pCount = 140;
       const pCoords = new Float32Array(pCount * 3);
       for (let i = 0; i < pCount * 3; i++) {
         pCoords[i] = (Math.random() - 0.5) * 110;
       }
       particleGeo.setAttribute('position', new THREE.BufferAttribute(pCoords, 3));
       const pMaterial = new THREE.PointsMaterial({
-        color: 0x2997ff,
+        color: 0x0071e3,
         size: 0.75,
         transparent: true,
-        opacity: 0.35
+        opacity: 0.3
       });
       particleSystem = new THREE.Points(particleGeo, pMaterial);
       scene.add(particleSystem);
@@ -957,7 +1056,7 @@
     const symptomData = {
       slowness: {
         title: 'Diagnóstico preliminar: Lentitud en inicio y carga',
-        desc: 'Frecuentemente provocado por discos mecánicos (HDD) degradados, falta de mantenimiento al sistema operativo o memoria RAM insuficiente para Windows actual.',
+        desc: 'Frecuentemente provocado por discos mecánicos (HDD) degradados, saturación de registros de Windows o memoria RAM insuficiente para la multitarea moderna.',
         solution: '✓ Solución DC CORP: Clonación a SSD M.2 NVMe ultrarrápido, ampliación de RAM y limpieza lógica de arranque.',
         waText: 'Hola Víctor, mi PC presenta lentitud extrema y quisiera cotizar un mantenimiento preventivo o repotenciación con SSD.'
       },
@@ -999,9 +1098,9 @@
 
       document.querySelectorAll('.symptom-btn').forEach(btn => {
         if (btn.getAttribute('data-sym') === key) {
-          btn.className = "symptom-btn p-4 rounded-2xl border border-[#0071e3] bg-[#0071e3]/15 text-white text-xs font-medium flex flex-col items-center gap-2.5 transition";
+          btn.className = "symptom-btn p-4 rounded-2xl border border-[#0071e3] bg-white/90 text-[#0071e3] text-xs font-semibold flex flex-col items-center gap-2.5 transition shadow-sm";
         } else {
-          btn.className = "symptom-btn p-4 rounded-2xl border border-white/10 bg-[#141416] text-[#a1a1a6] text-xs font-medium flex flex-col items-center gap-2.5 transition hover:border-white/25";
+          btn.className = "symptom-btn p-4 rounded-2xl border border-black/[0.08] bg-white/60 text-[#424245] text-xs font-medium flex flex-col items-center gap-2.5 transition hover:bg-white";
         }
       });
 
@@ -1044,8 +1143,26 @@
         options: [
           { text: 'PC Ofimática / Estudiante (Gama Económica)', mult: 1.0 },
           { text: 'PC Para Oficina Rápida / Facturación (Core i3 / Ryzen 3)', mult: 1.25 },
-          { text: 'Workstation Diseño / Arquitectura (Core i5/i7 + Tarjeta Gráfica)', mult: 2.2 },
+          { text: 'Workstation Diseño / Ciencia de Datos (Core i5 + RTX)', mult: 2.2 },
           { text: 'PC Gamer Alta Tasa de FPS (Core i7 / Ryzen 7 + RTX)', mult: 2.9 }
+        ]
+      },
+      'Asesoría en Proyectos de Estadística': {
+        scaleLabel: '2. Alcance del Análisis Estadístico',
+        options: [
+          { text: 'Procesamiento descriptivo + Tablas y gráficos (SPSS / Excel)', mult: 1.0 },
+          { text: 'Prueba de hipótesis, normalidad y correlación (Tesis / Artículo)', mult: 1.6 },
+          { text: 'Modelos avanzados (Regresión, ANOVA, R / Python) + Interpretación', mult: 2.3 },
+          { text: 'Acompañamiento integral desde instrumento hasta sustentación', mult: 3.0 }
+        ]
+      },
+      'Clases Particulares (Matemáticas / Música)': {
+        scaleLabel: '2. Materia y Paquete de Sesiones',
+        options: [
+          { text: 'Matemáticas (Escolar / Pre) - Sesión individual (1.5 hrs)', mult: 1.0 },
+          { text: 'Matemáticas Universitarias (Cálculo / Álgebra Lineal) - Sesión', mult: 1.25 },
+          { text: 'Música (Guitarra, Bajo, Teclado o Percusión) - Sesión individual', mult: 1.0 },
+          { text: 'Paquete Mensual (4 sesiones personalizadas - Mate o Música)', mult: 3.6 }
         ]
       }
     };
@@ -1087,7 +1204,7 @@
 
       const currency = document.getElementById('currencySelect').value;
       const name = document.getElementById('clientName').value.trim() || 'No especificado';
-      const location = document.getElementById('clientLocation').value.trim() || 'Lima';
+      const location = document.getElementById('clientLocation').value.trim() || 'Lima / Virtual';
 
       let total = baseCost * scaleMultiplier * urgencyMultiplier;
       let symbol = "S/.";
@@ -1098,7 +1215,7 @@
 
       document.getElementById('priceDisplay').innerText = `${symbol} ${Math.round(total).toLocaleString()}.00`;
 
-      const summary = `Hola Víctor (DC CORP), quisiera coordinar una cotización:\n\n• Servicio: ${serviceName}\n• Detalle: ${scaleOption.text}\n• Modalidad: ${urgencyOption.text}\n• Presupuesto aprox: ${symbol} ${Math.round(total).toLocaleString()}.00\n• Contacto: ${name}\n• Distrito: ${location}\n\n¿Tienes disponibilidad para coordinar?`;
+      const summary = `Hola Víctor (DC CORP), quisiera coordinar una cotización:\n\n• Área: ${serviceName}\n• Detalle: ${scaleOption.text}\n• Modalidad: ${urgencyOption.text}\n• Presupuesto aprox: ${symbol} ${Math.round(total).toLocaleString()}.00\n• Contacto: ${name}\n• Ubicación / Modalidad: ${location}\n\n¿Tienes disponibilidad para coordinar?`;
       document.getElementById('quotePreview').innerText = summary;
       return { summary };
     }
@@ -1116,14 +1233,14 @@
       const statusBox = document.getElementById('contactStatusBox');
 
       if (!name || !phone || !msg) {
-        statusBox.className = "p-3 rounded-xl text-xs font-medium bg-red-500/15 border border-red-500/30 text-red-200";
+        statusBox.className = "p-3 rounded-xl text-xs font-medium bg-red-500/10 border border-red-500/25 text-red-700";
         statusBox.innerText = "Por favor completa los campos requeridos (*)";
         statusBox.classList.remove('hidden');
         return;
       }
 
-      const waText = `Hola Víctor (DC CORP),\nMi nombre es ${name} (Tel: ${phone}).\nServicio de interés: ${service}\n\nDetalle:\n${msg}`;
-      statusBox.className = "p-3 rounded-xl text-xs font-medium bg-emerald-500/15 border border-emerald-500/30 text-emerald-200";
+      const waText = `Hola Víctor (DC CORP),\nMi nombre es ${name} (Tel: ${phone}).\nÁrea de interés: ${service}\n\nDetalle:\n${msg}`;
+      statusBox.className = "p-3 rounded-xl text-xs font-medium bg-emerald-500/10 border border-emerald-500/25 text-emerald-700";
       statusBox.innerText = "Abriendo chat de WhatsApp...";
       statusBox.classList.remove('hidden');
 
