@@ -34,7 +34,7 @@
 
   <!-- Navbar Superior -->
   <header class="sticky top-0 z-40 apple-nav">
-    <div class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
+    <div class="max-w-7xl mx-auto px-5 h-16 flex items-center justify-between">
       <div class="flex items-center gap-3">
         <img src="/logo.svg" alt="DC CORP" class="h-10">
         <span id="roleBadge" class="px-2.5 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[11px] font-semibold">Admin</span>
@@ -51,12 +51,12 @@
     </div>
   </header>
 
-  <main class="max-w-6xl mx-auto px-5 pt-8 space-y-8">
+  <main class="max-w-7xl mx-auto px-5 pt-8 space-y-8">
 
     <!-- Navegación por Pestañas Estilo iOS Segmented Control -->
     <div class="inline-flex flex-wrap gap-1.5 p-1.5 rounded-2xl bg-black/[0.05]">
       <button onclick="switchTab('asistencia')" id="tab-asistencia" class="tab-btn px-5 py-2 rounded-xl bg-white text-[#1d1d1f] shadow-sm text-xs font-semibold transition">
-        <i class="fa-solid fa-clipboard-check mr-1.5 text-[#0071e3]"></i> Pasar Asistencia
+        <i class="fa-solid fa-calendar-week mr-1.5 text-[#0071e3]"></i> Asistencia Semanal
       </button>
       <button onclick="switchTab('materiales')" id="tab-materiales" class="tab-btn px-5 py-2 rounded-xl text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition">
         <i class="fa-solid fa-folder-plus mr-1.5 text-indigo-600"></i> Subir Materiales
@@ -69,43 +69,68 @@
       </button>
     </div>
 
-    <!-- ==================== SECCIÓN 1: PASAR ASISTENCIA ==================== -->
+    <!-- ==================== SECCIÓN 1: GRILLA SEMANAL GRÁFICA ==================== -->
     <section id="panel-asistencia" class="space-y-6">
       <div class="glass-bento p-6 sm:p-8">
-        <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-4 pb-6 border-b border-black/[0.06]">
+        
+        <!-- Cabecera y Controles de Semana -->
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-black/[0.06]">
           <div>
-            <h2 class="text-xl font-bold tracking-tight">Registro Diario de Asistencia</h2>
-            <p class="text-xs text-[#6e6e73] mt-1">Se registrará automáticamente tu nombre como docente que marcó la asistencia.</p>
+            <h2 class="text-xl font-bold tracking-tight">Control Semanal de Asistencias</h2>
+            <p class="text-xs text-[#6e6e73] mt-1">
+              Haz clic en cualquier día de la semana para marcar asistencia normal, recuperación (ej: 3 clases en una semana) o reforzamiento con hora de llegada.
+            </p>
           </div>
+
           <div class="flex flex-wrap items-center gap-3">
             <div>
-              <label class="block text-[11px] font-medium text-[#6e6e73] mb-1">Tipo de sesión</label>
-              <select id="attSessionType" onchange="loadAttendanceSheet()" class="bg-white border border-black/10 rounded-xl px-3.5 py-2 text-xs font-semibold text-[#0071e3]">
-                <option value="Regular">📅 Clase Regular (Bloque 8/mes)</option>
-                <option value="Reforzamiento">⚡ Reforzamiento Extra (+ Hora llegada)</option>
-              </select>
+              <label class="block text-[10px] font-medium text-[#6e6e73] mb-1">Grupo / Subgrupo</label>
+              <select id="attGroupSelect" onchange="loadWeeklyGrid()" class="bg-white border border-black/10 rounded-xl px-3.5 py-2 text-xs font-semibold min-w-[210px]"></select>
             </div>
+
             <div>
-              <label class="block text-[11px] font-medium text-[#6e6e73] mb-1">Grupo / Subgrupo</label>
-              <select id="attGroupSelect" onchange="loadAttendanceSheet()" class="bg-white border border-black/10 rounded-xl px-3.5 py-2 text-xs font-medium min-w-[200px]"></select>
-            </div>
-            <div>
-              <label class="block text-[11px] font-medium text-[#6e6e73] mb-1">Fecha</label>
-              <input type="date" id="attDateInput" onchange="loadAttendanceSheet()" class="bg-white border border-black/10 rounded-xl px-3.5 py-2 text-xs font-medium">
+              <label class="block text-[10px] font-medium text-[#6e6e73] mb-1">Semana seleccionada</label>
+              <div class="inline-flex items-center bg-white border border-black/10 rounded-xl p-1 gap-1">
+                <button onclick="changeWeek(-7)" class="px-2.5 py-1 rounded-lg hover:bg-black/5 text-xs font-bold" title="Semana anterior">
+                  <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <span id="weekRangeLabel" class="px-2.5 text-xs font-semibold text-[#1d1d1f] min-w-[145px] text-center">Semana actual</span>
+                <button onclick="changeWeek(7)" class="px-2.5 py-1 rounded-lg hover:bg-black/5 text-xs font-bold" title="Semana siguiente">
+                  <i class="fa-solid fa-chevron-right"></i>
+                </button>
+                <button onclick="resetToCurrentWeek()" class="px-2 py-1 rounded-lg bg-[#0071e3]/10 text-[#0071e3] text-[10px] font-semibold hover:bg-[#0071e3]/20">
+                  Hoy
+                </button>
+              </div>
             </div>
           </div>
         </div>
 
-        <div id="attendanceListContainer" class="py-6">
-          <p class="text-xs text-[#6e6e73] text-center py-8">Crea un grupo o subgrupo primero para tomar asistencia.</p>
+        <!-- Leyenda Visual Rápida -->
+        <div class="flex flex-wrap items-center gap-3 py-4 text-[11px] text-[#6e6e73]">
+          <span class="font-semibold text-[#1d1d1f]">Leyenda:</span>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-700 font-medium">
+            <i class="fa-solid fa-check"></i> Presente (Bloque)
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sky-500/10 text-sky-700 font-medium">
+            <i class="fa-solid fa-rotate-right"></i> Recuperación (Bloque)
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-700 font-medium">
+            <i class="fa-regular fa-clock"></i> Tardanza
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/10 text-red-700 font-medium">
+            <i class="fa-solid fa-xmark"></i> Falta
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-500/10 text-purple-700 font-medium">
+            <i class="fa-solid fa-bolt"></i> Reforzamiento (+Hora)
+          </span>
         </div>
 
-        <div class="flex items-center justify-between pt-4 border-t border-black/[0.06]">
-          <span id="attFeedback" class="text-xs font-semibold text-emerald-600"></span>
-          <button onclick="saveAttendance()" class="px-6 py-2.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold shadow-sm transition">
-            <i class="fa-solid fa-check mr-1.5"></i> Guardar Asistencias
-          </button>
+        <!-- Tabla Semanal Interactiva -->
+        <div id="weeklyGridContainer" class="overflow-x-auto pb-2">
+          <p class="text-xs text-[#6e6e73] text-center py-10">Selecciona o crea un grupo para visualizar la semana.</p>
         </div>
+
       </div>
     </section>
 
@@ -172,8 +197,8 @@
               <div id="groupCategoryWrapper">
                 <label class="block text-[11px] font-medium text-[#6e6e73] mb-1">Modalidad / División *</label>
                 <select id="groupCategory" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs font-semibold">
-                  <option value="Particulares">📘 Particulares (Matemáticas, Estadística, Música)</option>
-                  <option value="Sol Music">🎵 Sol Music (Academia)</option>
+                  <option value="Particulares">Particulares (Matemáticas, Estadística, Música)</option>
+                  <option value="Sol Music">Sol Music (Academia)</option>
                 </select>
               </div>
               <input type="text" id="groupName" required placeholder="Ej: Guitarras, Piano, Cuerdas, Cajón..." class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
@@ -185,7 +210,7 @@
             <div id="groupsTags" class="flex flex-wrap gap-2 mt-4 pt-4 border-t border-black/[0.06]"></div>
           </div>
 
-          <!-- Registrar Estudiante con Horario Fijo y Bloque de 8 clases/mes -->
+          <!-- Registrar Estudiante -->
           <div class="glass-bento p-6">
             <h3 class="text-base font-bold mb-1">2. Registrar Estudiante</h3>
             <p class="text-xs text-[#6e6e73] mb-4">Asigna su horario fijo y sus clases por bloque mensual (8 por defecto).</p>
@@ -258,7 +283,7 @@
         
         <div class="lg:col-span-5 glass-bento p-6 sm:p-8 h-fit">
           <h3 class="text-base font-bold mb-1">Registrar Docente Sol Music</h3>
-          <p class="text-xs text-[#6e6e73] mb-4">Crea cuentas para docentes (ej: Prof. Diosdi, Prof. Gabriel, Prof. Jhona). Quedan habilitados para gestionar sus subgrupos y marcar asistencias en Sol Music.</p>
+          <p class="text-xs text-[#6e6e73] mb-4">Crea cuentas para docentes (ej: Prof. Diosdi, Prof. Gabriel, Prof. Jhona).</p>
           <form id="teacherForm" class="space-y-3">
             <input type="text" id="teaName" required placeholder="Nombre del profesor (ej: Prof. Diosdi)" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
             <input type="text" id="teaCode" required placeholder="Usuario de acceso (ej: diosdi)" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
@@ -282,6 +307,82 @@
 
   </main>
 
+  <!-- ==================== MODAL COMPACTO PARA MARCAR CELDAS DE LA SEMANA ==================== -->
+  <div id="cellModal" class="hidden fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass-bento p-6 sm:p-7 max-w-md w-full bg-white space-y-5">
+      <div class="flex items-start justify-between gap-2">
+        <div>
+          <span id="modalDateBadge" class="px-2.5 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[11px] font-semibold">Fecha</span>
+          <h3 id="modalStudentName" class="text-lg font-bold text-[#1d1d1f] mt-1">Estudiante</h3>
+          <p id="modalMarkerInfo" class="text-[11px] text-amber-700 font-medium hidden"></p>
+        </div>
+        <button onclick="closeCellModal()" class="text-[#6e6e73] hover:text-[#1d1d1f] text-sm p-1">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Bloque 1: Clase Regular o Recuperación (descuenta del bloque de 8/mes) -->
+      <div class="p-4 rounded-2xl bg-[#f5f5f7] space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-[#1d1d1f]">1. Clase del Bloque Mensual (8/mes)</span>
+          <span class="text-[10px] text-[#6e6e73]">Normal o Recuperación</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <button type="button" onclick="saveCellAction('Regular', 'Presente')"
+            class="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+            <i class="fa-solid fa-check"></i> Presente
+          </button>
+          <button type="button" onclick="saveCellAction('Recuperacion', 'Presente')"
+            class="py-2.5 px-3 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+            <i class="fa-solid fa-rotate-right"></i> Recuperación
+          </button>
+          <button type="button" onclick="saveCellAction('Regular', 'Tardanza')"
+            class="py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+            <i class="fa-regular fa-clock"></i> Tardanza
+          </button>
+          <button type="button" onclick="saveCellAction('Regular', 'Falta')"
+            class="py-2 px-3 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+            <i class="fa-solid fa-xmark"></i> Falta
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2 pt-1">
+          <input type="text" id="modalNoteInput" placeholder="Observación opcional (ej: Recupera clase del martes)"
+            class="flex-1 bg-white border border-black/10 rounded-xl px-3 py-1.5 text-xs">
+          <button type="button" onclick="clearRegularAndRecup()"
+            class="px-3 py-1.5 rounded-xl bg-black/5 hover:bg-black/10 text-[#6e6e73] text-[11px] font-medium" title="Quitar marca">
+            Limpiar
+          </button>
+        </div>
+      </div>
+
+      <!-- Bloque 2: Reforzamiento Extra (con hora de llegada, no consume las 8 clases) -->
+      <div class="p-4 rounded-2xl bg-purple-500/[0.07] border border-purple-500/20 space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-purple-900"><i class="fa-solid fa-bolt mr-1"></i> 2. Reforzamiento Extra</span>
+          <span class="text-[10px] text-purple-700">Fuera del bloque de 8</span>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="flex items-center gap-1.5 bg-white border border-purple-500/20 rounded-xl px-3 py-1.5">
+            <span class="text-[11px] text-[#6e6e73]">Hora llegada:</span>
+            <input type="time" id="modalArrivalInput" class="text-xs font-semibold text-[#1d1d1f] focus:outline-none">
+          </div>
+          <button type="button" onclick="saveReforzamientoAction()"
+            class="flex-1 py-2 px-3 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold transition">
+            Marcar Reforzamiento
+          </button>
+          <button type="button" onclick="saveCellAction('Reforzamiento', 'Clear')"
+            class="px-2.5 py-2 rounded-xl bg-white hover:bg-red-50 text-red-600 text-xs" title="Quitar reforzamiento">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <!-- Modal Cambio de Contraseña -->
   <div id="passModal" class="hidden fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="glass-bento p-6 max-w-sm w-full bg-white">
@@ -302,7 +403,6 @@
     }
     const isAdmin = role === 'admin';
     document.getElementById('userName').innerText = localStorage.getItem('dc_name') || 'Usuario';
-    document.getElementById('attDateInput').valueAsDate = new Date();
 
     const badge = document.getElementById('roleBadge');
     if (isAdmin) {
@@ -357,6 +457,275 @@
       });
     }
 
+    // ==================== LÓGICA DE SEMANA (LUNES A DOMINGO) ====================
+    function getMonday(d) {
+      const date = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+      const day = date.getDay();
+      const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+      return new Date(date.setDate(diff));
+    }
+
+    function formatISO(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    let currentMonday = getMonday(new Date());
+
+    function getWeekDays() {
+      const names = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+      const days = [];
+      for (let i = 0; i < 7; i++) {
+        const dt = new Date(currentMonday);
+        dt.setDate(currentMonday.getDate() + i);
+        days.push({
+          name: names[i],
+          dayNum: dt.getDate(),
+          monthShort: dt.toLocaleDateString('es-PE', { month: 'short' }),
+          iso: formatISO(dt)
+        });
+      }
+      return days;
+    }
+
+    function changeWeek(offsetDays) {
+      currentMonday.setDate(currentMonday.getDate() + offsetDays);
+      loadWeeklyGrid();
+    }
+
+    function resetToCurrentWeek() {
+      currentMonday = getMonday(new Date());
+      loadWeeklyGrid();
+    }
+
+    let weeklyDataCache = { students: [], records: [] };
+    let activeCellContext = null;
+
+    async function loadWeeklyGrid() {
+      const groupId = document.getElementById('attGroupSelect').value;
+      const days = getWeekDays();
+      const startISO = days[0].iso;
+      const endISO = days[6].iso;
+      document.getElementById('weekRangeLabel').innerText = `${days[0].dayNum} ${days[0].monthShort} – ${days[6].dayNum} ${days[6].monthShort}`;
+
+      const container = document.getElementById('weeklyGridContainer');
+      if (!groupId) {
+        container.innerHTML = '<p class="text-xs text-[#6e6e73] text-center py-10">Crea primero un grupo o subgrupo en "Alumnado".</p>';
+        return;
+      }
+
+      const res = await fetch(`/intranet/api/admin/weekly-attendance?group_id=${groupId}&start_date=${startISO}&end_date=${endISO}`, {
+        headers: authHeaders()
+      });
+      weeklyDataCache = await res.json();
+
+      if (!weeklyDataCache.students.length) {
+        container.innerHTML = '<p class="text-xs text-[#6e6e73] text-center py-10">No hay alumnos registrados en este grupo todavía.</p>';
+        return;
+      }
+
+      const todayISO = formatISO(new Date());
+
+      let html = `
+        <table class="w-full text-left border-collapse min-w-[780px]">
+          <thead>
+            <tr class="border-b border-black/[0.08] text-[11px] text-[#6e6e73]">
+              <th class="py-3 px-3 font-semibold w-64">Estudiante / Horario</th>
+              ${days.map(d => `
+                <th class="py-3 px-1.5 text-center font-semibold ${d.iso === todayISO ? 'text-[#0071e3]' : ''}">
+                  <span class="block uppercase text-[10px]">${d.name}</span>
+                  <span class="inline-flex items-center justify-center w-6 h-6 rounded-full mt-0.5 ${d.iso === todayISO ? 'bg-[#0071e3] text-white' : 'text-[#1d1d1f]'}">${d.dayNum}</span>
+                </th>
+              `).join('')}
+              <th class="py-3 px-3 text-right font-semibold w-32">Bloque Mes</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-black/[0.05] text-xs">
+      `;
+
+      weeklyDataCache.students.forEach(stu => {
+        const quota = stu.monthly_quota || 8;
+        const used = stu.used_this_month || 0;
+        const pct = Math.min(100, Math.round((used / quota) * 100));
+        const barColor = used >= quota ? 'bg-red-500' : (used >= quota - 1 ? 'bg-amber-500' : 'bg-emerald-500');
+
+        // Contar cuántas clases del bloque tiene marcadas en ESTA semana (puede ser 2, 3 o más)
+        const weekRegularCount = weeklyDataCache.records.filter(r =>
+          r.student_id === stu.student_id &&
+          (r.session_type === 'Regular' || r.session_type === 'Recuperacion') &&
+          ['Presente', 'Tardanza', 'Justificado'].includes(r.status)
+        ).length;
+
+        html += `
+          <tr class="hover:bg-white/60 transition">
+            <td class="py-3.5 px-3">
+              <p class="font-bold text-[#1d1d1f]">${stu.full_name}</p>
+              <div class="flex flex-wrap items-center gap-2 mt-0.5">
+                ${stu.schedule ? `<span class="text-[11px] text-[#0071e3] font-medium"><i class="fa-regular fa-clock mr-1"></i>${stu.schedule}</span>` : ''}
+                ${weekRegularCount >= 3 ? `<span class="px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-700 text-[10px] font-semibold">${weekRegularCount} clases esta semana</span>` : ''}
+              </div>
+            </td>
+        `;
+
+        days.forEach(d => {
+          const dayRecs = weeklyDataCache.records.filter(r => r.student_id === stu.student_id && r.date === d.iso);
+          const mainRec = dayRecs.find(r => r.session_type === 'Regular' || r.session_type === 'Recuperacion');
+          const refRec = dayRecs.find(r => r.session_type === 'Reforzamiento');
+
+          let cellBadge = `<span class="w-8 h-8 rounded-full border border-dashed border-black/15 text-black/25 group-hover:border-[#0071e3] group-hover:text-[#0071e3] inline-flex items-center justify-center transition"><i class="fa-solid fa-plus text-[10px]"></i></span>`;
+          let tooltip = 'Clic para marcar asistencia';
+
+          if (mainRec) {
+            tooltip = `${mainRec.session_type === 'Recuperacion' ? 'Recuperación' : mainRec.status}${mainRec.recorded_by_name ? ` • Marcado por: ${mainRec.recorded_by_name}` : ''}`;
+            if (mainRec.session_type === 'Recuperacion') {
+              cellBadge = `<span class="w-8 h-8 rounded-full bg-sky-500 text-white shadow-sm inline-flex items-center justify-center font-bold" title="${tooltip}"><i class="fa-solid fa-rotate-right text-xs"></i></span>`;
+            } else if (mainRec.status === 'Presente') {
+              cellBadge = `<span class="w-8 h-8 rounded-full bg-emerald-500 text-white shadow-sm inline-flex items-center justify-center font-bold" title="${tooltip}"><i class="fa-solid fa-check text-xs"></i></span>`;
+            } else if (mainRec.status === 'Tardanza') {
+              cellBadge = `<span class="w-8 h-8 rounded-full bg-amber-500 text-white shadow-sm inline-flex items-center justify-center font-bold" title="${tooltip}"><i class="fa-regular fa-clock text-xs"></i></span>`;
+            } else if (mainRec.status === 'Falta') {
+              cellBadge = `<span class="w-8 h-8 rounded-full bg-red-500 text-white shadow-sm inline-flex items-center justify-center font-bold" title="${tooltip}"><i class="fa-solid fa-xmark text-xs"></i></span>`;
+            }
+          }
+
+          const refPill = refRec
+            ? `<span class="mt-1 px-1.5 py-0.5 rounded-md bg-purple-600 text-white text-[9px] font-bold leading-none" title="Reforzamiento${refRec.arrival_time ? ` (${refRec.arrival_time})` : ''}${refRec.recorded_by_name ? ` • ${refRec.recorded_by_name}` : ''}"><i class="fa-solid fa-bolt"></i> ${refRec.arrival_time || 'Ref'}</span>`
+            : '';
+
+          html += `
+            <td class="py-2.5 px-1 text-center align-middle">
+              <button type="button" onclick="openCellModal(${stu.student_id}, '${d.iso}', '${d.name} ${d.dayNum} ${d.monthShort}')"
+                class="group inline-flex flex-col items-center justify-center p-1 rounded-xl hover:bg-black/[0.04] transition">
+                ${cellBadge}
+                ${refPill}
+              </button>
+            </td>
+          `;
+        });
+
+        html += `
+            <td class="py-3.5 px-3 text-right">
+              <span class="text-xs font-bold ${used >= quota ? 'text-red-600' : 'text-[#1d1d1f]'}">${used}/${quota}</span>
+              <div class="w-20 h-1.5 bg-black/10 rounded-full overflow-hidden ml-auto mt-1">
+                <div class="h-full ${barColor}" style="width: ${pct}%"></div>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+
+      html += `</tbody></table>`;
+      container.innerHTML = html;
+    }
+
+    function openCellModal(studentId, dateISO, dateLabel) {
+      const stu = weeklyDataCache.students.find(s => s.student_id === studentId);
+      if (!stu) return;
+      const dayRecs = weeklyDataCache.records.filter(r => r.student_id === studentId && r.date === dateISO);
+      const mainRec = dayRecs.find(r => r.session_type === 'Regular' || r.session_type === 'Recuperacion');
+      const refRec = dayRecs.find(r => r.session_type === 'Reforzamiento');
+
+      activeCellContext = {
+        student_id: studentId,
+        group_id: document.getElementById('attGroupSelect').value,
+        date: dateISO
+      };
+
+      document.getElementById('modalDateBadge').innerText = dateLabel;
+      document.getElementById('modalStudentName').innerText = stu.full_name;
+      document.getElementById('modalNoteInput').value = mainRec ? (mainRec.note || '') : '';
+      document.getElementById('modalArrivalInput').value = refRec ? (refRec.arrival_time || '') : '';
+
+      const markerEl = document.getElementById('modalMarkerInfo');
+      const markerName = (mainRec && mainRec.recorded_by_name) || (refRec && refRec.recorded_by_name);
+      if (markerName) {
+        markerEl.innerText = `Último registro marcado por: ${markerName}`;
+        markerEl.classList.remove('hidden');
+      } else {
+        markerEl.classList.add('hidden');
+      }
+
+      document.getElementById('cellModal').classList.remove('hidden');
+    }
+
+    function closeCellModal() {
+      document.getElementById('cellModal').classList.add('hidden');
+      activeCellContext = null;
+    }
+
+    async function saveCellAction(sessionType, status) {
+      if (!activeCellContext) return;
+      const note = document.getElementById('modalNoteInput').value.trim();
+
+      // Si guarda Regular, limpiamos posible Recuperacion en ese mismo día y viceversa, para mantener un solo estado del bloque por día
+      if (status !== 'Clear' && (sessionType === 'Regular' || sessionType === 'Recuperacion')) {
+        const otherType = sessionType === 'Regular' ? 'Recuperacion' : 'Regular';
+        await fetch('/intranet/api/admin/attendance/cell', {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({ ...activeCellContext, session_type: otherType, status: 'Clear' })
+        });
+      }
+
+      const res = await fetch('/intranet/api/admin/attendance/cell', {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({
+          ...activeCellContext,
+          session_type: sessionType,
+          status,
+          note
+        })
+      });
+
+      if (res.ok) {
+        closeCellModal();
+        loadWeeklyGrid();
+      }
+    }
+
+    async function clearRegularAndRecup() {
+      if (!activeCellContext) return;
+      await fetch('/intranet/api/admin/attendance/cell', {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ ...activeCellContext, session_type: 'Regular', status: 'Clear' })
+      });
+      await fetch('/intranet/api/admin/attendance/cell', {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ ...activeCellContext, session_type: 'Recuperacion', status: 'Clear' })
+      });
+      closeCellModal();
+      loadWeeklyGrid();
+    }
+
+    async function saveReforzamientoAction() {
+      if (!activeCellContext) return;
+      const arrival_time = document.getElementById('modalArrivalInput').value;
+      const note = document.getElementById('modalNoteInput').value.trim();
+
+      const res = await fetch('/intranet/api/admin/attendance/cell', {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({
+          ...activeCellContext,
+          session_type: 'Reforzamiento',
+          status: 'Reforzamiento',
+          arrival_time,
+          note
+        })
+      });
+
+      if (res.ok) {
+        closeCellModal();
+        loadWeeklyGrid();
+      }
+    }
+
+    // ==================== GRUPOS, ALUMNOS, PROFESORES Y MATERIALES ====================
     let groupsCache = [];
     let currentCategoryFilter = 'Todos';
 
@@ -404,7 +773,7 @@
       }
 
       await loadStudents();
-      await loadAttendanceSheet();
+      await loadWeeklyGrid();
       await loadMaterials();
     }
 
@@ -453,99 +822,6 @@
           </tr>
         `;
       }).join('') || '<tr><td colspan="4" class="py-6 text-center text-[#6e6e73]">No hay estudiantes registrados en esta vista.</td></tr>';
-    }
-
-    async function loadAttendanceSheet() {
-      const groupId = document.getElementById('attGroupSelect').value;
-      const date = document.getElementById('attDateInput').value;
-      const sessionType = document.getElementById('attSessionType').value;
-      const container = document.getElementById('attendanceListContainer');
-
-      if (!groupId || !date) {
-        container.innerHTML = '<p class="text-xs text-[#6e6e73] text-center py-8">Crea primero un grupo o subgrupo en "Alumnado".</p>';
-        return;
-      }
-      const res = await fetch(`/intranet/api/admin/attendance?group_id=${groupId}&date=${date}&session_type=${sessionType}`, { headers: authHeaders() });
-      const rows = await res.json();
-
-      if (!rows.length) {
-        container.innerHTML = '<p class="text-xs text-[#6e6e73] text-center py-8">No hay alumnos asignados a este subgrupo todavía.</p>';
-        return;
-      }
-
-      const isRef = sessionType === 'Reforzamiento';
-
-      container.innerHTML = `<div class="space-y-3">` + rows.map(r => {
-        const defaultStatus = isRef ? (r.status || 'No aplica') : (r.status || 'Presente');
-        const quota = r.monthly_quota || 8;
-        const used = r.used_this_month || 0;
-        const quotaColor = used >= quota ? 'bg-red-500/10 text-red-700' : 'bg-emerald-500/10 text-emerald-700';
-
-        return `
-          <div class="att-row flex flex-col lg:flex-row lg:items-center justify-between gap-3 p-4 rounded-2xl bg-white/90 border border-black/[0.06]" data-student-id="${r.student_id}">
-            <div class="space-y-1">
-              <div class="flex flex-wrap items-center gap-2">
-                <p class="text-sm font-semibold text-[#1d1d1f]">${r.full_name}</p>
-                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${quotaColor}">
-                  Bloque mes: ${used}/${quota} clases
-                </span>
-              </div>
-              <div class="flex flex-wrap items-center gap-3 text-[11px] text-[#6e6e73]">
-                <span>Usuario: ${r.code}</span>
-                ${r.schedule ? `<span class="text-[#0071e3] font-medium"><i class="fa-regular fa-clock mr-1"></i>${r.schedule}</span>` : ''}
-                ${r.recorded_by_name ? `<span class="text-amber-700 font-medium"><i class="fa-solid fa-user-check mr-1"></i>Marcado por: ${r.recorded_by_name}</span>` : ''}
-              </div>
-            </div>
-
-            <div class="flex flex-wrap items-center gap-2">
-              ${isRef ? `
-                <select class="att-status bg-[#f5f5f7] border border-black/10 rounded-xl px-3 py-1.5 text-xs font-semibold">
-                  <option value="No aplica" ${defaultStatus === 'No aplica' ? 'selected' : ''}>— No asistió a reforzamiento</option>
-                  <option value="Reforzamiento" ${defaultStatus === 'Reforzamiento' ? 'selected' : ''}>⚡ Asistió a Reforzamiento</option>
-                </select>
-                <div class="flex items-center gap-1 bg-[#f5f5f7] border border-black/10 rounded-xl px-2.5 py-1">
-                  <span class="text-[10px] text-[#6e6e73]">Hora llegada:</span>
-                  <input type="time" class="att-arrival bg-transparent text-xs font-semibold focus:outline-none" value="${r.arrival_time || ''}">
-                </div>
-              ` : `
-                <select class="att-status bg-[#f5f5f7] border border-black/10 rounded-xl px-3 py-1.5 text-xs font-semibold">
-                  <option value="Presente" ${defaultStatus === 'Presente' ? 'selected' : ''}>✅ Presente</option>
-                  <option value="Tardanza" ${defaultStatus === 'Tardanza' ? 'selected' : ''}>⏰ Tardanza</option>
-                  <option value="Falta" ${defaultStatus === 'Falta' ? 'selected' : ''}>❌ Falta</option>
-                  <option value="Justificado" ${defaultStatus === 'Justificado' ? 'selected' : ''}>📄 Justificado</option>
-                </select>
-              `}
-              <input type="text" class="att-note bg-[#f5f5f7] border border-black/10 rounded-xl px-3 py-1.5 text-xs w-40" placeholder="Observación opcional" value="${r.note || ''}">
-            </div>
-          </div>
-        `;
-      }).join('') + `</div>`;
-    }
-
-    async function saveAttendance() {
-      const group_id = document.getElementById('attGroupSelect').value;
-      const date = document.getElementById('attDateInput').value;
-      const session_type = document.getElementById('attSessionType').value;
-
-      const records = Array.from(document.querySelectorAll('.att-row')).map(row => ({
-        student_id: row.dataset.studentId,
-        status: row.querySelector('.att-status').value,
-        arrival_time: row.querySelector('.att-arrival') ? row.querySelector('.att-arrival').value : '',
-        note: row.querySelector('.att-note').value.trim()
-      }));
-      if (!records.length) return;
-
-      const res = await fetch('/intranet/api/admin/attendance', {
-        method: 'POST',
-        headers: authHeaders(),
-        body: JSON.stringify({ group_id, date, session_type, records })
-      });
-      if (res.ok) {
-        const fb = document.getElementById('attFeedback');
-        fb.innerText = '✓ Asistencias guardadas con tu firma docente';
-        loadAttendanceSheet();
-        setTimeout(() => fb.innerText = '', 3500);
-      }
     }
 
     async function loadMaterials() {
