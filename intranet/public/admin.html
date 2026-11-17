@@ -6,6 +6,7 @@
   <title>Panel Docente y Administración — Intranet DC CORP</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <style>
     body {
@@ -103,6 +104,14 @@
                 </button>
               </div>
             </div>
+
+            <div>
+              <label class="block text-[10px] font-medium text-[#6e6e73] mb-1">Reporte del día</label>
+              <button type="button" onclick="openDailyExportModal()"
+                class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm inline-flex items-center gap-2 transition">
+                <i class="fa-solid fa-image"></i> Exportar Hoy (PNG)
+              </button>
+            </div>
           </div>
         </div>
 
@@ -189,7 +198,6 @@
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         <div class="lg:col-span-5 space-y-6">
-          <!-- Crear Grupo o Subgrupo -->
           <div class="glass-bento p-6">
             <h3 id="groupCardTitle" class="text-base font-bold mb-1">1. Crear Grupo o Subgrupo</h3>
             <p id="groupCardSubtitle" class="text-xs text-[#6e6e73] mb-4">Clasifica cada curso en Particulares o Sol Music.</p>
@@ -210,7 +218,6 @@
             <div id="groupsTags" class="flex flex-wrap gap-2 mt-4 pt-4 border-t border-black/[0.06]"></div>
           </div>
 
-          <!-- Registrar Estudiante -->
           <div class="glass-bento p-6">
             <h3 class="text-base font-bold mb-1">2. Registrar Estudiante</h3>
             <p class="text-xs text-[#6e6e73] mb-4">Asigna su horario fijo y sus clases por bloque mensual (8 por defecto).</p>
@@ -238,7 +245,6 @@
           </div>
         </div>
 
-        <!-- Directorio de Alumnado -->
         <div class="lg:col-span-7 glass-bento p-6 sm:p-8">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
             <div>
@@ -321,7 +327,6 @@
         </button>
       </div>
 
-      <!-- Bloque 1: Clase Regular o Recuperación (descuenta del bloque de 8/mes) -->
       <div class="p-4 rounded-2xl bg-[#f5f5f7] space-y-3">
         <div class="flex items-center justify-between">
           <span class="text-xs font-bold text-[#1d1d1f]">1. Clase del Bloque Mensual (8/mes)</span>
@@ -357,7 +362,6 @@
         </div>
       </div>
 
-      <!-- Bloque 2: Reforzamiento Extra (con hora de llegada, no consume las 8 clases) -->
       <div class="p-4 rounded-2xl bg-purple-500/[0.07] border border-purple-500/20 space-y-3">
         <div class="flex items-center justify-between">
           <span class="text-xs font-bold text-purple-900"><i class="fa-solid fa-bolt mr-1"></i> 2. Reforzamiento Extra</span>
@@ -380,6 +384,57 @@
         </div>
       </div>
 
+    </div>
+  </div>
+
+  <!-- ==================== MODAL EXPORTAR REPORTE DIARIO EN IMAGEN ==================== -->
+  <div id="dailyExportModal" class="hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+    <div class="glass-bento p-5 sm:p-7 max-w-3xl w-full bg-white my-auto space-y-5">
+      <div class="flex flex-wrap items-center justify-between gap-3 border-b border-black/[0.07] pb-4">
+        <div>
+          <h3 class="text-lg font-bold text-[#1d1d1f]">Exportar Asistencias del Día</h3>
+          <p class="text-xs text-[#6e6e73]">Vista previa lista para descargar en PNG y compartir por WhatsApp</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="date" id="exportDatePicker" onchange="loadDailyExportPreview()"
+            class="bg-[#f5f5f7] border border-black/10 rounded-xl px-3 py-1.5 text-xs font-semibold">
+          <button type="button" id="btnDownloadPng" onclick="downloadDailyPng()"
+            class="px-4 py-2 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold shadow-sm inline-flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-download"></i> Descargar Imagen
+          </button>
+          <button type="button" onclick="closeDailyExportModal()" class="p-2 text-[#6e6e73] hover:text-[#1d1d1f]">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Lienzo que se captura exactamente en imagen PNG -->
+      <div class="overflow-x-auto bg-[#e9e9ed] p-3 sm:p-5 rounded-2xl">
+        <div id="captureCard" class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-black/[0.06] min-w-[600px] text-[#1d1d1f]">
+          <div class="flex items-center justify-between border-b border-black/[0.08] pb-5 mb-5">
+            <div class="flex items-center gap-3.5">
+              <img src="/logo.svg" alt="DC CORP" class="h-11" crossorigin="anonymous">
+              <div>
+                <span id="capScopeBadge" class="px-2.5 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[10px] font-bold uppercase tracking-wide">Reporte General</span>
+                <h4 class="text-lg font-bold tracking-tight mt-0.5">Reporte Diario de Asistencias</h4>
+              </div>
+            </div>
+            <div class="text-right">
+              <p id="capDateFormatted" class="text-sm font-bold text-[#1d1d1f] capitalize">Fecha</p>
+              <p id="capGeneratedBy" class="text-[11px] text-[#6e6e73] mt-0.5">Emitido por: —</p>
+            </div>
+          </div>
+
+          <div id="capStatsRow" class="grid grid-cols-4 gap-2.5 mb-6 text-center"></div>
+
+          <div id="capRecordsContainer" class="space-y-4"></div>
+
+          <div class="mt-6 pt-4 border-t border-black/[0.06] flex items-center justify-between text-[10px] text-[#6e6e73]">
+            <span>DC CORP • Plataforma Académica (dccorp.lat/intranet)</span>
+            <span id="capTimestamp"></span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -551,7 +606,6 @@
         const pct = Math.min(100, Math.round((used / quota) * 100));
         const barColor = used >= quota ? 'bg-red-500' : (used >= quota - 1 ? 'bg-amber-500' : 'bg-emerald-500');
 
-        // Contar cuántas clases del bloque tiene marcadas en ESTA semana (puede ser 2, 3 o más)
         const weekRegularCount = weeklyDataCache.records.filter(r =>
           r.student_id === stu.student_id &&
           (r.session_type === 'Regular' || r.session_type === 'Recuperacion') &&
@@ -659,7 +713,6 @@
       if (!activeCellContext) return;
       const note = document.getElementById('modalNoteInput').value.trim();
 
-      // Si guarda Regular, limpiamos posible Recuperacion en ese mismo día y viceversa, para mantener un solo estado del bloque por día
       if (status !== 'Clear' && (sessionType === 'Regular' || sessionType === 'Recuperacion')) {
         const otherType = sessionType === 'Regular' ? 'Recuperacion' : 'Regular';
         await fetch('/intranet/api/admin/attendance/cell', {
@@ -722,6 +775,145 @@
       if (res.ok) {
         closeCellModal();
         loadWeeklyGrid();
+      }
+    }
+
+    // ==================== EXPORTACIÓN DIARIA EN IMAGEN (PNG) ====================
+    function openDailyExportModal() {
+      const today = formatISO(new Date());
+      document.getElementById('exportDatePicker').value = today;
+      document.getElementById('dailyExportModal').classList.remove('hidden');
+      loadDailyExportPreview();
+    }
+
+    function closeDailyExportModal() {
+      document.getElementById('dailyExportModal').classList.add('hidden');
+    }
+
+    async function loadDailyExportPreview() {
+      const dateStr = document.getElementById('exportDatePicker').value;
+      if (!dateStr) return;
+
+      const [y, m, d] = dateStr.split('-').map(Number);
+      const localDate = new Date(y, m - 1, d);
+      const formatted = localDate.toLocaleDateString('es-PE', {
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+      });
+
+      document.getElementById('capDateFormatted').innerText = formatted;
+      document.getElementById('capGeneratedBy').innerText = `Emitido por: ${localStorage.getItem('dc_name') || 'Docente'}`;
+      document.getElementById('capScopeBadge').innerText = isAdmin ? 'DC CORP • Particulares y Sol Music' : 'Sol Music • Academia';
+      document.getElementById('capTimestamp').innerText = `Generado: ${new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}`;
+
+      const res = await fetch(`/intranet/api/admin/daily-summary?date=${dateStr}`, { headers: authHeaders() });
+      const data = await res.json();
+      const recs = data.records || [];
+
+      const totalPresentes = recs.filter(r => r.session_type !== 'Reforzamiento' && r.status === 'Presente').length;
+      const totalRecup = recs.filter(r => r.session_type === 'Recuperacion').length;
+      const totalFaltasTard = recs.filter(r => r.session_type !== 'Reforzamiento' && (r.status === 'Falta' || r.status === 'Tardanza')).length;
+      const totalRef = recs.filter(r => r.session_type === 'Reforzamiento').length;
+
+      document.getElementById('capStatsRow').innerHTML = `
+        <div class="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+          <span class="block text-lg font-bold text-emerald-700">${totalPresentes}</span>
+          <span class="text-[10px] font-semibold text-emerald-800">Presentes</span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-sky-500/10 border border-sky-500/20">
+          <span class="block text-lg font-bold text-sky-700">${totalRecup}</span>
+          <span class="text-[10px] font-semibold text-sky-800">Recuperaciones</span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20">
+          <span class="block text-lg font-bold text-purple-700">${totalRef}</span>
+          <span class="text-[10px] font-semibold text-purple-800">Reforzamientos</span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20">
+          <span class="block text-lg font-bold text-red-700">${totalFaltasTard}</span>
+          <span class="text-[10px] font-semibold text-red-800">Faltas / Tard.</span>
+        </div>
+      `;
+
+      const container = document.getElementById('capRecordsContainer');
+      if (!recs.length) {
+        container.innerHTML = `<div class="py-10 text-center text-xs text-[#6e6e73] bg-[#f5f5f7] rounded-2xl">No hay asistencias registradas para esta fecha.</div>`;
+        return;
+      }
+
+      const grouped = {};
+      recs.forEach(r => {
+        const key = `${r.category || 'Particulares'} — ${r.group_name || 'Sin grupo'}`;
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(r);
+      });
+
+      const badgeColors = {
+        'Presente': 'bg-emerald-100 text-emerald-800',
+        'Recuperacion': 'bg-sky-100 text-sky-800',
+        'Tardanza': 'bg-amber-100 text-amber-800',
+        'Falta': 'bg-red-100 text-red-800',
+        'Justificado': 'bg-sky-100 text-sky-800',
+        'Reforzamiento': 'bg-purple-100 text-purple-800'
+      };
+
+      container.innerHTML = Object.entries(grouped).map(([groupTitle, items]) => `
+        <div class="rounded-2xl border border-black/[0.07] overflow-hidden">
+          <div class="bg-[#f5f5f7] px-4 py-2 flex items-center justify-between">
+            <span class="text-xs font-bold text-[#1d1d1f]">${groupTitle}</span>
+            <span class="text-[10px] font-semibold text-[#6e6e73]">${items.length} registro(s)</span>
+          </div>
+          <div class="divide-y divide-black/[0.05]">
+            ${items.map(item => {
+              const isRef = item.session_type === 'Reforzamiento';
+              const isRec = item.session_type === 'Recuperacion';
+              const statusText = isRef
+                ? `Reforzamiento${item.arrival_time ? ` (${item.arrival_time})` : ''}`
+                : (isRec ? 'Recuperación' : item.status);
+              const styleKey = isRef ? 'Reforzamiento' : (isRec ? 'Recuperacion' : item.status);
+
+              return `
+                <div class="px-4 py-2.5 flex items-center justify-between gap-3 text-xs">
+                  <div>
+                    <p class="font-semibold text-[#1d1d1f]">${item.student_name}</p>
+                    <p class="text-[10px] text-[#6e6e73]">
+                      Bloque mes: <strong>${item.used_this_month || 0}/${item.monthly_quota || 8}</strong>
+                      ${item.recorded_by_name ? ` • Marcado por: <strong>${item.recorded_by_name}</strong>` : ''}
+                      ${item.note ? ` • "${item.note}"` : ''}
+                    </p>
+                  </div>
+                  <span class="px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 ${badgeColors[styleKey] || 'bg-gray-100 text-gray-800'}">
+                    ${statusText}
+                  </span>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function downloadDailyPng() {
+      const btn = document.getElementById('btnDownloadPng');
+      const card = document.getElementById('captureCard');
+      const dateStr = document.getElementById('exportDatePicker').value || formatISO(new Date());
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generando...';
+
+      try {
+        const canvas = await html2canvas(card, {
+          scale: 2,
+          backgroundColor: '#ffffff',
+          useCORS: true
+        });
+        const link = document.createElement('a');
+        link.download = `Asistencias_DCCORP_${dateStr}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      } catch (err) {
+        alert('Error al generar la imagen');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-download"></i> Descargar Imagen';
       }
     }
 
