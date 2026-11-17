@@ -2,7 +2,11 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <meta name="theme-color" content="#f5f5f7">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="/intranet/manifest.json">
   <title>Mi Portal Académico — DC CORP</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <script src="https://cdn.tailwindcss.com"></script>
@@ -15,6 +19,22 @@
         radial-gradient(at 15% 15%, rgba(0, 113, 227, 0.08) 0px, transparent 50%),
         radial-gradient(at 85% 85%, rgba(16, 185, 129, 0.07) 0px, transparent 50%);
       color: #1d1d1f;
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: calc(84px + env(safe-area-inset-bottom));
+      -webkit-tap-highlight-color: transparent;
+    }
+    @media (min-width: 768px) {
+      body { padding-bottom: 5rem; }
+    }
+    @media (max-width: 640px) {
+      input, select, textarea { font-size: 16px !important; }
+    }
+    .bottom-dock {
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: saturate(180%) blur(24px);
+      -webkit-backdrop-filter: saturate(180%) blur(24px);
+      border-top: 1px solid rgba(0, 0, 0, 0.08);
+      padding-bottom: env(safe-area-inset-bottom);
     }
     .apple-nav {
       background: rgba(255, 255, 255, 0.78);
@@ -100,7 +120,7 @@
     </div>
 
     <!-- Menú de Navegación Independiente -->
-    <nav class="flex flex-wrap gap-1.5 p-1.5 rounded-2xl bg-black/[0.05] w-fit">
+    <nav class="hidden md:flex flex-wrap gap-1.5 p-1.5 rounded-2xl bg-black/[0.05] w-fit">
       <button type="button" onclick="switchStudentTab('materiales')" id="stab-materiales"
         class="stab-btn px-5 py-2.5 rounded-xl bg-white text-[#1d1d1f] shadow-sm text-xs font-semibold transition flex items-center gap-2">
         <i class="fa-solid fa-book-open text-[#0071e3]"></i> Material de Estudio
@@ -336,12 +356,21 @@
       ['materiales', 'asistencia', 'perfil'].forEach(t => {
         document.getElementById(`view-${t}`).classList.toggle('hidden', t !== tabName);
         const btn = document.getElementById(`stab-${t}`);
-        if (t === tabName) {
-          btn.className = "stab-btn px-5 py-2.5 rounded-xl bg-white text-[#1d1d1f] shadow-sm text-xs font-semibold transition flex items-center gap-2";
-        } else {
-          btn.className = "stab-btn px-5 py-2.5 rounded-xl text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition flex items-center gap-2";
+        if (btn) {
+          btn.className = (t === tabName)
+            ? "stab-btn px-5 py-2.5 rounded-xl bg-white text-[#1d1d1f] shadow-sm text-xs font-semibold transition flex items-center gap-2"
+            : "stab-btn px-5 py-2.5 rounded-xl text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition flex items-center gap-2";
+        }
+        const mbtn = document.getElementById(`mstab-${t}`);
+        if (mbtn) {
+          mbtn.className = (t === tabName)
+            ? "mstab-btn flex flex-col items-center justify-center gap-1 text-[#0071e3] font-bold text-[11px] transition"
+            : "mstab-btn flex flex-col items-center justify-center gap-1 text-[#6e6e73] font-medium text-[11px] transition";
         }
       });
+      if (window.innerWidth < 768) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     }
 
     function openPdfModal(fileUrl, title) {
@@ -473,9 +502,9 @@
       audio.playbackRate = rate;
       const group = btnEl.parentElement;
       group.querySelectorAll('.speed-btn').forEach(b => {
-        b.className = 'speed-btn px-2 py-0.5 rounded-md bg-white text-[#6e6e73] hover:text-[#1d1d1f] text-[10px] font-bold border border-black/10 transition';
+        b.className = 'speed-btn px-2 py-1.5 sm:py-0.5 rounded-lg sm:rounded-md bg-white text-[#6e6e73] hover:text-[#1d1d1f] text-[10px] font-bold border border-black/10 transition';
       });
-      btnEl.className = 'speed-btn px-2 py-0.5 rounded-md bg-[#0071e3] text-white text-[10px] font-bold border border-[#0071e3] transition';
+      btnEl.className = 'speed-btn px-2 py-1.5 sm:py-0.5 rounded-lg sm:rounded-md bg-[#0071e3] text-white text-[10px] font-bold border border-[#0071e3] transition';
     }
 
     function setLoopPoint(fileId, point) {
@@ -560,7 +589,7 @@
         return `
           <div class="p-3.5 rounded-2xl bg-[#f5f5f7] border border-black/[0.06] flex flex-wrap items-center justify-between gap-2">
             <div class="min-w-0">
-              <span class="px-2 py-0.5 rounded-md bg-red-500/10 text-red-700 text-[10px] font-bold">${f.label}</span>
+              <span class="px-2 py-1.5 sm:py-0.5 rounded-lg sm:rounded-md bg-red-500/10 text-red-700 text-[10px] font-bold">${f.label}</span>
               <p class="text-xs font-semibold text-[#1d1d1f] truncate mt-0.5">${f.original_name}</p>
             </div>
             <div class="flex items-center gap-1.5 shrink-0">
@@ -579,7 +608,7 @@
         return `
           <div class="p-3.5 rounded-2xl bg-[#f5f5f7] border border-black/[0.06] space-y-2.5 sm:col-span-2">
             <div class="flex flex-wrap items-center justify-between gap-2">
-              <span class="px-2.5 py-0.5 rounded-md bg-purple-500/10 text-purple-700 text-[11px] font-bold">
+              <span class="px-2.5 py-1.5 sm:py-0.5 rounded-lg sm:rounded-md bg-purple-500/10 text-purple-700 text-[11px] font-bold">
                 <i class="fa-solid fa-headphones mr-1"></i>Pista: ${f.label}
               </span>
               <div class="flex items-center gap-2">
@@ -597,18 +626,18 @@
             <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-black/[0.06]">
               <div class="flex items-center gap-1">
                 <span class="text-[10px] font-semibold text-[#6e6e73] mr-1">Velocidad:</span>
-                <button type="button" onclick="setTrackSpeed(${f.id}, 0.65, this)" class="speed-btn px-2 py-0.5 rounded-md bg-white text-[#6e6e73] hover:text-[#1d1d1f] text-[10px] font-bold border border-black/10">0.65x</button>
-                <button type="button" onclick="setTrackSpeed(${f.id}, 0.8, this)" class="speed-btn px-2 py-0.5 rounded-md bg-white text-[#6e6e73] hover:text-[#1d1d1f] text-[10px] font-bold border border-black/10">0.8x</button>
-                <button type="button" onclick="setTrackSpeed(${f.id}, 1.0, this)" class="speed-btn px-2 py-0.5 rounded-md bg-[#0071e3] text-white text-[10px] font-bold border border-[#0071e3]">1.0x</button>
-                <button type="button" onclick="skipTrackSeconds(${f.id}, -5)" class="ml-1.5 px-2 py-0.5 rounded-md bg-white hover:bg-black/5 text-[#1d1d1f] text-[10px] font-semibold border border-black/10" title="Retroceder 5 segundos">-5s</button>
-                <button type="button" onclick="skipTrackSeconds(${f.id}, 5)" class="px-2 py-0.5 rounded-md bg-white hover:bg-black/5 text-[#1d1d1f] text-[10px] font-semibold border border-black/10" title="Adelantar 5 segundos">+5s</button>
+                <button type="button" onclick="setTrackSpeed(${f.id}, 0.65, this)" class="speed-btn px-2 py-1.5 sm:py-0.5 rounded-lg sm:rounded-md bg-white text-[#6e6e73] hover:text-[#1d1d1f] text-[10px] font-bold border border-black/10">0.65x</button>
+                <button type="button" onclick="setTrackSpeed(${f.id}, 0.8, this)" class="speed-btn px-2 py-1.5 sm:py-0.5 rounded-lg sm:rounded-md bg-white text-[#6e6e73] hover:text-[#1d1d1f] text-[10px] font-bold border border-black/10">0.8x</button>
+                <button type="button" onclick="setTrackSpeed(${f.id}, 1.0, this)" class="speed-btn px-2 py-1.5 sm:py-0.5 rounded-lg sm:rounded-md bg-[#0071e3] text-white text-[10px] font-bold border border-[#0071e3]">1.0x</button>
+                <button type="button" onclick="skipTrackSeconds(${f.id}, -5)" class="ml-1.5 px-2 py-1.5 sm:py-0.5 rounded-lg sm:rounded-md bg-white hover:bg-black/5 text-[#1d1d1f] text-[10px] font-semibold border border-black/10" title="Retroceder 5 segundos">-5s</button>
+                <button type="button" onclick="skipTrackSeconds(${f.id}, 5)" class="px-2 py-1.5 sm:py-0.5 rounded-lg sm:rounded-md bg-white hover:bg-black/5 text-[#1d1d1f] text-[10px] font-semibold border border-black/10" title="Adelantar 5 segundos">+5s</button>
               </div>
 
               <div class="flex items-center gap-1.5">
                 <span id="loopLabel-${f.id}" class="text-[10px] text-[#6e6e73]">Bucle: desactivado</span>
-                <button type="button" onclick="setLoopPoint(${f.id}, 'A')" class="px-2 py-0.5 rounded-md bg-purple-600/10 hover:bg-purple-600/20 text-purple-800 text-[10px] font-bold">Marcar A</button>
-                <button type="button" onclick="setLoopPoint(${f.id}, 'B')" class="px-2 py-0.5 rounded-md bg-purple-600 hover:bg-purple-700 text-white text-[10px] font-bold">Marcar B</button>
-                <button type="button" onclick="clearLoopPoints(${f.id})" class="px-2 py-0.5 rounded-md bg-black/5 hover:bg-black/10 text-[#6e6e73] text-[10px] font-semibold">Quitar</button>
+                <button type="button" onclick="setLoopPoint(${f.id}, 'A')" class="px-2 py-1.5 sm:py-0.5 rounded-lg sm:rounded-md bg-purple-600/10 hover:bg-purple-600/20 text-purple-800 text-[10px] font-bold">Marcar A</button>
+                <button type="button" onclick="setLoopPoint(${f.id}, 'B')" class="px-2 py-1.5 sm:py-0.5 rounded-lg sm:rounded-md bg-purple-600 hover:bg-purple-700 text-white text-[10px] font-bold">Marcar B</button>
+                <button type="button" onclick="clearLoopPoints(${f.id})" class="px-2 py-1.5 sm:py-0.5 rounded-lg sm:rounded-md bg-black/5 hover:bg-black/10 text-[#6e6e73] text-[10px] font-semibold">Quitar</button>
               </div>
             </div>
           </div>
@@ -982,5 +1011,25 @@
 
     loadStudentPortal().then(initRealtimeChat);
   </script>
+  <!-- Barra de Navegación Inferior Tipo App Nativa (Solo Móvil Android / iOS) -->
+  <nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bottom-dock">
+    <div class="grid grid-cols-3 h-16 max-w-md mx-auto">
+      <button type="button" onclick="switchStudentTab('materiales')" id="mstab-materiales"
+        class="mstab-btn flex flex-col items-center justify-center gap-1 text-[#0071e3] font-bold text-[11px] transition">
+        <i class="fa-solid fa-book-open text-base"></i>
+        <span>Estudio</span>
+      </button>
+      <button type="button" onclick="switchStudentTab('asistencia')" id="mstab-asistencia"
+        class="mstab-btn flex flex-col items-center justify-center gap-1 text-[#6e6e73] font-medium text-[11px] transition">
+        <i class="fa-solid fa-calendar-check text-base"></i>
+        <span>Asistencia</span>
+      </button>
+      <button type="button" onclick="switchStudentTab('perfil')" id="mstab-perfil"
+        class="mstab-btn flex flex-col items-center justify-center gap-1 text-[#6e6e73] font-medium text-[11px] transition">
+        <i class="fa-solid fa-user-circle text-base"></i>
+        <span>Mi Perfil</span>
+      </button>
+    </div>
+  </nav>
 </body>
 </html>
