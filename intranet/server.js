@@ -27,7 +27,7 @@ const storage = multer.diskStorage({
     cb(null, safeName);
   }
 });
-const upload = multer({ storage, limits: { fileSize: 80 * 1024 * 1024 } });
+const upload = multer({ storage, limits: { fileSize: 100 * 1024 * 1024 } });
 
 const avatarStorage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, avatarsDir),
@@ -48,6 +48,20 @@ const uploadAvatar = multer({
 
 const db = new sqlite3.Database(path.join(dataDir, 'intranet.db'));
 
+// ================= BUS EN TIEMPO REAL (SSE - Server-Sent Events) =================
+const sseClients = new Set();
+
+function broadcastChatEvent(payload) {
+  const data = `data: ${JSON.stringify(payload)}\n\n`;
+  for (const client of sseClients) {
+    try {
+      client.res.write(data);
+    } catch {
+      sseClients.delete(client);
+    }
+  }
+}
+
 db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -60,6 +74,7 @@ db.serialize(() => {
     monthly_quota INTEGER DEFAULT 8,
     bio TEXT DEFAULT '',
     avatar_file TEXT DEFAULT '',
+    plain_hint TEXT DEFAULT '',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
 
@@ -67,6 +82,7 @@ db.serialize(() => {
   db.run(`ALTER TABLE users ADD COLUMN monthly_quota INTEGER DEFAULT 8`, () => {});
   db.run(`ALTER TABLE users ADD COLUMN bio TEXT DEFAULT ''`, () => {});
   db.run(`ALTER TABLE users ADD COLUMN avatar_file TEXT DEFAULT ''`, () => {});
+  db.run(`ALTER TABLE users ADD COLUMN plain_hint TEXT DEFAULT ''`, () => {});
 
   db.run(`CREATE TABLE IF NOT EXISTS groups (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -146,7 +162,6 @@ db.serialize(() => {
     file_type TEXT NOT NULL DEFAULT 'other'
   )`);
 
-  // Tabla para notas personales y consultas directas alumno <-> profesor por cada material
   db.run(`CREATE TABLE IF NOT EXISTS material_notes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     material_id INTEGER NOT NULL,
@@ -191,8 +206,9 @@ db.serialize(() => {
 
 function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;
-  if (!authHeader) return res.status(401).json({ error: 'Token requerido' });
-  const token = authHeader.split(' ')[1];
+  const queryToken = req.query.token;
+  const token = authHeader ? authHeader.split(' ')[1] : queryToken;
+  if (!token) return res.status(401).json({ error: 'Token requerido' });
   try {
     req.user = jwt.verify(token, JWT_SECRET);
     next();
@@ -223,6 +239,33 @@ function verifyGroupAccess(user, groupId, cb) {
   }
   cb(false);
 }
+
+// ================= CANAL SSE TIEMPO REAL (CHAT CONSULTAS) =================
+app.get('/intranet/api/chat/stream', authMiddleware, (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  res.flushHeaders();
+
+  const client = { id: Date.now() + Math.random(), user: req.user, res };
+  sseClients.add(client);
+  res.write(`data: ${JSON.stringify({ type: 'connected' })}\n\n`);
+
+  const keepAlive = setInterval(() => {
+    try {
+      res.write(`: ping\n\n`);
+    } catch {
+      clearInterval(keepAlive);
+      sseClients.delete(client);
+    }
+  }, 25000);
+
+  req.on('close', () => {
+    clearInterval(keepAlive);
+    sseClients.delete(client);
+  });
+});
 
 // ================= AUTENTICACIÓN =================
 app.post('/intranet/api/login', (req, res) => {
@@ -259,7 +302,7 @@ app.post('/intranet/api/change-password', authMiddleware, (req, res) => {
     }
 
     const hash = bcrypt.hashSync(newPassword, 10);
-    db.run(`UPDATE users SET password_hash = ? WHERE id = ?`, [hash, req.user.id], (err2) => {
+    db.run(`UPDATE users SET password_hash = ?, plain_hint = ? WHERE id = ?`, [hash, newPassword, req.user.id], (err2) => {
       if (err2) return res.status(500).json({ error: 'Error actualizando contraseña' });
       res.json({ ok: true });
     });
@@ -308,7 +351,7 @@ app.delete('/intranet/api/admin/groups/:id', authMiddleware, staffOnly, (req, re
 
 // ================= PROFESORES (Solo Admin) =================
 app.get('/intranet/api/admin/teachers', authMiddleware, adminOnly, (req, res) => {
-  db.all(`SELECT id, code, full_name FROM users WHERE role = 'teacher' ORDER BY full_name ASC`, [], (err, teachers) => {
+  db.all(`SELECT id, code, full_name, plain_hint FROM users WHERE role = 'teacher' ORDER BY full_name ASC`, [], (err, teachers) => {
     res.json(teachers || []);
   });
 });
@@ -320,8 +363,8 @@ app.post('/intranet/api/admin/teachers', authMiddleware, adminOnly, (req, res) =
   }
   const hash = bcrypt.hashSync(password, 10);
   db.run(
-    `INSERT INTO users (code, full_name, password_hash, role) VALUES (?, ?, ?, 'teacher')`,
-    [code.trim(), full_name.trim(), hash],
+    `INSERT INTO users (code, full_name, password_hash, role, plain_hint) VALUES (?, ?, ?, 'teacher', ?)`,
+    [code.trim(), full_name.trim(), hash, password.trim()],
     function (err) {
       if (err) return res.status(400).json({ error: 'Ese usuario/código ya está en uso' });
       res.json({ id: this.lastID });
@@ -340,7 +383,8 @@ app.get('/intranet/api/admin/students', authMiddleware, staffOnly, (req, res) =>
   const { group_id, category } = req.query;
 
   if (req.user.role === 'admin') {
-    let sql = `SELECT u.id, u.code, u.full_name, u.group_id, u.schedule, u.monthly_quota, u.bio, u.avatar_file, g.name AS group_name, g.category
+    let sql = `SELECT u.id, u.code, u.full_name, u.group_id, u.schedule, u.monthly_quota, u.bio, u.avatar_file, u.plain_hint,
+                      g.name AS group_name, g.category
                FROM users u LEFT JOIN groups g ON u.group_id = g.id
                WHERE u.role = 'student'`;
     const params = [];
@@ -355,7 +399,8 @@ app.get('/intranet/api/admin/students', authMiddleware, staffOnly, (req, res) =>
     sql += ` ORDER BY u.full_name ASC`;
     db.all(sql, params, (err, rows) => res.json(rows || []));
   } else {
-    let sql = `SELECT u.id, u.code, u.full_name, u.group_id, u.schedule, u.monthly_quota, u.bio, u.avatar_file, g.name AS group_name, g.category
+    let sql = `SELECT u.id, u.code, u.full_name, u.group_id, u.schedule, u.monthly_quota, u.bio, u.avatar_file, u.plain_hint,
+                      g.name AS group_name, g.category
                FROM users u
                INNER JOIN groups g ON u.group_id = g.id
                WHERE u.role = 'student' AND g.category = 'Sol Music'`;
@@ -381,9 +426,9 @@ app.post('/intranet/api/admin/students', authMiddleware, staffOnly, (req, res) =
 
     const hash = bcrypt.hashSync(password, 10);
     db.run(
-      `INSERT INTO users (code, full_name, password_hash, role, group_id, schedule, monthly_quota)
-       VALUES (?, ?, ?, 'student', ?, ?, ?)`,
-      [code.trim(), full_name.trim(), hash, group_id, (schedule || '').trim(), quota],
+      `INSERT INTO users (code, full_name, password_hash, role, group_id, schedule, monthly_quota, plain_hint)
+       VALUES (?, ?, ?, 'student', ?, ?, ?, ?)`,
+      [code.trim(), full_name.trim(), hash, group_id, (schedule || '').trim(), quota, password.trim()],
       function (err) {
         if (err) return res.status(400).json({ error: 'Ese código/usuario ya está registrado' });
         res.json({ id: this.lastID });
@@ -540,7 +585,7 @@ app.get('/intranet/api/admin/daily-summary', authMiddleware, staffOnly, (req, re
   }
 });
 
-// ================= MATERIALES MÚLTIPLES Y CONSULTAS CON EL DOCENTE =================
+// ================= MATERIALES MÚLTIPLES Y CONSULTAS EN TIEMPO REAL =================
 function attachFilesToMaterials(materials, cb) {
   if (!materials || !materials.length) return cb([]);
   const ids = materials.map(m => m.id);
@@ -573,7 +618,6 @@ app.get('/intranet/api/admin/materials', authMiddleware, staffOnly, (req, res) =
       if (!enriched.length) return res.json([]);
       const ids = enriched.map(m => m.id);
       const placeholders = ids.map(() => '?').join(',');
-      // Traer solo las consultas directas (note_type = 'consulta') hechas por alumnos para que el profesor responda
       db.all(
         `SELECT mn.*, u.full_name AS student_name
          FROM material_notes mn
@@ -594,23 +638,36 @@ app.get('/intranet/api/admin/materials', authMiddleware, staffOnly, (req, res) =
   });
 });
 
-// Responder consulta de estudiante desde el panel docente/admin
 app.post('/intranet/api/admin/materials/:id/reply', authMiddleware, staffOnly, (req, res) => {
   const { student_id, content } = req.body;
   if (!student_id || !content || !content.trim()) {
     return res.status(400).json({ error: 'Escribe una respuesta' });
   }
-  db.get(`SELECT group_id FROM materials WHERE id = ?`, [req.params.id], (err, mat) => {
+  const matId = Number(req.params.id);
+  const stuId = Number(student_id);
+
+  db.get(`SELECT group_id FROM materials WHERE id = ?`, [matId], (err, mat) => {
     if (!mat) return res.status(404).json({ error: 'Material no encontrado' });
     verifyGroupAccess(req.user, mat.group_id, (allowed) => {
       if (!allowed) return res.status(403).json({ error: 'Sin permiso sobre este grupo' });
       db.run(
         `INSERT INTO material_notes (material_id, student_id, sender_role, sender_name, note_type, content)
          VALUES (?, ?, ?, ?, 'consulta', ?)`,
-        [req.params.id, student_id, req.user.role, req.user.full_name, content.trim()],
+        [matId, stuId, req.user.role, req.user.full_name, content.trim()],
         function (err2) {
           if (err2) return res.status(500).json({ error: 'Error guardando respuesta' });
-          res.json({ id: this.lastID });
+          const newMsg = {
+            id: this.lastID,
+            material_id: matId,
+            student_id: stuId,
+            sender_role: req.user.role,
+            sender_name: req.user.full_name,
+            note_type: 'consulta',
+            content: content.trim(),
+            created_at: new Date().toISOString()
+          };
+          broadcastChatEvent({ type: 'chat_message', message: newMsg });
+          res.json(newMsg);
         }
       );
     });
@@ -742,7 +799,6 @@ app.get('/intranet/api/student/dashboard', authMiddleware, (req, res) => {
   );
 });
 
-// Actualizar descripción personal del estudiante
 app.post('/intranet/api/student/profile', authMiddleware, (req, res) => {
   const { bio } = req.body;
   db.run(`UPDATE users SET bio = ? WHERE id = ?`, [(bio || '').trim().slice(0, 400), req.user.id], (err) => {
@@ -751,7 +807,6 @@ app.post('/intranet/api/student/profile', authMiddleware, (req, res) => {
   });
 });
 
-// Subir foto de perfil del estudiante
 app.post('/intranet/api/student/avatar', authMiddleware, uploadAvatar.single('avatar'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'Selecciona una imagen válida (JPG, PNG, WEBP)' });
 
@@ -767,19 +822,33 @@ app.post('/intranet/api/student/avatar', authMiddleware, uploadAvatar.single('av
   });
 });
 
-// Agregar nota de estudio o consulta al profesor sobre un material
 app.post('/intranet/api/student/materials/:id/notes', authMiddleware, (req, res) => {
   const { note_type, content } = req.body;
   if (!content || !content.trim()) return res.status(400).json({ error: 'Escribe tu nota o consulta' });
   const nType = note_type === 'personal' ? 'personal' : 'consulta';
+  const matId = Number(req.params.id);
 
   db.run(
     `INSERT INTO material_notes (material_id, student_id, sender_role, sender_name, note_type, content)
      VALUES (?, ?, 'student', ?, ?, ?)`,
-    [req.params.id, req.user.id, req.user.full_name, nType, content.trim()],
+    [matId, req.user.id, req.user.full_name, nType, content.trim()],
     function (err) {
       if (err) return res.status(500).json({ error: 'Error guardando mensaje' });
-      res.json({ id: this.lastID });
+      const newMsg = {
+        id: this.lastID,
+        material_id: matId,
+        student_id: req.user.id,
+        student_name: req.user.full_name,
+        sender_role: 'student',
+        sender_name: req.user.full_name,
+        note_type: nType,
+        content: content.trim(),
+        created_at: new Date().toISOString()
+      };
+      if (nType === 'consulta') {
+        broadcastChatEvent({ type: 'chat_message', message: newMsg });
+      }
+      res.json(newMsg);
     }
   );
 });
@@ -790,7 +859,6 @@ app.delete('/intranet/api/student/notes/:noteId', authMiddleware, (req, res) => 
   });
 });
 
-// Servir archivos de materiales y avatares
 app.get('/intranet/api/avatars/:filename', (req, res) => {
   const safeFile = path.basename(req.params.filename);
   const fullPath = path.join(avatarsDir, safeFile);
