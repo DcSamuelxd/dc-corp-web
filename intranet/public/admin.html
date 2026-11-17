@@ -140,11 +140,10 @@
     <section id="panel-materiales" class="hidden space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        <!-- Formulario Multi-Archivo por Instrumento / Sección -->
         <div class="lg:col-span-6 glass-bento p-6 sm:p-8 h-fit">
           <h2 class="text-lg font-bold mb-1">Publicar Material o Canción de Estudio</h2>
           <p class="text-xs text-[#6e6e73] mb-5">
-            Adjunta un video de YouTube y agrega todos los PDFs y pistas MP3 necesarios clasificados por instrumento (1ra Guitarra, 2da Guitarra, Bajo, Piano, Batería, Cantante, General).
+            Selecciona varios archivos a la vez dentro de la misma fila (por ejemplo, PDF y MP3 de 1ra Guitarra juntos) o agrega tantas filas como necesites.
           </p>
 
           <form id="materialForm" class="space-y-4">
@@ -172,17 +171,15 @@
                 class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs resize-none"></textarea>
             </div>
 
-            <!-- Constructor Dinámico de Filas de Archivos (Instrumento + Archivo PDF/MP3) -->
             <div class="p-4 rounded-2xl bg-[#f5f5f7] border border-black/[0.06] space-y-3">
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-[#1d1d1f]">Archivos adjuntos (PDFs y pistas MP3)</span>
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <span class="text-xs font-bold text-[#1d1d1f]">Archivos adjuntos (puedes elegir PDF y MP3 juntos en cada fila)</span>
                 <button type="button" onclick="addFileRow()"
                   class="px-3 py-1.5 rounded-full bg-[#0071e3]/10 hover:bg-[#0071e3]/20 text-[#0071e3] text-[11px] font-semibold transition">
-                  + Agregar archivo
+                  + Agregar fila
                 </button>
               </div>
 
-              <!-- Plantilla rápida para canciones completas en Sol Music -->
               <div class="flex flex-wrap items-center gap-1.5">
                 <span class="text-[10px] text-[#6e6e73] mr-1">Plantilla rápida:</span>
                 <button type="button" onclick="loadSongPreset()"
@@ -191,7 +188,7 @@
                 </button>
               </div>
 
-              <div id="fileRowsContainer" class="space-y-2.5 max-h-72 overflow-y-auto pr-1"></div>
+              <div id="fileRowsContainer" class="space-y-2.5 max-h-80 overflow-y-auto pr-1"></div>
             </div>
 
             <button type="submit" id="btnUploadMat" class="w-full py-3 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold transition shadow-sm">
@@ -200,7 +197,6 @@
           </form>
         </div>
 
-        <!-- Lista de Materiales Publicados con Vista Previa PDF y Audio -->
         <div class="lg:col-span-6 glass-bento p-6 sm:p-8">
           <h2 class="text-lg font-bold mb-4">Materiales y Canciones Publicadas</h2>
           <div id="materialsList" class="space-y-4"></div>
@@ -574,7 +570,7 @@
       'Guía de Práctica'
     ];
 
-    function addFileRow(defaultLabel = 'General (Canción completa)') {
+    function addFileRow(defaultLabel = '1ra Guitarra') {
       const container = document.getElementById('fileRowsContainer');
       const row = document.createElement('div');
       row.className = 'file-upload-row bg-white p-2.5 rounded-xl border border-black/10 flex flex-col sm:flex-row sm:items-center gap-2';
@@ -587,7 +583,7 @@
         <select class="file-label-select bg-[#f5f5f7] border border-black/10 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[#1d1d1f] sm:w-48 shrink-0">
           ${optionsHtml}
         </select>
-        <input type="file" accept=".pdf,.mp3,.wav,.ogg,.m4a,.doc,.docx,.zip,.gpx"
+        <input type="file" multiple accept=".pdf,.mp3,.wav,.ogg,.m4a,.doc,.docx,.zip,.gpx"
           class="file-input-item flex-1 text-xs text-[#6e6e73] file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[11px] file:font-semibold file:bg-[#0071e3]/10 file:text-[#0071e3]">
         <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 px-2 py-1 text-xs self-end sm:self-center" title="Quitar fila">
           <i class="fa-solid fa-xmark"></i>
@@ -610,9 +606,9 @@
       ].forEach(lbl => addFileRow(lbl));
     }
 
-    // Inicializar con 2 filas listas (por ejemplo PDF + MP3)
+    // Inicializar con 2 filas listas
     addFileRow('General (Canción completa)');
-    addFileRow('General (Canción completa)');
+    addFileRow('1ra Guitarra');
 
     // ==================== LÓGICA DE SEMANA (LUNES A DOMINGO) ====================
     function getMonday(d) {
@@ -1260,9 +1256,11 @@
       document.querySelectorAll('.file-upload-row').forEach(row => {
         const fileInput = row.querySelector('.file-input-item');
         const labelSelect = row.querySelector('.file-label-select');
-        if (fileInput && fileInput.files[0]) {
-          formData.append('files', fileInput.files[0]);
-          labels.push(labelSelect.value);
+        if (fileInput && fileInput.files && fileInput.files.length > 0) {
+          Array.from(fileInput.files).forEach(file => {
+            formData.append('files', file);
+            labels.push(labelSelect.value);
+          });
         }
       });
       formData.append('labels', JSON.stringify(labels));
@@ -1278,7 +1276,7 @@
         document.getElementById('materialForm').reset();
         document.getElementById('fileRowsContainer').innerHTML = '';
         addFileRow('General (Canción completa)');
-        addFileRow('General (Canción completa)');
+        addFileRow('1ra Guitarra');
         loadMaterials();
       } else {
         alert('Error al publicar el material');
