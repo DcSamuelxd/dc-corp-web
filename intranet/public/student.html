@@ -19,6 +19,7 @@
         radial-gradient(at 15% 15%, rgba(0, 113, 227, 0.08) 0px, transparent 50%),
         radial-gradient(at 85% 85%, rgba(16, 185, 129, 0.07) 0px, transparent 50%);
       color: #1d1d1f;
+      overflow-x: hidden;
       padding-top: env(safe-area-inset-top);
       padding-bottom: calc(84px + env(safe-area-inset-bottom));
       -webkit-tap-highlight-color: transparent;
@@ -118,6 +119,9 @@
         </div>
       </div>
     </div>
+
+    <!-- Banner de Avisos y Próximos Eventos -->
+    <div id="studentAnnouncementsBanner" class="hidden space-y-2.5"></div>
 
     <!-- Menú de Navegación Independiente -->
     <nav class="hidden md:flex flex-wrap gap-1.5 p-1.5 rounded-2xl bg-black/[0.05] w-fit">
@@ -855,6 +859,28 @@
       document.getElementById('statBlock').innerText = `${usedMonth}/${quota}`;
       document.getElementById('statRef').innerText = refCount;
       document.getElementById('statPct').innerText = `${pct}%`;
+
+      const anns = dashboardData.announcements || [];
+      const bannerEl = document.getElementById('studentAnnouncementsBanner');
+      if (anns.length) {
+        bannerEl.innerHTML = anns.map(a => `
+          <div class="p-4 rounded-2xl bg-gradient-to-r from-rose-500/10 via-amber-500/10 to-orange-500/10 border border-rose-500/20 flex items-start gap-3">
+            <div class="w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 mt-0.5">
+              <i class="fa-solid fa-bullhorn text-xs"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <h3 class="text-xs sm:text-sm font-bold text-[#1d1d1f]">${a.title}</h3>
+                ${a.event_date ? `<span class="px-2 py-0.5 rounded-full bg-white/80 text-rose-700 text-[10px] font-bold"><i class="fa-regular fa-calendar mr-1"></i>${a.event_date}</span>` : ''}
+              </div>
+              <p class="text-xs text-[#424245] mt-0.5 leading-relaxed">${a.message}</p>
+            </div>
+          </div>
+        `).join('');
+        bannerEl.classList.remove('hidden');
+      } else {
+        bannerEl.classList.add('hidden');
+      }
 
       renderMaterialsSection(dashboardData.materials || []);
       renderAttendancesList();

@@ -20,6 +20,7 @@
         radial-gradient(at 10% 10%, rgba(0, 113, 227, 0.08) 0px, transparent 50%),
         radial-gradient(at 90% 85%, rgba(124, 58, 237, 0.07) 0px, transparent 50%);
       color: #1d1d1f;
+      overflow-x: hidden;
       padding-top: env(safe-area-inset-top);
       padding-bottom: calc(84px + env(safe-area-inset-bottom));
       -webkit-tap-highlight-color: transparent;
@@ -64,7 +65,10 @@
       </div>
       <div class="flex items-center gap-4">
         <span class="hidden sm:inline text-xs font-medium text-[#6e6e73]" id="userName">Usuario</span>
-        <button onclick="openPassModal()" class="text-xs text-[#424245] hover:text-[#0071e3] transition" title="Cambiar contraseña">
+        <button onclick="downloadDatabaseBackup()" class="admin-only-tab text-xs text-[#424245] hover:text-emerald-600 transition p-1.5" title="Descargar copia de seguridad (Base de datos SQLite)">
+          <i class="fa-solid fa-database"></i>
+        </button>
+        <button onclick="openPassModal()" class="text-xs text-[#424245] hover:text-[#0071e3] transition p-1.5" title="Cambiar contraseña">
           <i class="fa-solid fa-key"></i>
         </button>
         <button onclick="logout()" class="px-3.5 py-1.5 rounded-full bg-black/5 hover:bg-red-500/10 hover:text-red-600 text-xs font-medium transition">
@@ -87,6 +91,9 @@
       <button onclick="switchTab('alumnos')" id="tab-alumnos" class="tab-btn px-5 py-2 rounded-xl text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition">
         <i class="fa-solid fa-users mr-1.5 text-emerald-600"></i> Alumnado
       </button>
+      <button onclick="switchTab('avisos')" id="tab-avisos" class="tab-btn px-5 py-2 rounded-xl text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition">
+        <i class="fa-solid fa-bullhorn mr-1.5 text-rose-600"></i> Avisos
+      </button>
       <button onclick="switchTab('profesores')" id="tab-profesores" class="admin-only-tab tab-btn px-5 py-2 rounded-xl text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition">
         <i class="fa-solid fa-chalkboard-user mr-1.5 text-amber-600"></i> Profesores
       </button>
@@ -94,7 +101,7 @@
 
     <!-- ==================== SECCIÓN 1: GRILLA SEMANAL GRÁFICA ==================== -->
     <section id="panel-asistencia" class="space-y-6">
-      <div class="glass-bento p-6 sm:p-8">
+      <div class="glass-bento p-5 sm:p-8 max-w-full overflow-hidden">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-black/[0.06]">
           <div>
             <h2 class="text-xl font-bold tracking-tight">Control Semanal de Asistencias</h2>
@@ -103,10 +110,10 @@
             </p>
           </div>
 
-          <div class="flex flex-wrap items-center gap-3">
-            <div>
+          <div class="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 w-full lg:w-auto min-w-0">
+            <div class="w-full sm:w-auto min-w-0">
               <label class="block text-[10px] font-medium text-[#6e6e73] mb-1">Grupo / Subgrupo</label>
-              <select id="attGroupSelect" onchange="loadWeeklyGrid()" class="bg-white border border-black/10 rounded-xl px-3.5 py-2 text-xs font-semibold min-w-[210px]"></select>
+              <select id="attGroupSelect" onchange="loadWeeklyGrid()" class="w-full sm:w-64 max-w-full truncate bg-white border border-black/10 rounded-xl px-3.5 py-2 text-xs font-semibold"></select>
             </div>
 
             <div>
@@ -135,7 +142,18 @@
           </div>
         </div>
 
-        <div class="flex flex-wrap items-center gap-3 py-4 text-[11px] text-[#6e6e73]">
+        <div class="pt-4 pb-1">
+          <div class="relative max-w-sm">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-[#6e6e73] text-xs">
+              <i class="fa-solid fa-magnifying-glass"></i>
+            </span>
+            <input type="search" id="attStudentSearch" oninput="filterAttendanceStudents()"
+              placeholder="Buscar alumno en este grupo..."
+              class="w-full bg-white border border-black/10 rounded-xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-[#0071e3]">
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 py-3 text-[11px] text-[#6e6e73]">
           <span class="font-semibold text-[#1d1d1f]">Leyenda:</span>
           <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-700 font-medium">
             <i class="fa-solid fa-check"></i> Presente (Bloque)
@@ -301,6 +319,17 @@
             </div>
           </div>
 
+          <div class="mb-4">
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-[#6e6e73] text-xs">
+                <i class="fa-solid fa-magnifying-glass"></i>
+              </span>
+              <input type="search" id="dirStudentSearch" oninput="renderStudentsViews()"
+                placeholder="Buscar alumno por nombre, usuario/DNI o subgrupo..."
+                class="w-full bg-white border border-black/10 rounded-xl pl-9 pr-3.5 py-2 text-xs focus:outline-none focus:border-[#0071e3]">
+            </div>
+          </div>
+
           <div id="mobileStudentsCards" class="md:hidden space-y-3 mb-2"></div>
           <div class="hidden md:block overflow-x-auto">
             <table class="w-full text-left border-collapse">
@@ -345,6 +374,65 @@
           <div id="teachersList" class="space-y-3"></div>
         </div>
 
+      </div>
+    </section>
+
+    <!-- ==================== SECCIÓN 5: TABLÓN DE AVISOS Y EVENTOS ==================== -->
+    <section id="panel-avisos" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-5 glass-bento p-6 sm:p-8 h-fit space-y-4">
+          <div>
+            <h3 class="text-base font-bold">Publicar Aviso o Evento</h3>
+            <p class="text-xs text-[#6e6e73] mt-0.5">Aparecerá destacado en la portada de todos los alumnos de la modalidad elegida.</p>
+          </div>
+
+          <form id="announcementForm" class="space-y-3">
+            <div id="annCategoryWrapper">
+              <label class="block text-[11px] font-medium text-[#6e6e73] mb-1">Dirigido a *</label>
+              <select id="annCategory" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs font-semibold">
+                <option value="Todos">Todos los estudiantes (Particulares y Sol Music)</option>
+                <option value="Sol Music">Solo Sol Music (Academia)</option>
+                <option value="Particulares">Solo Particulares</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-medium text-[#6e6e73] mb-1">Título del aviso *</label>
+              <input type="text" id="annTitle" required placeholder="Ej: Ensayo General / Presentación de Fin de Mes"
+                class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-medium text-[#6e6e73] mb-1">Fecha del evento (opcional)</label>
+              <input type="date" id="annDate" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
+            </div>
+
+            <div>
+              <label class="block text-[11px] font-medium text-[#6e6e73] mb-1">Detalle del comunicado *</label>
+              <textarea id="annMessage" rows="3" required placeholder="Indicaciones, hora de llegada, vestimenta o lugar..."
+                class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs resize-none"></textarea>
+            </div>
+
+            <button type="submit" class="w-full py-2.5 rounded-full bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold transition">
+              <i class="fa-solid fa-bullhorn mr-1.5"></i> Publicar Aviso
+            </button>
+          </form>
+
+          <!-- Tarjeta de Respaldo SQLite para Administrador -->
+          <div class="admin-only-tab pt-4 border-t border-black/[0.06] space-y-2">
+            <p class="text-xs font-bold text-[#1d1d1f]">Respaldo de Base de Datos</p>
+            <p class="text-[11px] text-[#6e6e73]">Descarga una copia completa de alumnos, asistencias, materiales y mensajes.</p>
+            <button type="button" onclick="downloadDatabaseBackup()"
+              class="w-full py-2.5 rounded-full bg-[#1d1d1f] hover:bg-black text-white text-xs font-semibold transition">
+              <i class="fa-solid fa-download mr-1.5"></i> Descargar Copia SQLite (.db)
+            </button>
+          </div>
+        </div>
+
+        <div class="lg:col-span-7 glass-bento p-6 sm:p-8">
+          <h3 class="text-lg font-bold mb-4">Avisos Activos en Portada</h3>
+          <div id="announcementsAdminList" class="space-y-3"></div>
+        </div>
       </div>
     </section>
 
@@ -526,7 +614,8 @@
       badge.innerText = 'Profesor • Sol Music';
       badge.className = 'px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 text-[11px] font-semibold';
       document.querySelectorAll('.admin-only-tab').forEach(el => el.classList.add('hidden'));
-      const mGrid = document.getElementById('mobileAdminNavGrid'); if (mGrid) mGrid.className = 'grid grid-cols-3 h-16 max-w-lg mx-auto';
+      const mGrid = document.getElementById('mobileAdminNavGrid'); if (mGrid) mGrid.className = 'grid grid-cols-4 h-16 max-w-lg mx-auto';
+      const annCatWrap = document.getElementById('annCategoryWrapper'); if (annCatWrap) annCatWrap.classList.add('hidden');
       document.getElementById('groupCategoryWrapper').classList.add('hidden');
       document.getElementById('adminCategoryFilter').classList.add('hidden');
       document.getElementById('groupCardTitle').innerText = '1. Crear Subgrupo en Sol Music';
@@ -566,7 +655,7 @@
         const mDot = document.getElementById('mobileUnreadDot');
         if (mDot) mDot.classList.add('hidden');
       }
-      ['asistencia', 'materiales', 'alumnos', 'profesores'].forEach(t => {
+      ['asistencia', 'materiales', 'alumnos', 'avisos', 'profesores'].forEach(t => {
         document.getElementById(`panel-${t}`).classList.toggle('hidden', t !== tab);
         const btn = document.getElementById(`tab-${t}`);
         if (btn && !btn.classList.contains('hidden')) {
@@ -753,7 +842,7 @@
         ).length;
 
         html += `
-          <tr class="hover:bg-white/60 transition">
+          <tr class="att-stu-item hover:bg-white/60 transition" data-stu-name="${stu.full_name.toLowerCase()} ${stu.code.toLowerCase()}">
             <td class="py-3.5 px-3">
               <p class="font-bold text-[#1d1d1f]">${stu.full_name}</p>
               <div class="flex flex-wrap items-center gap-2 mt-0.5">
@@ -826,7 +915,7 @@
         ).length;
 
         mobileCardsHtml += `
-          <div class="p-4 rounded-2xl bg-white/95 border border-black/[0.07] shadow-sm space-y-3">
+          <div class="att-stu-item p-4 rounded-2xl bg-white/95 border border-black/[0.07] shadow-sm space-y-3" data-stu-name="${stu.full_name.toLowerCase()} ${stu.code.toLowerCase()}">
             <div class="flex items-start justify-between gap-2">
               <div>
                 <p class="text-sm font-bold text-[#1d1d1f]">${stu.full_name}</p>
@@ -1252,6 +1341,7 @@
       await loadStudents();
       await loadWeeklyGrid();
       await loadMaterials();
+      await loadAnnouncementsAdmin();
     }
 
     async function loadTeachers() {
@@ -1284,8 +1374,21 @@
       const query = (isAdmin && currentCategoryFilter !== 'Todos') ? `?category=${encodeURIComponent(currentCategoryFilter)}` : '';
       const res = await fetch(`/intranet/api/admin/students${query}`, { headers: authHeaders() });
       studentsCache = await res.json();
-      document.getElementById('studentCount').innerText = `${studentsCache.length} alumnos${isAdmin ? ` (${currentCategoryFilter})` : ' en Sol Music'}`;
-      document.getElementById('studentsTableBody').innerHTML = studentsCache.map(s => {
+      renderStudentsViews();
+    }
+
+    function renderStudentsViews() {
+      const q = (document.getElementById('dirStudentSearch')?.value || '').trim().toLowerCase();
+      const filtered = q
+        ? studentsCache.filter(s =>
+            (s.full_name || '').toLowerCase().includes(q) ||
+            (s.code || '').toLowerCase().includes(q) ||
+            (s.group_name || '').toLowerCase().includes(q)
+          )
+        : studentsCache;
+
+      document.getElementById('studentCount').innerText = `${filtered.length} alumnos${isAdmin ? ` (${currentCategoryFilter})` : ' en Sol Music'}`;
+      document.getElementById('studentsTableBody').innerHTML = filtered.map(s => {
         const isSol = s.category === 'Sol Music';
         const divBadge = isSol
           ? '<span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 font-semibold text-[10px]">Sol Music</span>'
@@ -1336,7 +1439,7 @@
 
       const mStuContainer = document.getElementById('mobileStudentsCards');
       if (mStuContainer) {
-        mStuContainer.innerHTML = studentsCache.map(s => {
+        mStuContainer.innerHTML = filtered.map(s => {
           const isSol = s.category === 'Sol Music';
           const divBadge = isSol
             ? '<span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 font-semibold text-[10px]">Sol Music</span>'
@@ -1669,11 +1772,84 @@
       loadMaterials();
     }
 
+
+    function filterAttendanceStudents() {
+      const q = (document.getElementById('attStudentSearch')?.value || '').trim().toLowerCase();
+      document.querySelectorAll('.att-stu-item').forEach(el => {
+        const hay = el.dataset.stuName || '';
+        el.classList.toggle('hidden', q && !hay.includes(q));
+      });
+    }
+
+    async function loadAnnouncementsAdmin() {
+      const res = await fetch('/intranet/api/admin/announcements', { headers: authHeaders() });
+      const list = await res.json();
+      const container = document.getElementById('announcementsAdminList');
+      if (!container) return;
+      container.innerHTML = list.map(a => `
+        <div class="p-4 rounded-2xl bg-white/95 border border-black/[0.06] flex items-start justify-between gap-3">
+          <div class="space-y-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-full bg-rose-500/10 text-rose-700 text-[10px] font-bold">${a.target_category}</span>
+              ${a.event_date ? `<span class="text-[11px] font-semibold text-[#0071e3]"><i class="fa-regular fa-calendar mr-1"></i>${a.event_date}</span>` : ''}
+            </div>
+            <h4 class="text-sm font-bold text-[#1d1d1f]">${a.title}</h4>
+            <p class="text-xs text-[#6e6e73] leading-relaxed">${a.message}</p>
+            <p class="text-[10px] text-[#6e6e73]">Publicado por: ${a.created_by_name}</p>
+          </div>
+          <button type="button" onclick="deleteAnnouncement(${a.id})" class="text-red-500 hover:text-red-700 text-xs p-1.5" title="Eliminar aviso">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
+      `).join('') || '<p class="text-xs text-[#6e6e73] text-center py-8">No hay avisos publicados actualmente.</p>';
+    }
+
+    document.getElementById('announcementForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const res = await fetch('/intranet/api/admin/announcements', {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({
+          target_category: isAdmin ? document.getElementById('annCategory').value : 'Sol Music',
+          title: document.getElementById('annTitle').value,
+          event_date: document.getElementById('annDate').value,
+          message: document.getElementById('annMessage').value
+        })
+      });
+      if (res.ok) {
+        document.getElementById('announcementForm').reset();
+        loadAnnouncementsAdmin();
+      }
+    });
+
+    async function deleteAnnouncement(id) {
+      if (!confirm('¿Eliminar este aviso de la portada de los estudiantes?')) return;
+      await fetch(`/intranet/api/admin/announcements/${id}`, { method: 'DELETE', headers: authHeaders() });
+      loadAnnouncementsAdmin();
+    }
+
+    async function downloadDatabaseBackup() {
+      const res = await fetch('/intranet/api/admin/backup', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (!res.ok) {
+        alert('Error generando copia de seguridad');
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `intranet_dccorp_backup_${formatISO(new Date())}.db`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
     loadAllData().then(initAdminRealtimeChat);
   </script>
   <!-- Barra de Navegación Inferior Tipo App Nativa (Solo Móvil Android / iOS) -->
   <nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bottom-dock">
-    <div id="mobileAdminNavGrid" class="grid grid-cols-4 h-16 max-w-lg mx-auto">
+    <div id="mobileAdminNavGrid" class="grid grid-cols-5 h-16 max-w-lg mx-auto">
       <button type="button" onclick="switchTab('asistencia')" id="mtab-asistencia"
         class="mtab-btn flex flex-col items-center justify-center gap-1 text-[#0071e3] font-bold text-[10px] transition">
         <i class="fa-solid fa-calendar-week text-base"></i>
@@ -1689,6 +1865,11 @@
         class="mtab-btn flex flex-col items-center justify-center gap-1 text-[#6e6e73] font-medium text-[10px] transition">
         <i class="fa-solid fa-users text-base"></i>
         <span>Alumnado</span>
+      </button>
+      <button type="button" onclick="switchTab('avisos')" id="mtab-avisos"
+        class="mtab-btn flex flex-col items-center justify-center gap-1 text-[#6e6e73] font-medium text-[10px] transition">
+        <i class="fa-solid fa-bullhorn text-base"></i>
+        <span>Avisos</span>
       </button>
       <button type="button" onclick="switchTab('profesores')" id="mtab-profesores"
         class="admin-only-tab mtab-btn flex flex-col items-center justify-center gap-1 text-[#6e6e73] font-medium text-[10px] transition">
