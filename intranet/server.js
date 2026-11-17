@@ -21,11 +21,11 @@ app.use('/intranet', express.static(path.join(__dirname, 'public')));
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadsDir),
   filename: (req, file, cb) => {
-    const safeName = Date.now() + '-' + file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const safeName = Date.now() + '-' + Math.round(Math.random() * 1e6) + '-' + file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
     cb(null, safeName);
   }
 });
-const upload = multer({ storage, limits: { fileSize: 50 * 1024 * 1024 } });
+const upload = multer({ storage, limits: { fileSize: 80 * 1024 * 1024 } });
 
 const db = new sqlite3.Database(path.join(dataDir, 'intranet.db'));
 
@@ -113,6 +113,34 @@ db.serialize(() => {
     external_url TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
+
+  // Tabla hija para múltiples archivos por material (PDF y MP3 etiquetados por instrumento o General)
+  db.run(`CREATE TABLE IF NOT EXISTS material_files (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    material_id INTEGER NOT NULL,
+    label TEXT NOT NULL DEFAULT 'General',
+    file_name TEXT NOT NULL,
+    original_name TEXT NOT NULL,
+    file_type TEXT NOT NULL DEFAULT 'other'
+  )`);
+
+  // Migración suave de materiales antiguos con 1 solo archivo hacia material_files
+  db.all(`SELECT id, file_name, original_name FROM materials WHERE file_name IS NOT NULL AND file_name != ''`, [], (err, legacyRows) => {
+    if (!err && Array.isArray(legacyRows)) {
+      legacyRows.forEach(r => {
+        db.get(`SELECT id FROM material_files WHERE material_id = ? AND file_name = ?`, [r.id, r.file_name], (e2, exists) => {
+          if (!exists) {
+            const ext = path.extname(r.original_name || '').toLowerCase();
+            const fType = ext === '.pdf' ? 'pdf' : (['.mp3', '.wav', '.ogg', '.m4a'].includes(ext) ? 'audio' : 'other');
+            db.run(
+              `INSERT INTO material_files (material_id, label, file_name, original_name, file_type) VALUES (?, 'General', ?, ?, ?)`,
+              [r.id, r.file_name, r.original_name, fType]
+            );
+          }
+        });
+      });
+    }
+  });
 
   const adminCode = 'admin';
   const defaultPass = 'DcCorp2026!';
@@ -468,44 +496,77 @@ app.get('/intranet/api/admin/daily-summary', authMiddleware, staffOnly, (req, re
   }
 });
 
-// ================= MATERIALES =================
+// ================= MATERIALES MÚLTIPLES (Canciones / Guías con varios PDF y MP3) =================
+function attachFilesToMaterials(materials, cb) {
+  if (!materials || !materials.length) return cb([]);
+  const ids = materials.map(m => m.id);
+  const placeholders = ids.map(() => '?').join(',');
+  db.all(
+    `SELECT * FROM material_files WHERE material_id IN (${placeholders}) ORDER BY id ASC`,
+    ids,
+    (err, files) => {
+      const byMat = {};
+      (files || []).forEach(f => {
+        if (!byMat[f.material_id]) byMat[f.material_id] = [];
+        byMat[f.material_id].push(f);
+      });
+      cb(materials.map(m => ({ ...m, files: byMat[m.id] || [] })));
+    }
+  );
+}
+
 app.get('/intranet/api/admin/materials', authMiddleware, staffOnly, (req, res) => {
-  if (req.user.role === 'admin') {
-    db.all(
-      `SELECT m.*, g.name AS group_name, g.category FROM materials m
+  const sql = req.user.role === 'admin'
+    ? `SELECT m.*, g.name AS group_name, g.category FROM materials m
        LEFT JOIN groups g ON m.group_id = g.id
-       ORDER BY m.created_at DESC`,
-      [],
-      (err, rows) => res.json(rows || [])
-    );
-  } else {
-    db.all(
-      `SELECT m.*, g.name AS group_name, g.category FROM materials m
+       ORDER BY m.created_at DESC`
+    : `SELECT m.*, g.name AS group_name, g.category FROM materials m
        INNER JOIN groups g ON m.group_id = g.id
-       WHERE g.category = 'Sol Music' ORDER BY m.created_at DESC`,
-      [],
-      (err, rows) => res.json(rows || [])
-    );
-  }
+       WHERE g.category = 'Sol Music' ORDER BY m.created_at DESC`;
+
+  db.all(sql, [], (err, rows) => {
+    attachFilesToMaterials(rows || [], (enriched) => res.json(enriched));
+  });
 });
 
-app.post('/intranet/api/admin/materials', authMiddleware, staffOnly, upload.single('file'), (req, res) => {
-  const { group_id, title, description, external_url } = req.body;
+app.post('/intranet/api/admin/materials', authMiddleware, staffOnly, upload.array('files', 30), (req, res) => {
+  const { group_id, title, description, external_url, labels } = req.body;
   if (!group_id || !title) return res.status(400).json({ error: 'Grupo y título son obligatorios' });
 
   verifyGroupAccess(req.user, group_id, (allowed) => {
     if (!allowed) return res.status(403).json({ error: 'Solo puedes publicar en subgrupos de Sol Music' });
 
-    const fileName = req.file ? req.file.filename : null;
-    const originalName = req.file ? req.file.originalname : null;
+    let parsedLabels = [];
+    try {
+      parsedLabels = labels ? JSON.parse(labels) : [];
+    } catch {
+      parsedLabels = [];
+    }
 
     db.run(
-      `INSERT INTO materials (group_id, title, description, file_name, original_name, external_url)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [group_id, title.trim(), description || '', fileName, originalName, external_url || ''],
+      `INSERT INTO materials (group_id, title, description, external_url) VALUES (?, ?, ?, ?)`,
+      [group_id, title.trim(), description || '', (external_url || '').trim()],
       function (err) {
         if (err) return res.status(500).json({ error: 'Error al guardar el material' });
-        res.json({ id: this.lastID });
+        const materialId = this.lastID;
+        const uploadedFiles = req.files || [];
+
+        if (!uploadedFiles.length) return res.json({ id: materialId });
+
+        const stmt = db.prepare(
+          `INSERT INTO material_files (material_id, label, file_name, original_name, file_type) VALUES (?, ?, ?, ?, ?)`
+        );
+
+        uploadedFiles.forEach((f, idx) => {
+          const ext = path.extname(f.originalname || '').toLowerCase();
+          const fType = ext === '.pdf'
+            ? 'pdf'
+            : (['.mp3', '.wav', '.ogg', '.m4a', '.aac'].includes(ext) ? 'audio' : 'other');
+          const lbl = (parsedLabels[idx] && parsedLabels[idx].trim()) ? parsedLabels[idx].trim() : 'General';
+          stmt.run(materialId, lbl, f.filename, f.originalname, fType);
+        });
+
+        stmt.finalize(() => res.json({ id: materialId }));
       }
     );
   });
@@ -516,11 +577,20 @@ app.delete('/intranet/api/admin/materials/:id', authMiddleware, staffOnly, (req,
     if (!row) return res.status(404).json({ error: 'Material no encontrado' });
     verifyGroupAccess(req.user, row.group_id, (allowed) => {
       if (!allowed) return res.status(403).json({ error: 'Sin permiso para eliminar este material' });
-      if (row.file_name) {
-        const fPath = path.join(uploadsDir, row.file_name);
-        if (fs.existsSync(fPath)) fs.unlinkSync(fPath);
-      }
-      db.run(`DELETE FROM materials WHERE id = ?`, [req.params.id], () => res.json({ ok: true }));
+
+      db.all(`SELECT file_name FROM material_files WHERE material_id = ?`, [req.params.id], (err2, mFiles) => {
+        (mFiles || []).forEach(mf => {
+          const fPath = path.join(uploadsDir, mf.file_name);
+          if (fs.existsSync(fPath)) fs.unlinkSync(fPath);
+        });
+        if (row.file_name) {
+          const oldPath = path.join(uploadsDir, row.file_name);
+          if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+        }
+        db.run(`DELETE FROM material_files WHERE material_id = ?`, [req.params.id], () => {
+          db.run(`DELETE FROM materials WHERE id = ?`, [req.params.id], () => res.json({ ok: true }));
+        });
+      });
     });
   });
 });
@@ -545,10 +615,12 @@ app.get('/intranet/api/student/dashboard', authMiddleware, (req, res) => {
              FROM materials WHERE group_id = ? ORDER BY created_at DESC`,
             [student.group_id],
             (err3, materials) => {
-              res.json({
-                student,
-                attendances: attendances || [],
-                materials: materials || []
+              attachFilesToMaterials(materials || [], (enrichedMats) => {
+                res.json({
+                  student,
+                  attendances: attendances || [],
+                  materials: enrichedMats
+                });
               });
             }
           );
