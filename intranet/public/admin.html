@@ -38,6 +38,9 @@
       <div class="flex items-center gap-3">
         <img src="/logo.svg" alt="DC CORP" class="h-10">
         <span id="roleBadge" class="px-2.5 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[11px] font-semibold">Admin</span>
+        <span id="liveAdminBadge" class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 text-[10px] font-semibold">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> En vivo
+        </span>
       </div>
       <div class="flex items-center gap-4">
         <span class="hidden sm:inline text-xs font-medium text-[#6e6e73]" id="userName">Usuario</span>
@@ -57,8 +60,9 @@
       <button onclick="switchTab('asistencia')" id="tab-asistencia" class="tab-btn px-5 py-2 rounded-xl bg-white text-[#1d1d1f] shadow-sm text-xs font-semibold transition">
         <i class="fa-solid fa-calendar-week mr-1.5 text-[#0071e3]"></i> Asistencia Semanal
       </button>
-      <button onclick="switchTab('materiales')" id="tab-materiales" class="tab-btn px-5 py-2 rounded-xl text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition">
+      <button onclick="switchTab('materiales')" id="tab-materiales" class="tab-btn px-5 py-2 rounded-xl text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition relative">
         <i class="fa-solid fa-folder-plus mr-1.5 text-indigo-600"></i> Materiales y Consultas
+        <span id="unreadChatDot" class="hidden ml-1.5 px-1.5 py-0.2 rounded-full bg-red-600 text-white text-[9px] font-bold">Nuevo</span>
       </button>
       <button onclick="switchTab('alumnos')" id="tab-alumnos" class="tab-btn px-5 py-2 rounded-xl text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition">
         <i class="fa-solid fa-users mr-1.5 text-emerald-600"></i> Alumnado
@@ -136,7 +140,7 @@
       </div>
     </section>
 
-    <!-- ==================== SECCIÓN 2: SUBIR MATERIALES MÚLTIPLES Y RESPONDER CONSULTAS ==================== -->
+    <!-- ==================== SECCIÓN 2: SUBIR MATERIALES MÚLTIPLES Y CHAT EN VIVO ==================== -->
     <section id="panel-materiales" class="hidden space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
@@ -198,14 +202,14 @@
         </div>
 
         <div class="lg:col-span-7 glass-bento p-6 sm:p-8">
-          <h2 class="text-lg font-bold mb-4">Materiales Publicados y Consultas de Alumnos</h2>
+          <h2 class="text-lg font-bold mb-4">Materiales Publicados y Consultas en Vivo</h2>
           <div id="materialsList" class="space-y-4"></div>
         </div>
 
       </div>
     </section>
 
-    <!-- ==================== SECCIÓN 3: ALUMNADO ==================== -->
+    <!-- ==================== SECCIÓN 3: ALUMNADO + ENVÍO RÁPIDO WHATSAPP ==================== -->
     <section id="panel-alumnos" class="hidden space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
@@ -232,7 +236,7 @@
 
           <div class="glass-bento p-6">
             <h3 class="text-base font-bold mb-1">2. Registrar Estudiante</h3>
-            <p class="text-xs text-[#6e6e73] mb-4">Asigna su horario fijo y sus clases por bloque mensual (8 por defecto).</p>
+            <p class="text-xs text-[#6e6e73] mb-4">Al registrarlo podrás enviarle sus credenciales por WhatsApp en un clic.</p>
             <form id="studentForm" class="space-y-3">
               <input type="text" id="stuName" required placeholder="Nombre completo del estudiante" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
               <input type="text" id="stuCode" required placeholder="Usuario o DNI de acceso (ej: 74859612)" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
@@ -282,9 +286,9 @@
               <thead>
                 <tr class="border-b border-black/[0.08] text-[11px] uppercase text-[#6e6e73]">
                   <th class="py-2.5 px-2">Estudiante / Horario</th>
-                  <th class="py-2.5 px-2">Usuario</th>
+                  <th class="py-2.5 px-2">Acceso</th>
                   <th class="py-2.5 px-2">Subgrupo</th>
-                  <th class="py-2.5 px-2 text-right">Acción</th>
+                  <th class="py-2.5 px-2 text-right">WhatsApp / Acción</th>
                 </tr>
               </thead>
               <tbody id="studentsTableBody" class="text-xs divide-y divide-black/[0.05]"></tbody>
@@ -420,20 +424,24 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL EXPORTAR REPORTE DIARIO EN IMAGEN ==================== -->
+  <!-- ==================== MODAL EXPORTAR REPORTE DIARIO EN IMAGEN + WHATSAPP ==================== -->
   <div id="dailyExportModal" class="hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
     <div class="glass-bento p-5 sm:p-7 max-w-3xl w-full bg-white my-auto space-y-5">
       <div class="flex flex-wrap items-center justify-between gap-3 border-b border-black/[0.07] pb-4">
         <div>
           <h3 class="text-lg font-bold text-[#1d1d1f]">Exportar Asistencias del Día</h3>
-          <p class="text-xs text-[#6e6e73]">Vista previa lista para descargar en PNG y compartir por WhatsApp</p>
+          <p class="text-xs text-[#6e6e73]">Descarga la imagen PNG o envía el resumen de texto directo por WhatsApp</p>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
           <input type="date" id="exportDatePicker" onchange="loadDailyExportPreview()"
             class="bg-[#f5f5f7] border border-black/10 rounded-xl px-3 py-1.5 text-xs font-semibold">
           <button type="button" id="btnDownloadPng" onclick="downloadDailyPng()"
-            class="px-4 py-2 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold shadow-sm inline-flex items-center gap-1.5 transition">
-            <i class="fa-solid fa-download"></i> Descargar Imagen
+            class="px-3.5 py-2 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold shadow-sm inline-flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-download"></i> Imagen PNG
+          </button>
+          <button type="button" onclick="sendDailyReportWhatsApp()"
+            class="px-3.5 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm inline-flex items-center gap-1.5 transition">
+            <i class="fa-brands fa-whatsapp text-sm"></i> WhatsApp
           </button>
           <button type="button" onclick="closeDailyExportModal()" class="p-2 text-[#6e6e73] hover:text-[#1d1d1f]">
             <i class="fa-solid fa-xmark"></i>
@@ -531,6 +539,9 @@
     }
 
     function switchTab(tab) {
+      if (tab === 'materiales') {
+        document.getElementById('unreadChatDot').classList.add('hidden');
+      }
       ['asistencia', 'materiales', 'alumnos', 'profesores'].forEach(t => {
         document.getElementById(`panel-${t}`).classList.toggle('hidden', t !== tab);
         const btn = document.getElementById(`tab-${t}`);
@@ -875,7 +886,9 @@
       }
     }
 
-    // ==================== EXPORTACIÓN DIARIA EN IMAGEN (PNG) ====================
+    // ==================== EXPORTACIÓN DIARIA EN IMAGEN (PNG) + WHATSAPP ====================
+    let lastDailySummaryData = { date: '', records: [] };
+
     function openDailyExportModal() {
       const today = formatISO(new Date());
       document.getElementById('exportDatePicker').value = today;
@@ -903,8 +916,8 @@
       document.getElementById('capTimestamp').innerText = `Generado: ${new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}`;
 
       const res = await fetch(`/intranet/api/admin/daily-summary?date=${dateStr}`, { headers: authHeaders() });
-      const data = await res.json();
-      const recs = data.records || [];
+      lastDailySummaryData = await res.json();
+      const recs = lastDailySummaryData.records || [];
 
       const totalPresentes = recs.filter(r => r.session_type !== 'Reforzamiento' && r.status === 'Presente').length;
       const totalRecup = recs.filter(r => r.session_type === 'Recuperacion').length;
@@ -988,6 +1001,46 @@
       `).join('');
     }
 
+    function sendDailyReportWhatsApp() {
+      const dateStr = document.getElementById('exportDatePicker').value || formatISO(new Date());
+      const recs = lastDailySummaryData.records || [];
+      if (!recs.length) {
+        alert('No hay asistencias registradas para esta fecha.');
+        return;
+      }
+
+      const scope = isAdmin ? 'DC CORP (Particulares y Sol Music)' : 'Sol Music Academia';
+      let lines = [
+        `*REPORTE DE ASISTENCIAS — ${scope}*`,
+        `Fecha: *${dateStr}*`,
+        `Emitido por: ${localStorage.getItem('dc_name') || 'Docente'}`,
+        ''
+      ];
+
+      const grouped = {};
+      recs.forEach(r => {
+        const key = `${r.category || 'Particulares'} - ${r.group_name || 'Sin grupo'}`;
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(r);
+      });
+
+      Object.entries(grouped).forEach(([grp, items]) => {
+        lines.push(`*${grp}:*`);
+        items.forEach(i => {
+          const st = i.session_type === 'Reforzamiento'
+            ? `Reforzamiento${i.arrival_time ? ` (${i.arrival_time})` : ''}`
+            : (i.session_type === 'Recuperacion' ? 'Recuperación' : i.status);
+          const marker = i.recorded_by_name ? ` | Prof: ${i.recorded_by_name}` : '';
+          lines.push(`• ${i.student_name}: *${st}* (Bloque ${i.used_this_month || 0}/${i.monthly_quota || 8}${marker})`);
+        });
+        lines.push('');
+      });
+
+      lines.push('Portal: https://dccorp.lat/intranet');
+      const waUrl = `https://wa.me/?text=${encodeURIComponent(lines.join('\n'))}`;
+      window.open(waUrl, '_blank');
+    }
+
     async function downloadDailyPng() {
       const btn = document.getElementById('btnDownloadPng');
       const card = document.getElementById('captureCard');
@@ -1010,12 +1063,44 @@
         alert('Error al generar la imagen');
       } finally {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-download"></i> Descargar Imagen';
+        btn.innerHTML = '<i class="fa-solid fa-download"></i> Imagen PNG';
       }
+    }
+
+    // ==================== ENVÍO RÁPIDO DE CREDENCIALES POR WHATSAPP ====================
+    let studentsCache = [];
+
+    function sendCredentialsWhatsApp(studentId) {
+      const stu = studentsCache.find(s => Number(s.id) === Number(studentId));
+      if (!stu) return;
+      const passText = stu.plain_hint ? stu.plain_hint : '(clave asignada al registrar)';
+      const scheduleLine = stu.schedule ? `\nHorario: *${stu.schedule}*` : '';
+      const msg = [
+        `Hola *${stu.full_name}*, bienvenido(a) a la plataforma académica *DC CORP* (${stu.category || 'Particulares'} - ${stu.group_name || ''}).`,
+        '',
+        `Enlace de acceso: https://dccorp.lat/intranet`,
+        `Usuario: *${stu.code}*`,
+        `Contraseña: *${passText}*${scheduleLine}`,
+        '',
+        `Desde tu portal podrás revisar tu asistencia, descargar separatas/partituras en PDF, ensayar con las pistas MP3 y escribir tus consultas directas al docente.`
+      ].join('\n');
+
+      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+
+    function copyCredentialsText(studentId) {
+      const stu = studentsCache.find(s => Number(s.id) === Number(studentId));
+      if (!stu) return;
+      const passText = stu.plain_hint ? stu.plain_hint : '(clave asignada)';
+      const text = `Portal: https://dccorp.lat/intranet | Usuario: ${stu.code} | Clave: ${passText}`;
+      navigator.clipboard.writeText(text).then(() => {
+        alert(`Credenciales de ${stu.full_name} copiadas al portapapeles.`);
+      });
     }
 
     // ==================== GRUPOS, ALUMNOS, PROFESORES Y MATERIALES ====================
     let groupsCache = [];
+    let materialsCache = [];
     let currentCategoryFilter = 'Todos';
 
     function setStudentCategoryFilter(cat) {
@@ -1070,26 +1155,34 @@
       const res = await fetch('/intranet/api/admin/teachers', { headers: authHeaders() });
       const teachers = await res.json();
       document.getElementById('teacherCount').innerText = `${teachers.length} profesores`;
-      document.getElementById('teachersList').innerHTML = teachers.map(t => `
-        <div class="p-4 rounded-2xl bg-white/90 border border-black/[0.06] flex items-center justify-between gap-4">
-          <div class="space-y-1">
-            <div class="flex items-center gap-2">
-              <h4 class="text-sm font-bold text-[#1d1d1f]">${t.full_name}</h4>
-              <span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 text-[10px] font-semibold">Sol Music</span>
+      document.getElementById('teachersList').innerHTML = teachers.map(t => {
+        const waMsg = encodeURIComponent(`Hola *${t.full_name}*, aquí tienes tu acceso docente a *Sol Music* en la intranet DC CORP:\n\nEnlace: https://dccorp.lat/intranet\nUsuario: *${t.code}*\nContraseña: *${t.plain_hint || 'Docente2026'}*`);
+        return `
+          <div class="p-4 rounded-2xl bg-white/90 border border-black/[0.06] flex items-center justify-between gap-4">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <h4 class="text-sm font-bold text-[#1d1d1f]">${t.full_name}</h4>
+                <span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 text-[10px] font-semibold">Sol Music</span>
+              </div>
+              <p class="text-xs text-[#6e6e73] font-mono">Usuario: ${t.code}${t.plain_hint ? ` • Clave: ${t.plain_hint}` : ''}</p>
             </div>
-            <p class="text-xs text-[#6e6e73] font-mono">Usuario: ${t.code}</p>
+            <div class="flex items-center gap-2">
+              <a href="https://wa.me/?text=${waMsg}" target="_blank" class="px-3 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold inline-flex items-center gap-1 transition" title="Enviar acceso por WhatsApp">
+                <i class="fa-brands fa-whatsapp"></i> Enviar
+              </a>
+              <button onclick="deleteTeacher(${t.id})" class="text-red-500 hover:text-red-700 text-xs p-1.5"><i class="fa-solid fa-trash"></i></button>
+            </div>
           </div>
-          <button onclick="deleteTeacher(${t.id})" class="text-red-500 hover:text-red-700 text-xs p-1"><i class="fa-solid fa-trash"></i></button>
-        </div>
-      `).join('') || '<p class="text-xs text-[#6e6e73] text-center py-8">Aún no hay otros profesores registrados.</p>';
+        `;
+      }).join('') || '<p class="text-xs text-[#6e6e73] text-center py-8">Aún no hay otros profesores registrados.</p>';
     }
 
     async function loadStudents() {
       const query = (isAdmin && currentCategoryFilter !== 'Todos') ? `?category=${encodeURIComponent(currentCategoryFilter)}` : '';
       const res = await fetch(`/intranet/api/admin/students${query}`, { headers: authHeaders() });
-      const students = await res.json();
-      document.getElementById('studentCount').innerText = `${students.length} alumnos${isAdmin ? ` (${currentCategoryFilter})` : ' en Sol Music'}`;
-      document.getElementById('studentsTableBody').innerHTML = students.map(s => {
+      studentsCache = await res.json();
+      document.getElementById('studentCount').innerText = `${studentsCache.length} alumnos${isAdmin ? ` (${currentCategoryFilter})` : ' en Sol Music'}`;
+      document.getElementById('studentsTableBody').innerHTML = studentsCache.map(s => {
         const isSol = s.category === 'Sol Music';
         const divBadge = isSol
           ? '<span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 font-semibold text-[10px]">Sol Music</span>'
@@ -1109,13 +1202,30 @@
                 </div>
               </div>
             </td>
-            <td class="py-3 px-2 text-[#6e6e73] font-mono">${s.code}</td>
+            <td class="py-3 px-2 font-mono text-[11px] text-[#6e6e73]">
+              <span class="block font-bold text-[#1d1d1f]">${s.code}</span>
+              ${s.plain_hint ? `<span class="text-[10px] text-[#6e6e73]">Clave: ${s.plain_hint}</span>` : ''}
+            </td>
             <td class="py-3 px-2 space-y-1">
               <div>${divBadge}</div>
               <div><span class="px-2.5 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] font-medium text-[11px]">${s.group_name || 'Sin grupo'}</span></div>
             </td>
             <td class="py-3 px-2 text-right">
-              <button onclick="deleteStudent(${s.id})" class="text-red-500 hover:text-red-700 text-xs"><i class="fa-solid fa-trash"></i></button>
+              <div class="inline-flex items-center gap-1.5">
+                <button type="button" onclick="sendCredentialsWhatsApp(${s.id})"
+                  class="px-2.5 py-1 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold inline-flex items-center gap-1 transition"
+                  title="Enviar usuario y contraseña por WhatsApp">
+                  <i class="fa-brands fa-whatsapp"></i> Enviar
+                </button>
+                <button type="button" onclick="copyCredentialsText(${s.id})"
+                  class="p-1.5 rounded-full bg-black/5 hover:bg-black/10 text-[#1d1d1f] text-xs transition"
+                  title="Copiar credenciales">
+                  <i class="fa-regular fa-copy"></i>
+                </button>
+                <button type="button" onclick="deleteStudent(${s.id})" class="text-red-500 hover:text-red-700 text-xs p-1.5" title="Eliminar alumno">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
             </td>
           </tr>
         `;
@@ -1159,9 +1269,8 @@
 
     function renderConsultasAdmin(mat) {
       const consultas = mat.consultas || [];
-      if (!consultas.length) return '';
+      if (!consultas.length) return `<div id="consultasContainer-${mat.id}"></div>`;
 
-      // Agrupar hilo de consultas por estudiante
       const byStudent = {};
       consultas.forEach(c => {
         if (!byStudent[c.student_id]) {
@@ -1171,8 +1280,8 @@
       });
 
       return `
-        <div class="pt-3 border-t border-black/[0.07] space-y-3">
-          <p class="text-xs font-bold text-[#0071e3]"><i class="fa-solid fa-comments mr-1.5"></i>Consultas directas de alumnos (${Object.keys(byStudent).length})</p>
+        <div id="consultasContainer-${mat.id}" class="pt-3 border-t border-black/[0.07] space-y-3">
+          <p class="text-xs font-bold text-[#0071e3]"><i class="fa-solid fa-comments mr-1.5"></i>Consultas en vivo de alumnos (${Object.keys(byStudent).length})</p>
           ${Object.entries(byStudent).map(([stuId, thread]) => `
             <div class="p-3 rounded-xl bg-[#0071e3]/[0.05] border border-[#0071e3]/15 space-y-2">
               <p class="text-[11px] font-bold text-[#1d1d1f]">Alumno: ${thread.student_name}</p>
@@ -1188,7 +1297,8 @@
                 }).join('')}
               </div>
               <div class="flex gap-1.5 pt-1">
-                <input type="text" id="replyInput-${mat.id}-${stuId}" placeholder="Responder consulta a ${thread.student_name}..."
+                <input type="text" id="replyInput-${mat.id}-${stuId}" onkeydown="if(event.key==='Enter'){event.preventDefault();replyStudentConsulta(${mat.id}, ${stuId});}"
+                  placeholder="Responder consulta a ${thread.student_name}..."
                   class="flex-1 bg-white border border-black/10 rounded-lg px-2.5 py-1.5 text-xs">
                 <button type="button" onclick="replyStudentConsulta(${mat.id}, ${stuId})"
                   class="px-3 py-1.5 rounded-lg bg-[#0071e3] hover:bg-[#0077ed] text-white text-[11px] font-semibold">
@@ -1206,21 +1316,54 @@
       const content = input.value.trim();
       if (!content) return;
 
+      input.value = '';
       const res = await fetch(`/intranet/api/admin/materials/${materialId}/reply`, {
         method: 'POST',
         headers: authHeaders(),
         body: JSON.stringify({ student_id: studentId, content })
       });
       if (res.ok) {
-        input.value = '';
-        loadMaterials();
+        const created = await res.json();
+        appendRealtimeAdminConsulta(created);
       }
+    }
+
+    function appendRealtimeAdminConsulta(msg) {
+      const mat = materialsCache.find(m => Number(m.id) === Number(msg.material_id));
+      if (!mat) return;
+      if (!mat.consultas) mat.consultas = [];
+      if (mat.consultas.some(c => Number(c.id) === Number(msg.id))) return;
+
+      mat.consultas.push(msg);
+      const container = document.getElementById(`consultasContainer-${mat.id}`);
+      if (container) {
+        container.outerHTML = renderConsultasAdmin(mat);
+      }
+
+      if (msg.sender_role === 'student' && document.getElementById('panel-materiales').classList.contains('hidden')) {
+        document.getElementById('unreadChatDot').classList.remove('hidden');
+      }
+    }
+
+    function initAdminRealtimeChat() {
+      const evtSource = new EventSource(`/intranet/api/chat/stream?token=${encodeURIComponent(token)}`);
+      evtSource.onopen = () => {
+        document.getElementById('liveAdminBadge').classList.remove('hidden');
+      };
+      evtSource.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data);
+          if (payload.type === 'chat_message' && payload.message) {
+            appendRealtimeAdminConsulta(payload.message);
+          }
+        } catch {}
+      };
     }
 
     async function loadMaterials() {
       const res = await fetch('/intranet/api/admin/materials', { headers: authHeaders() });
-      const mats = await res.json();
-      document.getElementById('materialsList').innerHTML = mats.map(m => `
+      materialsCache = await res.json();
+      document.getElementById('materialsList').innerHTML = materialsCache.map(m => `
         <div class="p-4 sm:p-5 rounded-2xl bg-white/90 border border-black/[0.06] space-y-3">
           <div class="flex items-start justify-between gap-3">
             <div>
@@ -1281,9 +1424,13 @@
         })
       });
       if (res.ok) {
+        const created = await res.json();
         document.getElementById('studentForm').reset();
         document.getElementById('stuQuota').value = 8;
-        loadAllData();
+        await loadAllData();
+        if (confirm('Estudiante registrado. ¿Deseas abrir WhatsApp para enviarle su usuario y contraseña ahora mismo?')) {
+          sendCredentialsWhatsApp(created.id);
+        }
       } else {
         const d = await res.json();
         alert(d.error);
@@ -1377,7 +1524,7 @@
       loadMaterials();
     }
 
-    loadAllData();
+    loadAllData().then(initAdminRealtimeChat);
   </script>
 </body>
 </html>

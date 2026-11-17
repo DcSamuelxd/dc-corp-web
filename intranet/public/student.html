@@ -37,7 +37,9 @@
     <div class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between gap-3">
       <div class="flex items-center gap-3">
         <img src="/logo.svg" alt="DC CORP" class="h-9">
-        <span id="headerModBadge" class="hidden sm:inline-block px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 text-[11px] font-semibold">Estudiante</span>
+        <span id="liveChatStatus" class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 text-[10px] font-semibold">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Chat en vivo
+        </span>
       </div>
 
       <div class="flex items-center gap-3">
@@ -81,7 +83,6 @@
         </div>
       </div>
 
-      <!-- Indicadores Rápidos -->
       <div class="flex flex-wrap gap-2.5 text-center shrink-0">
         <div class="px-4 py-2.5 rounded-2xl bg-white/95 border border-black/[0.06]">
           <span class="block text-lg font-bold text-[#0071e3]" id="statBlock">0/8</span>
@@ -98,7 +99,7 @@
       </div>
     </div>
 
-    <!-- Menú de Navegación Independiente por Apartados -->
+    <!-- Menú de Navegación Independiente -->
     <nav class="flex flex-wrap gap-1.5 p-1.5 rounded-2xl bg-black/[0.05] w-fit">
       <button type="button" onclick="switchStudentTab('materiales')" id="stab-materiales"
         class="stab-btn px-5 py-2.5 rounded-xl bg-white text-[#1d1d1f] shadow-sm text-xs font-semibold transition flex items-center gap-2">
@@ -114,17 +115,72 @@
       </button>
     </nav>
 
-    <!-- ==================== APARTADO 1: MATERIAL DE ESTUDIO ==================== -->
+    <!-- ==================== APARTADO 1: MATERIAL DE ESTUDIO + HERRAMIENTAS DE ENSAYO ==================== -->
     <section id="view-materiales" class="space-y-5">
       <div class="glass-bento p-6 sm:p-8">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-5 mb-6 border-b border-black/[0.06]">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 mb-6 border-b border-black/[0.06]">
           <div>
-            <h2 class="text-xl font-bold tracking-tight">Material de Estudio y Canciones</h2>
+            <h2 class="text-xl font-bold tracking-tight">Material de Estudio y Ensayo</h2>
             <p class="text-xs text-[#6e6e73] mt-0.5">
-              Abre partituras en PDF, reproduce las pistas por instrumento y deja tus apuntes o consultas directas al profesor en cada tema.
+              Partituras en PDF, pistas MP3 con control de velocidad y bucle A-B, metrónomo de práctica y chat directo en tiempo real.
             </p>
           </div>
-          <span id="materialsCountBadge" class="px-3 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-xs font-semibold w-fit">0 temas</span>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="toggleMetronomeDrawer()"
+              class="px-3.5 py-1.5 rounded-full bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 text-xs font-semibold inline-flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-drum"></i> Metrónomo / Diapasón
+            </button>
+            <span id="materialsCountBadge" class="px-3 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-xs font-semibold">0 temas</span>
+          </div>
+        </div>
+
+        <!-- Barra Desplegable de Metrónomo y Notas de Afinación Web -->
+        <div id="metronomeDrawer" class="hidden mb-6 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-500/[0.08] to-orange-500/[0.08] border border-amber-500/20 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <div id="metroBeatLed" class="w-4 h-4 rounded-full bg-black/15 transition-transform duration-75"></div>
+              <div>
+                <h3 class="text-xs font-bold text-[#1d1d1f]">Metrónomo de Práctica</h3>
+                <p class="text-[11px] text-[#6e6e73]">Ajusta el tempo (BPM) y el compás para estudiar tus ejercicios</p>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2.5">
+              <button type="button" onclick="adjustBpm(-5)" class="w-7 h-7 rounded-lg bg-white border border-black/10 text-xs font-bold hover:bg-black/5">-5</button>
+              <div class="flex items-center gap-1.5 bg-white border border-black/10 rounded-xl px-3 py-1">
+                <input type="number" id="metroBpmInput" value="100" min="35" max="240" onchange="updateMetronomeBpm(this.value)"
+                  class="w-12 text-center text-xs font-bold text-[#1d1d1f] focus:outline-none">
+                <span class="text-[10px] font-semibold text-[#6e6e73]">BPM</span>
+              </div>
+              <button type="button" onclick="adjustBpm(5)" class="w-7 h-7 rounded-lg bg-white border border-black/10 text-xs font-bold hover:bg-black/5">+5</button>
+
+              <select id="metroBeatsSelect" class="bg-white border border-black/10 rounded-xl px-2.5 py-1.5 text-xs font-semibold">
+                <option value="4">4/4</option>
+                <option value="3">3/4</option>
+                <option value="6">6/8</option>
+                <option value="2">2/4</option>
+              </select>
+
+              <button type="button" id="btnToggleMetro" onclick="toggleMetronome()"
+                class="px-4 py-1.5 rounded-full bg-[#1d1d1f] hover:bg-black text-white text-xs font-semibold inline-flex items-center gap-1.5 transition">
+                <i class="fa-solid fa-play"></i> Iniciar
+              </button>
+            </div>
+          </div>
+
+          <!-- Generador de Tonos de Referencia para Afinar (Guitarra / Bajo / Cuerdas) -->
+          <div class="pt-3 border-t border-amber-500/15 flex flex-wrap items-center justify-between gap-2">
+            <span class="text-[11px] font-semibold text-[#6e6e73]"><i class="fa-solid fa-guitar mr-1 text-amber-700"></i>Referencia de afinación (clic para sonar 2.5s):</span>
+            <div class="flex flex-wrap gap-1.5">
+              <button type="button" onclick="playReferenceTone(82.41, 'E2 (6ta)')" class="px-2.5 py-1 rounded-lg bg-white hover:bg-amber-500/20 border border-black/10 text-[11px] font-bold">E2 (6ta)</button>
+              <button type="button" onclick="playReferenceTone(110.00, 'A2 (5ta)')" class="px-2.5 py-1 rounded-lg bg-white hover:bg-amber-500/20 border border-black/10 text-[11px] font-bold">A2 (5ta)</button>
+              <button type="button" onclick="playReferenceTone(146.83, 'D3 (4ta)')" class="px-2.5 py-1 rounded-lg bg-white hover:bg-amber-500/20 border border-black/10 text-[11px] font-bold">D3 (4ta)</button>
+              <button type="button" onclick="playReferenceTone(196.00, 'G3 (3ra)')" class="px-2.5 py-1 rounded-lg bg-white hover:bg-amber-500/20 border border-black/10 text-[11px] font-bold">G3 (3ra)</button>
+              <button type="button" onclick="playReferenceTone(246.94, 'B3 (2da)')" class="px-2.5 py-1 rounded-lg bg-white hover:bg-amber-500/20 border border-black/10 text-[11px] font-bold">B3 (2da)</button>
+              <button type="button" onclick="playReferenceTone(329.63, 'E4 (1ra)')" class="px-2.5 py-1 rounded-lg bg-white hover:bg-amber-500/20 border border-black/10 text-[11px] font-bold">E4 (1ra)</button>
+              <button type="button" onclick="playReferenceTone(440.00, 'La 440Hz')" class="px-2.5 py-1 rounded-lg bg-amber-600 text-white text-[11px] font-bold">La 440Hz</button>
+            </div>
+          </div>
         </div>
 
         <div id="studentMaterials" class="space-y-6"></div>
@@ -159,14 +215,12 @@
     <section id="view-perfil" class="hidden space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-        <!-- Tarjeta Foto y Descripción Personal -->
         <div class="lg:col-span-7 glass-bento p-6 sm:p-8 space-y-6">
           <div>
             <h2 class="text-xl font-bold tracking-tight">Mi Perfil de Estudiante</h2>
             <p class="text-xs text-[#6e6e73] mt-0.5">Personaliza tu fotografía y una breve descripción sobre tus instrumentos, cursos o metas.</p>
           </div>
 
-          <!-- Subida de Foto -->
           <div class="flex flex-col sm:flex-row sm:items-center gap-5 p-4 rounded-2xl bg-[#f5f5f7] border border-black/[0.05]">
             <div class="shrink-0">
               <img id="profileAvatarPreview" src="" alt="Avatar" class="w-24 h-24 rounded-2xl object-cover border border-black/10 bg-white hidden">
@@ -189,7 +243,6 @@
             </div>
           </div>
 
-          <!-- Formulario Descripción Personal -->
           <form id="bioForm" class="space-y-3">
             <div>
               <label class="block text-xs font-bold text-[#1d1d1f] mb-1.5">Descripción personal / Sobre mí</label>
@@ -210,7 +263,6 @@
           </form>
         </div>
 
-        <!-- Tarjeta Cambio de Contraseña -->
         <div class="lg:col-span-5 glass-bento p-6 sm:p-8 h-fit space-y-5">
           <div>
             <h2 class="text-xl font-bold tracking-tight">Seguridad de Cuenta</h2>
@@ -310,6 +362,179 @@
       return match ? `https://www.youtube.com/embed/${match[1]}` : null;
     }
 
+    // ==================== HERRAMIENTAS DE ENSAYO: METRÓNOMO Y TONOS WEB AUDIO ====================
+    let audioCtx = null;
+    let metroTimer = null;
+    let metroRunning = false;
+    let metroBeatIndex = 0;
+
+    function ensureAudioCtx() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function toggleMetronomeDrawer() {
+      document.getElementById('metronomeDrawer').classList.toggle('hidden');
+    }
+
+    function playClickSound(isAccent) {
+      ensureAudioCtx();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.value = isAccent ? 1050 : 750;
+      gain.gain.setValueAtTime(isAccent ? 0.35 : 0.2, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.06);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.065);
+
+      const led = document.getElementById('metroBeatLed');
+      led.className = isAccent
+        ? 'w-4 h-4 rounded-full bg-amber-600 scale-125 transition-transform duration-75'
+        : 'w-4 h-4 rounded-full bg-emerald-500 scale-110 transition-transform duration-75';
+      setTimeout(() => {
+        led.className = 'w-4 h-4 rounded-full bg-black/15 transition-transform duration-75';
+      }, 90);
+    }
+
+    function toggleMetronome() {
+      const btn = document.getElementById('btnToggleMetro');
+      if (metroRunning) {
+        clearInterval(metroTimer);
+        metroRunning = false;
+        btn.innerHTML = '<i class="fa-solid fa-play"></i> Iniciar';
+        btn.className = 'px-4 py-1.5 rounded-full bg-[#1d1d1f] hover:bg-black text-white text-xs font-semibold inline-flex items-center gap-1.5 transition';
+      } else {
+        const bpm = Math.max(35, Math.min(240, parseInt(document.getElementById('metroBpmInput').value, 10) || 100));
+        const beats = parseInt(document.getElementById('metroBeatsSelect').value, 10) || 4;
+        metroBeatIndex = 0;
+        metroRunning = true;
+        btn.innerHTML = '<i class="fa-solid fa-stop"></i> Detener';
+        btn.className = 'px-4 py-1.5 rounded-full bg-red-600 hover:bg-red-700 text-white text-xs font-semibold inline-flex items-center gap-1.5 transition';
+
+        playClickSound(true);
+        metroBeatIndex = 1;
+        metroTimer = setInterval(() => {
+          playClickSound(metroBeatIndex % beats === 0);
+          metroBeatIndex++;
+        }, (60 / bpm) * 1000);
+      }
+    }
+
+    function adjustBpm(delta) {
+      const inp = document.getElementById('metroBpmInput');
+      const next = Math.max(35, Math.min(240, (parseInt(inp.value, 10) || 100) + delta));
+      inp.value = next;
+      if (metroRunning) {
+        toggleMetronome();
+        toggleMetronome();
+      }
+    }
+
+    function updateMetronomeBpm() {
+      if (metroRunning) {
+        toggleMetronome();
+        toggleMetronome();
+      }
+    }
+
+    function playReferenceTone(freq) {
+      ensureAudioCtx();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.28, audioCtx.currentTime + 0.08);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 2.4);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 2.5);
+    }
+
+    // ==================== CONTROLES DE ENSAYO POR PISTA MP3 (VELOCIDAD + BUCLE A-B) ====================
+    const abLoops = {};
+
+    function formatSecs(sec) {
+      if (!isFinite(sec) || sec < 0) return '0:00';
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      return `${m}:${String(s).padStart(2, '0')}`;
+    }
+
+    function setTrackSpeed(fileId, rate, btnEl) {
+      const audio = document.getElementById(`audio-${fileId}`);
+      if (!audio) return;
+      audio.playbackRate = rate;
+      const group = btnEl.parentElement;
+      group.querySelectorAll('.speed-btn').forEach(b => {
+        b.className = 'speed-btn px-2 py-0.5 rounded-md bg-white text-[#6e6e73] hover:text-[#1d1d1f] text-[10px] font-bold border border-black/10 transition';
+      });
+      btnEl.className = 'speed-btn px-2 py-0.5 rounded-md bg-[#0071e3] text-white text-[10px] font-bold border border-[#0071e3] transition';
+    }
+
+    function setLoopPoint(fileId, point) {
+      const audio = document.getElementById(`audio-${fileId}`);
+      if (!audio) return;
+      if (!abLoops[fileId]) abLoops[fileId] = { a: null, b: null, active: false };
+      const st = abLoops[fileId];
+
+      if (point === 'A') {
+        st.a = audio.currentTime;
+        if (st.b !== null && st.b <= st.a) st.b = null;
+      } else if (point === 'B') {
+        if (st.a === null) st.a = 0;
+        st.b = audio.currentTime;
+        if (st.b > st.a + 0.2) {
+          st.active = true;
+          audio.currentTime = st.a;
+          audio.play();
+        }
+      }
+      updateLoopBadge(fileId);
+    }
+
+    function clearLoopPoints(fileId) {
+      abLoops[fileId] = { a: null, b: null, active: false };
+      updateLoopBadge(fileId);
+    }
+
+    function updateLoopBadge(fileId) {
+      const label = document.getElementById(`loopLabel-${fileId}`);
+      if (!label) return;
+      const st = abLoops[fileId];
+      if (!st || (st.a === null && st.b === null)) {
+        label.innerText = 'Bucle: desactivado';
+        label.className = 'text-[10px] text-[#6e6e73]';
+      } else if (st.a !== null && st.b === null) {
+        label.innerText = `Punto A: ${formatSecs(st.a)} (marca B)`;
+        label.className = 'text-[10px] font-semibold text-amber-700';
+      } else {
+        label.innerText = `Bucle activo: ${formatSecs(st.a)} → ${formatSecs(st.b)}`;
+        label.className = 'text-[10px] font-bold text-purple-700';
+      }
+    }
+
+    function handleAudioTimeUpdate(fileId) {
+      const st = abLoops[fileId];
+      if (!st || !st.active || st.a === null || st.b === null) return;
+      const audio = document.getElementById(`audio-${fileId}`);
+      if (audio && audio.currentTime >= st.b) {
+        audio.currentTime = st.a;
+      }
+    }
+
+    function skipTrackSeconds(fileId, delta) {
+      const audio = document.getElementById(`audio-${fileId}`);
+      if (!audio) return;
+      audio.currentTime = Math.max(0, Math.min(audio.duration || 9999, audio.currentTime + delta));
+    }
+
     function updateAvatarDisplays(avatarFile) {
       const hasAvatar = Boolean(avatarFile);
       const url = hasAvatar ? `/intranet/api/avatars/${avatarFile}?t=${Date.now()}` : '';
@@ -333,7 +558,7 @@
       const fileUrl = `/intranet/api/files/${f.file_name}?token=${token}`;
       if (f.file_type === 'pdf') {
         return `
-          <div class="p-3 rounded-xl bg-[#f5f5f7] border border-black/[0.06] flex flex-wrap items-center justify-between gap-2">
+          <div class="p-3.5 rounded-2xl bg-[#f5f5f7] border border-black/[0.06] flex flex-wrap items-center justify-between gap-2">
             <div class="min-w-0">
               <span class="px-2 py-0.5 rounded-md bg-red-500/10 text-red-700 text-[10px] font-bold">${f.label}</span>
               <p class="text-xs font-semibold text-[#1d1d1f] truncate mt-0.5">${f.original_name}</p>
@@ -352,16 +577,40 @@
         `;
       } else if (f.file_type === 'audio') {
         return `
-          <div class="p-3 rounded-xl bg-[#f5f5f7] border border-black/[0.06] space-y-2">
-            <div class="flex items-center justify-between gap-2">
-              <span class="px-2.5 py-0.5 rounded-md bg-purple-500/10 text-purple-700 text-[10px] font-bold">
+          <div class="p-3.5 rounded-2xl bg-[#f5f5f7] border border-black/[0.06] space-y-2.5 sm:col-span-2">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="px-2.5 py-0.5 rounded-md bg-purple-500/10 text-purple-700 text-[11px] font-bold">
                 <i class="fa-solid fa-headphones mr-1"></i>Pista: ${f.label}
               </span>
-              <a href="${fileUrl}" download="${f.original_name}" class="text-[11px] text-[#0071e3] font-semibold hover:underline shrink-0">
-                <i class="fa-solid fa-download mr-0.5"></i> MP3
-              </a>
+              <div class="flex items-center gap-2">
+                <span class="text-[11px] text-[#6e6e73] truncate max-w-[180px]">${f.original_name}</span>
+                <a href="${fileUrl}" download="${f.original_name}" class="text-[11px] text-[#0071e3] font-semibold hover:underline shrink-0">
+                  <i class="fa-solid fa-download mr-0.5"></i> MP3
+                </a>
+              </div>
             </div>
-            <audio controls preload="none" src="${fileUrl}" class="w-full h-9"></audio>
+
+            <audio id="audio-${f.id}" controls preload="metadata" src="${fileUrl}"
+              ontimeupdate="handleAudioTimeUpdate(${f.id})" class="w-full h-9"></audio>
+
+            <!-- Barra de Ensayo Musical: Velocidad + Salto -5s/+5s + Bucle A-B -->
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-black/[0.06]">
+              <div class="flex items-center gap-1">
+                <span class="text-[10px] font-semibold text-[#6e6e73] mr-1">Velocidad:</span>
+                <button type="button" onclick="setTrackSpeed(${f.id}, 0.65, this)" class="speed-btn px-2 py-0.5 rounded-md bg-white text-[#6e6e73] hover:text-[#1d1d1f] text-[10px] font-bold border border-black/10">0.65x</button>
+                <button type="button" onclick="setTrackSpeed(${f.id}, 0.8, this)" class="speed-btn px-2 py-0.5 rounded-md bg-white text-[#6e6e73] hover:text-[#1d1d1f] text-[10px] font-bold border border-black/10">0.8x</button>
+                <button type="button" onclick="setTrackSpeed(${f.id}, 1.0, this)" class="speed-btn px-2 py-0.5 rounded-md bg-[#0071e3] text-white text-[10px] font-bold border border-[#0071e3]">1.0x</button>
+                <button type="button" onclick="skipTrackSeconds(${f.id}, -5)" class="ml-1.5 px-2 py-0.5 rounded-md bg-white hover:bg-black/5 text-[#1d1d1f] text-[10px] font-semibold border border-black/10" title="Retroceder 5 segundos">-5s</button>
+                <button type="button" onclick="skipTrackSeconds(${f.id}, 5)" class="px-2 py-0.5 rounded-md bg-white hover:bg-black/5 text-[#1d1d1f] text-[10px] font-semibold border border-black/10" title="Adelantar 5 segundos">+5s</button>
+              </div>
+
+              <div class="flex items-center gap-1.5">
+                <span id="loopLabel-${f.id}" class="text-[10px] text-[#6e6e73]">Bucle: desactivado</span>
+                <button type="button" onclick="setLoopPoint(${f.id}, 'A')" class="px-2 py-0.5 rounded-md bg-purple-600/10 hover:bg-purple-600/20 text-purple-800 text-[10px] font-bold">Marcar A</button>
+                <button type="button" onclick="setLoopPoint(${f.id}, 'B')" class="px-2 py-0.5 rounded-md bg-purple-600 hover:bg-purple-700 text-white text-[10px] font-bold">Marcar B</button>
+                <button type="button" onclick="clearLoopPoints(${f.id})" class="px-2 py-0.5 rounded-md bg-black/5 hover:bg-black/10 text-[#6e6e73] text-[10px] font-semibold">Quitar</button>
+              </div>
+            </div>
           </div>
         `;
       } else {
@@ -376,6 +625,37 @@
       }
     }
 
+    function renderSingleNoteBubble(n) {
+      const isTeacherReply = n.sender_role === 'admin' || n.sender_role === 'teacher';
+      const isPersonal = n.note_type === 'personal';
+
+      if (isTeacherReply) {
+        return `
+          <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs space-y-1">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-emerald-800"><i class="fa-solid fa-chalkboard-user mr-1"></i>Respuesta de ${n.sender_name}</span>
+              <span class="text-[10px] text-emerald-700">${new Date(n.created_at).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}</span>
+            </div>
+            <p class="text-[#1d1d1f] leading-relaxed">${n.content}</p>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="p-3 rounded-xl ${isPersonal ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-[#0071e3]/[0.07] border border-[#0071e3]/20'} text-xs flex items-start justify-between gap-2">
+          <div class="space-y-1">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isPersonal ? 'bg-amber-500/20 text-amber-900' : 'bg-[#0071e3]/15 text-[#0071e3]'}">
+              ${isPersonal ? 'Apunte personal' : 'Consulta enviada al profesor'}
+            </span>
+            <p class="text-[#1d1d1f] leading-relaxed">${n.content}</p>
+          </div>
+          <button type="button" onclick="deleteStudentNote(${n.id})" class="text-[#6e6e73] hover:text-red-600 text-xs p-1" title="Eliminar">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
+      `;
+    }
+
     function renderMaterialsSection(materials) {
       document.getElementById('materialsCountBadge').innerText = `${materials.length} tema(s)`;
       const container = document.getElementById('studentMaterials');
@@ -388,37 +668,7 @@
       container.innerHTML = materials.map(m => {
         const ytEmbed = getYouTubeEmbedUrl(m.external_url);
         const notes = m.notes || [];
-
-        const notesHtml = notes.map(n => {
-          const isTeacherReply = n.sender_role === 'admin' || n.sender_role === 'teacher';
-          const isPersonal = n.note_type === 'personal';
-
-          if (isTeacherReply) {
-            return `
-              <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs space-y-1">
-                <div class="flex items-center justify-between">
-                  <span class="font-bold text-emerald-800"><i class="fa-solid fa-chalkboard-user mr-1"></i>Respuesta de ${n.sender_name}</span>
-                  <span class="text-[10px] text-emerald-700">${new Date(n.created_at).toLocaleDateString('es-PE')}</span>
-                </div>
-                <p class="text-[#1d1d1f] leading-relaxed">${n.content}</p>
-              </div>
-            `;
-          }
-
-          return `
-            <div class="p-3 rounded-xl ${isPersonal ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-[#0071e3]/[0.07] border border-[#0071e3]/20'} text-xs flex items-start justify-between gap-2">
-              <div class="space-y-1">
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isPersonal ? 'bg-amber-500/20 text-amber-900' : 'bg-[#0071e3]/15 text-[#0071e3]'}">
-                  ${isPersonal ? 'Apunte personal' : 'Consulta enviada al profesor'}
-                </span>
-                <p class="text-[#1d1d1f] leading-relaxed">${n.content}</p>
-              </div>
-              <button type="button" onclick="deleteStudentNote(${n.id})" class="text-[#6e6e73] hover:text-red-600 text-xs p-1" title="Eliminar">
-                <i class="fa-solid fa-trash"></i>
-              </button>
-            </div>
-          `;
-        }).join('');
+        const notesHtml = notes.map(renderSingleNoteBubble).join('');
 
         return `
           <div class="p-5 sm:p-6 rounded-2xl bg-white/95 border border-black/[0.06] space-y-4">
@@ -446,20 +696,20 @@
                 ${m.files.map(renderStudentFile).join('')}
               </div>` : ''}
 
-            <!-- Bloques de Apuntes y Consultas Directas con el Profesor -->
             <div class="pt-3 border-t border-black/[0.06] space-y-3">
               <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-[#1d1d1f]"><i class="fa-regular fa-comments mr-1.5 text-[#0071e3]"></i>Mis notas y consultas al docente</span>
+                <span class="text-xs font-bold text-[#1d1d1f]"><i class="fa-regular fa-comments mr-1.5 text-[#0071e3]"></i>Mis notas y consultas en vivo con el docente</span>
               </div>
 
-              ${notesHtml ? `<div class="space-y-2">${notesHtml}</div>` : ''}
+              <div id="notesList-${m.id}" class="space-y-2">${notesHtml}</div>
 
               <div class="flex flex-col sm:flex-row gap-2">
                 <select id="noteType-${m.id}" class="bg-[#f5f5f7] border border-black/10 rounded-xl px-3 py-2 text-xs font-semibold sm:w-44">
                   <option value="consulta">Consulta al profesor</option>
                   <option value="personal">Nota personal (privada)</option>
                 </select>
-                <input type="text" id="noteInput-${m.id}" placeholder="Escribe tu duda sobre este tema o un apunte de práctica..."
+                <input type="text" id="noteInput-${m.id}" onkeydown="if(event.key==='Enter'){event.preventDefault();sendMaterialNote(${m.id});}"
+                  placeholder="Escribe tu duda sobre este tema o un apunte..."
                   class="flex-1 bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:border-[#0071e3]">
                 <button type="button" onclick="sendMaterialNote(${m.id})"
                   class="px-4 py-2 rounded-xl bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold shrink-0 transition">
@@ -581,6 +831,33 @@
       renderAttendancesList();
     }
 
+    // ==================== CONEXIÓN EN TIEMPO REAL (SSE) ====================
+    function initRealtimeChat() {
+      const evtSource = new EventSource(`/intranet/api/chat/stream?token=${encodeURIComponent(token)}`);
+      evtSource.onopen = () => {
+        document.getElementById('liveChatStatus').classList.remove('hidden');
+      };
+      evtSource.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data);
+          if (payload.type === 'chat_message' && payload.message && dashboardData) {
+            const msg = payload.message;
+            if (Number(msg.student_id) !== Number(dashboardData.student.id)) return;
+            const mat = (dashboardData.materials || []).find(m => Number(m.id) === Number(msg.material_id));
+            if (!mat) return;
+            if (!mat.notes) mat.notes = [];
+            if (mat.notes.some(existing => Number(existing.id) === Number(msg.id))) return;
+
+            mat.notes.push(msg);
+            const listEl = document.getElementById(`notesList-${msg.material_id}`);
+            if (listEl) {
+              listEl.insertAdjacentHTML('beforeend', renderSingleNoteBubble(msg));
+            }
+          }
+        } catch {}
+      };
+    }
+
     // ==================== ACCIONES DE PERFIL, SEGURIDAD Y CONSULTAS ====================
     document.getElementById('bioInput').addEventListener('input', (e) => {
       document.getElementById('bioCharCount').innerText = `${e.target.value.length}/400`;
@@ -674,14 +951,23 @@
       const content = input.value.trim();
       if (!content) return;
 
+      input.value = '';
       const res = await fetch(`/intranet/api/student/materials/${materialId}/notes`, {
         method: 'POST',
         headers: authHeaders(),
         body: JSON.stringify({ note_type: noteType, content })
       });
       if (res.ok) {
-        input.value = '';
-        loadStudentPortal();
+        const created = await res.json();
+        const mat = (dashboardData.materials || []).find(m => Number(m.id) === Number(materialId));
+        if (mat) {
+          if (!mat.notes) mat.notes = [];
+          if (!mat.notes.some(n => Number(n.id) === Number(created.id))) {
+            mat.notes.push(created);
+            const listEl = document.getElementById(`notesList-${materialId}`);
+            if (listEl) listEl.insertAdjacentHTML('beforeend', renderSingleNoteBubble(created));
+          }
+        }
       }
     }
 
@@ -694,7 +980,7 @@
       loadStudentPortal();
     }
 
-    loadStudentPortal();
+    loadStudentPortal().then(initRealtimeChat);
   </script>
 </body>
 </html>
