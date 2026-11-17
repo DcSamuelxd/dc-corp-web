@@ -33,7 +33,6 @@
 </head>
 <body class="min-h-screen pb-16">
 
-  <!-- Navbar Superior -->
   <header class="sticky top-0 z-40 apple-nav">
     <div class="max-w-7xl mx-auto px-5 h-16 flex items-center justify-between">
       <div class="flex items-center gap-3">
@@ -54,13 +53,12 @@
 
   <main class="max-w-7xl mx-auto px-5 pt-8 space-y-8">
 
-    <!-- Navegación por Pestañas Estilo iOS Segmented Control -->
     <div class="inline-flex flex-wrap gap-1.5 p-1.5 rounded-2xl bg-black/[0.05]">
       <button onclick="switchTab('asistencia')" id="tab-asistencia" class="tab-btn px-5 py-2 rounded-xl bg-white text-[#1d1d1f] shadow-sm text-xs font-semibold transition">
         <i class="fa-solid fa-calendar-week mr-1.5 text-[#0071e3]"></i> Asistencia Semanal
       </button>
       <button onclick="switchTab('materiales')" id="tab-materiales" class="tab-btn px-5 py-2 rounded-xl text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition">
-        <i class="fa-solid fa-folder-plus mr-1.5 text-indigo-600"></i> Subir Materiales
+        <i class="fa-solid fa-folder-plus mr-1.5 text-indigo-600"></i> Subir Materiales / Canciones
       </button>
       <button onclick="switchTab('alumnos')" id="tab-alumnos" class="tab-btn px-5 py-2 rounded-xl text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition">
         <i class="fa-solid fa-users mr-1.5 text-emerald-600"></i> Alumnado
@@ -73,13 +71,11 @@
     <!-- ==================== SECCIÓN 1: GRILLA SEMANAL GRÁFICA ==================== -->
     <section id="panel-asistencia" class="space-y-6">
       <div class="glass-bento p-6 sm:p-8">
-        
-        <!-- Cabecera y Controles de Semana -->
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-black/[0.06]">
           <div>
             <h2 class="text-xl font-bold tracking-tight">Control Semanal de Asistencias</h2>
             <p class="text-xs text-[#6e6e73] mt-1">
-              Haz clic en cualquier día de la semana para marcar asistencia normal, recuperación (ej: 3 clases en una semana) o reforzamiento con hora de llegada.
+              Haz clic en cualquier día de la semana para marcar asistencia normal, recuperación o reforzamiento con hora de llegada.
             </p>
           </div>
 
@@ -115,7 +111,6 @@
           </div>
         </div>
 
-        <!-- Leyenda Visual Rápida -->
         <div class="flex flex-wrap items-center gap-3 py-4 text-[11px] text-[#6e6e73]">
           <span class="font-semibold text-[#1d1d1f]">Leyenda:</span>
           <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-700 font-medium">
@@ -135,59 +130,80 @@
           </span>
         </div>
 
-        <!-- Tabla Semanal Interactiva -->
         <div id="weeklyGridContainer" class="overflow-x-auto pb-2">
           <p class="text-xs text-[#6e6e73] text-center py-10">Selecciona o crea un grupo para visualizar la semana.</p>
         </div>
-
       </div>
     </section>
 
-    <!-- ==================== SECCIÓN 2: SUBIR MATERIALES ==================== -->
+    <!-- ==================== SECCIÓN 2: SUBIR MATERIALES MÚLTIPLES / CANCIONES ==================== -->
     <section id="panel-materiales" class="hidden space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        <div class="lg:col-span-5 glass-bento p-6 sm:p-8 h-fit">
-          <h2 class="text-lg font-bold mb-1">Adjuntar Material de Estudio</h2>
-          <p class="text-xs text-[#6e6e73] mb-5">Sube PDFs, guías, partituras, audios o enlaces dirigidos a un grupo.</p>
+        <!-- Formulario Multi-Archivo por Instrumento / Sección -->
+        <div class="lg:col-span-6 glass-bento p-6 sm:p-8 h-fit">
+          <h2 class="text-lg font-bold mb-1">Publicar Material o Canción de Estudio</h2>
+          <p class="text-xs text-[#6e6e73] mb-5">
+            Adjunta un video de YouTube y agrega todos los PDFs y pistas MP3 necesarios clasificados por instrumento (1ra Guitarra, 2da Guitarra, Bajo, Piano, Batería, Cantante, General).
+          </p>
 
           <form id="materialForm" class="space-y-4">
-            <div>
-              <label class="block text-xs font-medium text-[#6e6e73] mb-1">Grupo / Subgrupo destino *</label>
-              <select id="matGroupSelect" required class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs font-medium"></select>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-[#6e6e73] mb-1">Grupo / Subgrupo destino *</label>
+                <select id="matGroupSelect" required class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs font-medium"></select>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-[#6e6e73] mb-1">Título del tema o canción *</label>
+                <input type="text" id="matTitle" required placeholder="Ej: De Música Ligera / Guía 03"
+                  class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
+              </div>
             </div>
 
             <div>
-              <label class="block text-xs font-medium text-[#6e6e73] mb-1">Título del material *</label>
-              <input type="text" id="matTitle" required placeholder="Ej: Guía 03 - Acordes / Partitura"
+              <label class="block text-xs font-medium text-[#6e6e73] mb-1">Video de referencia en YouTube o enlace externo</label>
+              <input type="url" id="matUrl" placeholder="https://www.youtube.com/watch?v=..."
                 class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
             </div>
 
             <div>
-              <label class="block text-xs font-medium text-[#6e6e73] mb-1">Indicaciones para el estudiante</label>
-              <textarea id="matDesc" rows="2" placeholder="Repasar ejercicios 1 al 10 para la próxima sesión..."
+              <label class="block text-xs font-medium text-[#6e6e73] mb-1">Indicaciones para el estudio</label>
+              <textarea id="matDesc" rows="2" placeholder="Tonalidad, tempo, estructura o ejercicios a repasar..."
                 class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs resize-none"></textarea>
             </div>
 
-            <div>
-              <label class="block text-xs font-medium text-[#6e6e73] mb-1">Archivo adjunto (PDF, Word, Excel, MP3, ZIP)</label>
-              <input type="file" id="matFile" class="w-full text-xs text-[#6e6e73] file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#0071e3]/10 file:text-[#0071e3] hover:file:bg-[#0071e3]/20">
-            </div>
+            <!-- Constructor Dinámico de Filas de Archivos (Instrumento + Archivo PDF/MP3) -->
+            <div class="p-4 rounded-2xl bg-[#f5f5f7] border border-black/[0.06] space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-[#1d1d1f]">Archivos adjuntos (PDFs y pistas MP3)</span>
+                <button type="button" onclick="addFileRow()"
+                  class="px-3 py-1.5 rounded-full bg-[#0071e3]/10 hover:bg-[#0071e3]/20 text-[#0071e3] text-[11px] font-semibold transition">
+                  + Agregar archivo
+                </button>
+              </div>
 
-            <div>
-              <label class="block text-xs font-medium text-[#6e6e73] mb-1">O enlace externo (Drive, YouTube, MuseScore)</label>
-              <input type="url" id="matUrl" placeholder="https://..." class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
+              <!-- Plantilla rápida para canciones completas en Sol Music -->
+              <div class="flex flex-wrap items-center gap-1.5">
+                <span class="text-[10px] text-[#6e6e73] mr-1">Plantilla rápida:</span>
+                <button type="button" onclick="loadSongPreset()"
+                  class="px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 text-[10px] font-semibold transition">
+                  <i class="fa-solid fa-music mr-1"></i> Cargar pistas de banda (General, Guitarras, Bajo, Piano, Batería, Voz)
+                </button>
+              </div>
+
+              <div id="fileRowsContainer" class="space-y-2.5 max-h-72 overflow-y-auto pr-1"></div>
             </div>
 
             <button type="submit" id="btnUploadMat" class="w-full py-3 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold transition shadow-sm">
-              <i class="fa-solid fa-cloud-arrow-up mr-1.5"></i> Publicar Material
+              <i class="fa-solid fa-cloud-arrow-up mr-1.5"></i> Publicar Material Completo
             </button>
           </form>
         </div>
 
-        <div class="lg:col-span-7 glass-bento p-6 sm:p-8">
-          <h2 class="text-lg font-bold mb-4">Materiales Publicados</h2>
-          <div id="materialsList" class="space-y-3"></div>
+        <!-- Lista de Materiales Publicados con Vista Previa PDF y Audio -->
+        <div class="lg:col-span-6 glass-bento p-6 sm:p-8">
+          <h2 class="text-lg font-bold mb-4">Materiales y Canciones Publicadas</h2>
+          <div id="materialsList" class="space-y-4"></div>
         </div>
 
       </div>
@@ -313,6 +329,27 @@
 
   </main>
 
+  <!-- ==================== MODAL VISOR PDF INTEGRADO ==================== -->
+  <div id="pdfViewerModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6">
+    <div class="bg-white rounded-3xl max-w-5xl w-full h-[88vh] flex flex-col overflow-hidden shadow-2xl">
+      <div class="px-5 py-3.5 border-b border-black/[0.08] flex items-center justify-between bg-[#f5f5f7]">
+        <div class="flex items-center gap-2.5 truncate">
+          <i class="fa-solid fa-file-pdf text-red-600 text-base"></i>
+          <h3 id="pdfModalTitle" class="text-sm font-bold text-[#1d1d1f] truncate">Visor de Partitura / Documento</h3>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <a id="pdfDownloadLink" href="#" download class="px-3.5 py-1.5 rounded-full bg-[#0071e3] text-white text-xs font-semibold hover:bg-[#0077ed] transition">
+            <i class="fa-solid fa-download mr-1"></i> Descargar PDF
+          </a>
+          <button onclick="closePdfModal()" class="w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 text-[#1d1d1f] flex items-center justify-center">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+      <iframe id="pdfFrame" src="" class="w-full flex-1 border-0 bg-neutral-100"></iframe>
+    </div>
+  </div>
+
   <!-- ==================== MODAL COMPACTO PARA MARCAR CELDAS DE LA SEMANA ==================== -->
   <div id="cellModal" class="hidden fixed inset-0 z-50 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="glass-bento p-6 sm:p-7 max-w-md w-full bg-white space-y-5">
@@ -408,7 +445,6 @@
         </div>
       </div>
 
-      <!-- Lienzo que se captura exactamente en imagen PNG -->
       <div class="overflow-x-auto bg-[#e9e9ed] p-3 sm:p-5 rounded-2xl">
         <div id="captureCard" class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-black/[0.06] min-w-[600px] text-[#1d1d1f]">
           <div class="flex items-center justify-between border-b border-black/[0.08] pb-5 mb-5">
@@ -426,7 +462,6 @@
           </div>
 
           <div id="capStatsRow" class="grid grid-cols-4 gap-2.5 mb-6 text-center"></div>
-
           <div id="capRecordsContainer" class="space-y-4"></div>
 
           <div class="mt-6 pt-4 border-t border-black/[0.06] flex items-center justify-between text-[10px] text-[#6e6e73]">
@@ -511,6 +546,73 @@
         }
       });
     }
+
+    // ==================== VISOR PDF INTEGRADO ====================
+    function openPdfModal(fileUrl, title) {
+      document.getElementById('pdfModalTitle').innerText = title || 'Documento PDF';
+      document.getElementById('pdfFrame').src = fileUrl;
+      document.getElementById('pdfDownloadLink').href = fileUrl;
+      document.getElementById('pdfViewerModal').classList.remove('hidden');
+    }
+
+    function closePdfModal() {
+      document.getElementById('pdfViewerModal').classList.add('hidden');
+      document.getElementById('pdfFrame').src = '';
+    }
+
+    // ==================== CONSTRUCTOR DE MÚLTIPLES ARCHIVOS ====================
+    const INSTRUMENT_OPTIONS = [
+      'General (Canción completa)',
+      '1ra Guitarra',
+      '2da Guitarra',
+      'Bajo',
+      'Piano / Teclado',
+      'Batería / Percusión',
+      'Cantante / Voz',
+      'Cuerdas / Violín / Cello',
+      'Vientos / Saxofón',
+      'Guía de Práctica'
+    ];
+
+    function addFileRow(defaultLabel = 'General (Canción completa)') {
+      const container = document.getElementById('fileRowsContainer');
+      const row = document.createElement('div');
+      row.className = 'file-upload-row bg-white p-2.5 rounded-xl border border-black/10 flex flex-col sm:flex-row sm:items-center gap-2';
+
+      const optionsHtml = INSTRUMENT_OPTIONS.map(opt =>
+        `<option value="${opt}" ${opt === defaultLabel ? 'selected' : ''}>${opt}</option>`
+      ).join('');
+
+      row.innerHTML = `
+        <select class="file-label-select bg-[#f5f5f7] border border-black/10 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[#1d1d1f] sm:w-48 shrink-0">
+          ${optionsHtml}
+        </select>
+        <input type="file" accept=".pdf,.mp3,.wav,.ogg,.m4a,.doc,.docx,.zip,.gpx"
+          class="file-input-item flex-1 text-xs text-[#6e6e73] file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[11px] file:font-semibold file:bg-[#0071e3]/10 file:text-[#0071e3]">
+        <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 px-2 py-1 text-xs self-end sm:self-center" title="Quitar fila">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      `;
+      container.appendChild(row);
+    }
+
+    function loadSongPreset() {
+      const container = document.getElementById('fileRowsContainer');
+      container.innerHTML = '';
+      [
+        'General (Canción completa)',
+        '1ra Guitarra',
+        '2da Guitarra',
+        'Bajo',
+        'Piano / Teclado',
+        'Batería / Percusión',
+        'Cantante / Voz'
+      ].forEach(lbl => addFileRow(lbl));
+    }
+
+    // Inicializar con 2 filas listas (por ejemplo PDF + MP3)
+    addFileRow('General (Canción completa)');
+    addFileRow('General (Canción completa)');
 
     // ==================== LÓGICA DE SEMANA (LUNES A DOMINGO) ====================
     function getMonday(d) {
@@ -1016,21 +1118,64 @@
       }).join('') || '<tr><td colspan="4" class="py-6 text-center text-[#6e6e73]">No hay estudiantes registrados en esta vista.</td></tr>';
     }
 
+    function renderAttachmentAdmin(f) {
+      const fileUrl = `/intranet/api/files/${f.file_name}?token=${token}`;
+      if (f.file_type === 'pdf') {
+        return `
+          <div class="p-2.5 rounded-xl bg-[#f5f5f7] border border-black/[0.06] flex items-center justify-between gap-2">
+            <div class="min-w-0">
+              <span class="px-2 py-0.5 rounded-md bg-red-500/10 text-red-700 text-[10px] font-bold">${f.label}</span>
+              <p class="text-xs font-medium text-[#1d1d1f] truncate mt-0.5">${f.original_name}</p>
+            </div>
+            <button type="button" onclick="openPdfModal('${fileUrl}', '${f.label} — ${f.original_name.replace(/'/g, '')}')"
+              class="px-3 py-1.5 rounded-full bg-red-600 hover:bg-red-700 text-white text-[11px] font-semibold shrink-0 transition">
+              <i class="fa-solid fa-eye mr-1"></i> Ver PDF
+            </button>
+          </div>
+        `;
+      } else if (f.file_type === 'audio') {
+        return `
+          <div class="p-2.5 rounded-xl bg-[#f5f5f7] border border-black/[0.06] space-y-1.5">
+            <div class="flex items-center justify-between gap-2">
+              <span class="px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-700 text-[10px] font-bold"><i class="fa-solid fa-headphones mr-1"></i>${f.label}</span>
+              <span class="text-[11px] text-[#6e6e73] truncate">${f.original_name}</span>
+            </div>
+            <audio controls preload="none" src="${fileUrl}" class="w-full h-8"></audio>
+          </div>
+        `;
+      } else {
+        return `
+          <div class="p-2.5 rounded-xl bg-[#f5f5f7] border border-black/[0.06] flex items-center justify-between gap-2">
+            <span class="text-xs font-medium truncate"><strong class="text-[#0071e3]">[${f.label}]</strong> ${f.original_name}</span>
+            <a href="${fileUrl}" target="_blank" class="text-[#0071e3] text-xs font-semibold hover:underline shrink-0">Descargar</a>
+          </div>
+        `;
+      }
+    }
+
     async function loadMaterials() {
       const res = await fetch('/intranet/api/admin/materials', { headers: authHeaders() });
       const mats = await res.json();
       document.getElementById('materialsList').innerHTML = mats.map(m => `
-        <div class="p-4 rounded-2xl bg-white/90 border border-black/[0.06] flex items-start justify-between gap-4">
-          <div class="space-y-1">
-            <span class="px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 text-[10px] font-semibold">[${m.category || 'Particulares'}] ${m.group_name || 'General'}</span>
-            <h4 class="text-sm font-bold text-[#1d1d1f]">${m.title}</h4>
-            ${m.description ? `<p class="text-xs text-[#6e6e73]">${m.description}</p>` : ''}
-            <div class="flex flex-wrap gap-3 pt-1 text-xs">
-              ${m.file_name ? `<a href="/intranet/api/files/${m.file_name}?token=${token}" target="_blank" class="text-[#0071e3] font-medium hover:underline"><i class="fa-solid fa-file-arrow-down mr-1"></i>${m.original_name}</a>` : ''}
-              ${m.external_url ? `<a href="${m.external_url}" target="_blank" class="text-emerald-600 font-medium hover:underline"><i class="fa-solid fa-link mr-1"></i>Enlace adjunto</a>` : ''}
+        <div class="p-4 sm:p-5 rounded-2xl bg-white/90 border border-black/[0.06] space-y-3">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <span class="px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 text-[10px] font-semibold">[${m.category || 'Particulares'}] ${m.group_name || 'General'}</span>
+              <h4 class="text-sm font-bold text-[#1d1d1f] mt-1">${m.title}</h4>
+              ${m.description ? `<p class="text-xs text-[#6e6e73] mt-0.5">${m.description}</p>` : ''}
             </div>
+            <button onclick="deleteMaterial(${m.id})" class="text-red-500 hover:text-red-700 text-xs p-1"><i class="fa-solid fa-trash"></i></button>
           </div>
-          <button onclick="deleteMaterial(${m.id})" class="text-red-500 hover:text-red-700 text-xs p-1"><i class="fa-solid fa-trash"></i></button>
+
+          ${m.external_url ? `
+            <div>
+              <a href="${m.external_url}" target="_blank"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-600/10 text-red-700 hover:bg-red-600/20 text-xs font-semibold transition">
+                <i class="fa-brands fa-youtube"></i> Ver video / enlace de referencia
+              </a>
+            </div>` : ''}
+
+          ${m.files && m.files.length ? `<div class="space-y-2 pt-1">${m.files.map(renderAttachmentAdmin).join('')}</div>` : ''}
         </div>
       `).join('') || '<p class="text-xs text-[#6e6e73] text-center py-8">Aún no hay materiales publicados.</p>';
     }
@@ -1103,15 +1248,24 @@
       e.preventDefault();
       const btn = document.getElementById('btnUploadMat');
       btn.disabled = true;
-      btn.innerText = 'Subiendo material...';
+      btn.innerText = 'Subiendo archivos...';
 
       const formData = new FormData();
       formData.append('group_id', document.getElementById('matGroupSelect').value);
       formData.append('title', document.getElementById('matTitle').value);
       formData.append('description', document.getElementById('matDesc').value);
       formData.append('external_url', document.getElementById('matUrl').value);
-      const fileInput = document.getElementById('matFile');
-      if (fileInput.files[0]) formData.append('file', fileInput.files[0]);
+
+      const labels = [];
+      document.querySelectorAll('.file-upload-row').forEach(row => {
+        const fileInput = row.querySelector('.file-input-item');
+        const labelSelect = row.querySelector('.file-label-select');
+        if (fileInput && fileInput.files[0]) {
+          formData.append('files', fileInput.files[0]);
+          labels.push(labelSelect.value);
+        }
+      });
+      formData.append('labels', JSON.stringify(labels));
 
       const res = await fetch('/intranet/api/admin/materials', {
         method: 'POST',
@@ -1119,9 +1273,12 @@
         body: formData
       });
       btn.disabled = false;
-      btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-1.5"></i> Publicar Material';
+      btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-1.5"></i> Publicar Material Completo';
       if (res.ok) {
         document.getElementById('materialForm').reset();
+        document.getElementById('fileRowsContainer').innerHTML = '';
+        addFileRow('General (Canción completa)');
+        addFileRow('General (Canción completa)');
         loadMaterials();
       } else {
         alert('Error al publicar el material');
@@ -1147,7 +1304,7 @@
     }
 
     async function deleteMaterial(id) {
-      if (!confirm('¿Eliminar este material?')) return;
+      if (!confirm('¿Eliminar este material y todos sus archivos adjuntos?')) return;
       await fetch(`/intranet/api/admin/materials/${id}`, { method: 'DELETE', headers: authHeaders() });
       loadMaterials();
     }
