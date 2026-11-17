@@ -1,0 +1,17 @@
+{
+  "name": "Intranet DC CORP",
+  "short_name": "DC CORP",
+  "description": "Portal Académico y Musical — DC CORP & Sol Music",
+  "start_url": "/intranet",
+  "display": "standalone",
+  "background_color": "#f5f5f7",
+  "theme_color": "#0071e3",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
