@@ -133,6 +133,10 @@
         class="stab-btn px-5 py-2.5 rounded-xl text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition flex items-center gap-2">
         <i class="fa-solid fa-calendar-check text-emerald-600"></i> Asistencia
       </button>
+      <button type="button" onclick="switchStudentTab('companeros')" id="stab-companeros"
+        class="stab-btn px-5 py-2.5 rounded-xl text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition flex items-center gap-2">
+        <i class="fa-solid fa-user-group text-amber-600"></i> Compañeros
+      </button>
       <button type="button" onclick="switchStudentTab('perfil')" id="stab-perfil"
         class="stab-btn px-5 py-2.5 rounded-xl text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition flex items-center gap-2">
         <i class="fa-solid fa-id-card text-indigo-600"></i> Mi Perfil y Seguridad
@@ -235,7 +239,24 @@
       </div>
     </section>
 
-    <!-- ==================== APARTADO 3: MI PERFIL Y SEGURIDAD ==================== -->
+    <!-- ==================== APARTADO 3: COMPAÑEROS DE GRUPO ==================== -->
+    <section id="view-companeros" class="hidden space-y-5">
+      <div class="glass-bento p-6 sm:p-8">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 mb-6 border-b border-black/[0.06]">
+          <div>
+            <h2 class="text-xl font-bold tracking-tight">Compañeros de Grupo</h2>
+            <p class="text-xs text-[#6e6e73] mt-0.5">
+              Integrantes inscritos en <strong id="classmatesGroupTitle" class="text-[#1d1d1f]">tu curso</strong>. Toca una tarjeta para ver su perfil completo.
+            </p>
+          </div>
+          <span id="classmatesCountBadge" class="px-3 py-1 rounded-full bg-amber-500/15 text-amber-800 text-xs font-semibold w-fit">0 integrantes</span>
+        </div>
+
+        <div id="classmatesGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      </div>
+    </section>
+
+    <!-- ==================== APARTADO 4: MI PERFIL Y SEGURIDAD ==================== -->
     <section id="view-perfil" class="hidden space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
@@ -323,6 +344,36 @@
 
   </main>
 
+  <!-- ==================== MODAL PERFIL DE COMPAÑERO ==================== -->
+  <div id="classmateProfileModal" class="hidden fixed inset-0 z-50 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4" onclick="if(event.target===this) closeClassmateModal()">
+    <div class="glass-bento p-6 sm:p-7 max-w-md w-full bg-white space-y-5 relative">
+      <button type="button" onclick="closeClassmateModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 text-[#1d1d1f] flex items-center justify-center">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="flex flex-col items-center text-center space-y-3 pt-2">
+        <img id="cmModalAvatarImg" src="" alt="Foto" class="w-24 h-24 rounded-3xl object-cover border border-black/10 shadow-sm hidden">
+        <div id="cmModalAvatarFallback" class="w-24 h-24 rounded-3xl bg-gradient-to-br from-[#0071e3] to-indigo-600 text-white flex items-center justify-center text-3xl font-bold shadow-sm">
+          A
+        </div>
+
+        <div class="space-y-1">
+          <div class="flex flex-wrap items-center justify-center gap-1.5">
+            <span id="cmModalBadge" class="px-2.5 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[11px] font-semibold">Grupo</span>
+            <span id="cmModalYouTag" class="hidden px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 text-[11px] font-bold">Tú</span>
+          </div>
+          <h3 id="cmModalName" class="text-lg font-bold text-[#1d1d1f]">Nombre del compañero</h3>
+          <p id="cmModalSchedule" class="text-xs text-[#0071e3] font-medium hidden"></p>
+        </div>
+      </div>
+
+      <div class="p-4 rounded-2xl bg-[#f5f5f7] border border-black/[0.05] space-y-1.5">
+        <span class="block text-[10px] font-bold uppercase tracking-wide text-[#6e6e73]">Sobre mí / Instrumentos</span>
+        <p id="cmModalBio" class="text-xs text-[#1d1d1f] leading-relaxed">Este estudiante aún no ha agregado una descripción personal.</p>
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== MODAL VISOR PDF ==================== -->
   <div id="pdfViewerModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6">
     <div class="bg-white rounded-3xl max-w-5xl w-full h-[88vh] flex flex-col overflow-hidden shadow-2xl">
@@ -357,7 +408,7 @@
     }
 
     function switchStudentTab(tabName) {
-      ['materiales', 'asistencia', 'perfil'].forEach(t => {
+      ['materiales', 'asistencia', 'companeros', 'perfil'].forEach(t => {
         document.getElementById(`view-${t}`).classList.toggle('hidden', t !== tabName);
         const btn = document.getElementById(`stab-${t}`);
         if (btn) {
@@ -368,8 +419,8 @@
         const mbtn = document.getElementById(`mstab-${t}`);
         if (mbtn) {
           mbtn.className = (t === tabName)
-            ? "mstab-btn flex flex-col items-center justify-center gap-1 text-[#0071e3] font-bold text-[11px] transition"
-            : "mstab-btn flex flex-col items-center justify-center gap-1 text-[#6e6e73] font-medium text-[11px] transition";
+            ? "mstab-btn flex flex-col items-center justify-center gap-1 text-[#0071e3] font-bold text-[10px] transition"
+            : "mstab-btn flex flex-col items-center justify-center gap-1 text-[#6e6e73] font-medium text-[10px] transition";
         }
       });
       if (window.innerWidth < 768) {
@@ -884,6 +935,93 @@
 
       renderMaterialsSection(dashboardData.materials || []);
       renderAttendancesList();
+      renderClassmatesSection();
+    }
+
+
+    function renderClassmatesSection() {
+      if (!dashboardData) return;
+      const list = dashboardData.classmates || [];
+      const myId = Number(dashboardData.student.id);
+      document.getElementById('classmatesGroupTitle').innerText = dashboardData.student.group_name || 'tu grupo';
+      document.getElementById('classmatesCountBadge').innerText = `${list.length} integrante(s)`;
+
+      const grid = document.getElementById('classmatesGrid');
+      if (!list.length) {
+        grid.innerHTML = '<p class="col-span-full text-xs text-[#6e6e73] text-center py-10">Aún no hay otros compañeros registrados en este grupo.</p>';
+        return;
+      }
+
+      grid.innerHTML = list.map(cm => {
+        const isMe = Number(cm.id) === myId;
+        const avatarHtml = cm.avatar_file
+          ? `<img src="/intranet/api/avatars/${cm.avatar_file}" alt="${cm.full_name}" class="w-14 h-14 rounded-2xl object-cover border border-black/10 shrink-0">`
+          : `<div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#0071e3]/85 to-indigo-600/85 text-white flex items-center justify-center text-lg font-bold shrink-0">${cm.full_name.charAt(0)}</div>`;
+
+        return `
+          <button type="button" onclick="openClassmateModal(${cm.id})"
+            class="text-left p-4 rounded-2xl bg-white/95 hover:bg-white border ${isMe ? 'border-[#0071e3]/35 ring-1 ring-[#0071e3]/15' : 'border-black/[0.06]'} shadow-sm hover:shadow transition flex items-start gap-3.5 active:scale-[0.99]">
+            ${avatarHtml}
+            <div class="min-w-0 flex-1 space-y-1">
+              <div class="flex items-center gap-1.5">
+                <p class="text-sm font-bold text-[#1d1d1f] truncate">${cm.full_name}</p>
+                ${isMe ? '<span class="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 text-[9px] font-bold shrink-0">Tú</span>' : ''}
+              </div>
+              ${cm.schedule ? `<p class="text-[11px] text-[#0071e3] font-medium truncate"><i class="fa-regular fa-clock mr-1"></i>${cm.schedule}</p>` : ''}
+              <p class="text-xs text-[#6e6e73] line-clamp-2 leading-relaxed">
+                ${cm.bio ? cm.bio : '<span class="italic opacity-75">Sin descripción personal</span>'}
+              </p>
+              <span class="inline-block pt-1 text-[11px] font-semibold text-[#0071e3]">Ver perfil &rarr;</span>
+            </div>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function openClassmateModal(studentId) {
+      if (!dashboardData) return;
+      const cm = (dashboardData.classmates || []).find(c => Number(c.id) === Number(studentId));
+      if (!cm) return;
+
+      const isMe = Number(cm.id) === Number(dashboardData.student.id);
+      document.getElementById('cmModalName').innerText = cm.full_name;
+      document.getElementById('cmModalBadge').innerText = dashboardData.student.group_name || 'Grupo';
+      document.getElementById('cmModalYouTag').classList.toggle('hidden', !isMe);
+
+      const schEl = document.getElementById('cmModalSchedule');
+      if (cm.schedule) {
+        schEl.innerHTML = `<i class="fa-regular fa-clock mr-1"></i>Horario: ${cm.schedule}`;
+        schEl.classList.remove('hidden');
+      } else {
+        schEl.classList.add('hidden');
+      }
+
+      const bioEl = document.getElementById('cmModalBio');
+      if (cm.bio && cm.bio.trim()) {
+        bioEl.innerText = cm.bio;
+        bioEl.className = 'text-xs text-[#1d1d1f] leading-relaxed';
+      } else {
+        bioEl.innerText = 'Este estudiante aún no ha agregado una descripción personal.';
+        bioEl.className = 'text-xs text-[#6e6e73] italic leading-relaxed';
+      }
+
+      const imgEl = document.getElementById('cmModalAvatarImg');
+      const fbEl = document.getElementById('cmModalAvatarFallback');
+      if (cm.avatar_file) {
+        imgEl.src = `/intranet/api/avatars/${cm.avatar_file}`;
+        imgEl.classList.remove('hidden');
+        fbEl.classList.add('hidden');
+      } else {
+        imgEl.classList.add('hidden');
+        fbEl.innerText = cm.full_name.charAt(0);
+        fbEl.classList.remove('hidden');
+      }
+
+      document.getElementById('classmateProfileModal').classList.remove('hidden');
+    }
+
+    function closeClassmateModal() {
+      document.getElementById('classmateProfileModal').classList.add('hidden');
     }
 
     // ==================== CONEXIÓN EN TIEMPO REAL (SSE) ====================
@@ -1039,19 +1177,24 @@
   </script>
   <!-- Barra de Navegación Inferior Tipo App Nativa (Solo Móvil Android / iOS) -->
   <nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bottom-dock">
-    <div class="grid grid-cols-3 h-16 max-w-md mx-auto">
+    <div class="grid grid-cols-4 h-16 max-w-md mx-auto">
       <button type="button" onclick="switchStudentTab('materiales')" id="mstab-materiales"
-        class="mstab-btn flex flex-col items-center justify-center gap-1 text-[#0071e3] font-bold text-[11px] transition">
+        class="mstab-btn flex flex-col items-center justify-center gap-1 text-[#0071e3] font-bold text-[10px] transition">
         <i class="fa-solid fa-book-open text-base"></i>
         <span>Estudio</span>
       </button>
       <button type="button" onclick="switchStudentTab('asistencia')" id="mstab-asistencia"
-        class="mstab-btn flex flex-col items-center justify-center gap-1 text-[#6e6e73] font-medium text-[11px] transition">
+        class="mstab-btn flex flex-col items-center justify-center gap-1 text-[#6e6e73] font-medium text-[10px] transition">
         <i class="fa-solid fa-calendar-check text-base"></i>
         <span>Asistencia</span>
       </button>
+      <button type="button" onclick="switchStudentTab('companeros')" id="mstab-companeros"
+        class="mstab-btn flex flex-col items-center justify-center gap-1 text-[#6e6e73] font-medium text-[10px] transition">
+        <i class="fa-solid fa-user-group text-base"></i>
+        <span>Grupo</span>
+      </button>
       <button type="button" onclick="switchStudentTab('perfil')" id="mstab-perfil"
-        class="mstab-btn flex flex-col items-center justify-center gap-1 text-[#6e6e73] font-medium text-[11px] transition">
+        class="mstab-btn flex flex-col items-center justify-center gap-1 text-[#6e6e73] font-medium text-[10px] transition">
         <i class="fa-solid fa-user-circle text-base"></i>
         <span>Mi Perfil</span>
       </button>
