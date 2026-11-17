@@ -17,96 +17,237 @@
       color: #1d1d1f;
     }
     .apple-nav {
-      background: rgba(255, 255, 255, 0.75);
+      background: rgba(255, 255, 255, 0.78);
       backdrop-filter: saturate(180%) blur(20px);
       border-bottom: 1px solid rgba(0, 0, 0, 0.07);
     }
     .glass-bento {
-      background: rgba(255, 255, 255, 0.78);
+      background: rgba(255, 255, 255, 0.82);
       backdrop-filter: saturate(180%) blur(24px);
-      border: 1px solid rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.92);
       box-shadow: 0 10px 35px rgba(0, 0, 0, 0.045);
       border-radius: 24px;
     }
   </style>
 </head>
-<body class="min-h-screen pb-16">
+<body class="min-h-screen pb-20">
 
+  <!-- Barra de Navegación Superior -->
   <header class="sticky top-0 z-40 apple-nav">
-    <div class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
+    <div class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between gap-3">
       <div class="flex items-center gap-3">
-        <img src="/logo.svg" alt="DC CORP" class="h-10">
-        <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 text-[11px] font-semibold">Estudiante</span>
+        <img src="/logo.svg" alt="DC CORP" class="h-9">
+        <span id="headerModBadge" class="hidden sm:inline-block px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 text-[11px] font-semibold">Estudiante</span>
       </div>
-      <button onclick="logout()" class="px-4 py-1.5 rounded-full bg-black/5 hover:bg-red-500/10 hover:text-red-600 text-xs font-medium transition">
-        Cerrar sesión
-      </button>
+
+      <div class="flex items-center gap-3">
+        <button type="button" onclick="switchStudentTab('perfil')" class="flex items-center gap-2.5 px-2.5 py-1 rounded-full hover:bg-black/5 transition" title="Ir a Mi Perfil">
+          <img id="navAvatarImg" src="" alt="Foto" class="w-8 h-8 rounded-full object-cover border border-black/10 hidden">
+          <div id="navAvatarFallback" class="w-8 h-8 rounded-full bg-[#0071e3]/15 text-[#0071e3] flex items-center justify-center text-xs font-bold">
+            <i class="fa-solid fa-user"></i>
+          </div>
+          <span id="navStudentShortName" class="hidden md:inline text-xs font-semibold text-[#1d1d1f]">Mi Cuenta</span>
+        </button>
+
+        <button onclick="logout()" class="px-3.5 py-1.5 rounded-full bg-black/5 hover:bg-red-500/10 hover:text-red-600 text-xs font-medium transition">
+          Salir
+        </button>
+      </div>
     </div>
   </header>
 
-  <main class="max-w-6xl mx-auto px-5 pt-8 space-y-8">
+  <main class="max-w-6xl mx-auto px-5 pt-7 space-y-7">
 
-    <!-- Cabecera Bienvenida -->
-    <div class="glass-bento p-7 sm:p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
-      <div class="space-y-1.5">
-        <div class="flex flex-wrap items-center gap-2">
-          <span id="categoryBadge" class="inline-block px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-700 text-xs font-semibold">Modalidad</span>
-          <span id="groupBadge" class="inline-block px-3 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-xs font-semibold">Cargando curso...</span>
+    <!-- Tarjeta Compacta de Bienvenida -->
+    <div class="glass-bento p-6 sm:p-7 flex flex-col md:flex-row md:items-center justify-between gap-5">
+      <div class="flex items-center gap-4">
+        <div class="relative shrink-0">
+          <img id="heroAvatarImg" src="" alt="Perfil" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover border border-black/10 shadow-sm hidden">
+          <div id="heroAvatarFallback" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-[#0071e3] to-indigo-600 text-white flex items-center justify-center text-2xl font-bold shadow-sm">
+            <i class="fa-solid fa-user-graduate"></i>
+          </div>
         </div>
-        <h1 class="text-2xl sm:text-3xl font-bold tracking-tight" id="studentName">Bienvenido</h1>
-        <div class="flex flex-wrap items-center gap-4 text-xs text-[#6e6e73]">
-          <span id="studentCode"></span>
-          <span id="studentSchedule" class="text-[#0071e3] font-semibold hidden"></span>
+        <div class="space-y-1">
+          <div class="flex flex-wrap items-center gap-2">
+            <span id="categoryBadge" class="inline-block px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 text-[11px] font-semibold">Modalidad</span>
+            <span id="groupBadge" class="inline-block px-2.5 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[11px] font-semibold">Cargando...</span>
+          </div>
+          <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-[#1d1d1f]" id="studentName">Bienvenido</h1>
+          <p id="studentBioPreview" class="text-xs text-[#6e6e73] max-w-xl line-clamp-2 hidden"></p>
+          <div class="flex flex-wrap items-center gap-3 text-[11px] text-[#6e6e73]">
+            <span id="studentCode"></span>
+            <span id="studentSchedule" class="text-[#0071e3] font-semibold hidden"></span>
+          </div>
         </div>
       </div>
 
-      <div class="flex flex-wrap gap-3 text-center">
-        <div class="px-4 py-3 rounded-2xl bg-white/90 border border-black/[0.06]">
-          <span class="block text-xl font-bold text-[#0071e3]" id="statBlock">0/8</span>
-          <span class="text-[11px] text-[#6e6e73]">Bloque este mes</span>
+      <!-- Indicadores Rápidos -->
+      <div class="flex flex-wrap gap-2.5 text-center shrink-0">
+        <div class="px-4 py-2.5 rounded-2xl bg-white/95 border border-black/[0.06]">
+          <span class="block text-lg font-bold text-[#0071e3]" id="statBlock">0/8</span>
+          <span class="text-[10px] text-[#6e6e73]">Bloque mes</span>
         </div>
-        <div class="px-4 py-3 rounded-2xl bg-white/90 border border-black/[0.06]">
-          <span class="block text-xl font-bold text-amber-600" id="statRef">0</span>
-          <span class="text-[11px] text-[#6e6e73]">Reforzamientos</span>
+        <div class="px-4 py-2.5 rounded-2xl bg-white/95 border border-black/[0.06]">
+          <span class="block text-lg font-bold text-purple-600" id="statRef">0</span>
+          <span class="text-[10px] text-[#6e6e73]">Reforzamientos</span>
         </div>
-        <div class="px-4 py-3 rounded-2xl bg-white/90 border border-black/[0.06]">
-          <span class="block text-xl font-bold text-emerald-600" id="statPct">100%</span>
-          <span class="text-[11px] text-[#6e6e73]">Puntualidad</span>
+        <div class="px-4 py-2.5 rounded-2xl bg-white/95 border border-black/[0.06]">
+          <span class="block text-lg font-bold text-emerald-600" id="statPct">100%</span>
+          <span class="text-[10px] text-[#6e6e73]">Asistencia</span>
         </div>
       </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-      
-      <!-- Columna Materiales de Estudio con Visor PDF, Reproductor MP3 y YouTube -->
-      <div class="lg:col-span-7 glass-bento p-6 sm:p-8">
-        <div class="flex items-center justify-between mb-5">
-          <div>
-            <h2 class="text-lg font-bold">Materiales y Canciones de Estudio</h2>
-            <p class="text-xs text-[#6e6e73]">Visualiza partituras/guías en PDF, escucha pistas por instrumento y mira el video guía</p>
-          </div>
-          <i class="fa-solid fa-music text-[#0071e3] text-lg"></i>
-        </div>
-        <div id="studentMaterials" class="space-y-4"></div>
-      </div>
+    <!-- Menú de Navegación Independiente por Apartados -->
+    <nav class="flex flex-wrap gap-1.5 p-1.5 rounded-2xl bg-black/[0.05] w-fit">
+      <button type="button" onclick="switchStudentTab('materiales')" id="stab-materiales"
+        class="stab-btn px-5 py-2.5 rounded-xl bg-white text-[#1d1d1f] shadow-sm text-xs font-semibold transition flex items-center gap-2">
+        <i class="fa-solid fa-book-open text-[#0071e3]"></i> Material de Estudio
+      </button>
+      <button type="button" onclick="switchStudentTab('asistencia')" id="stab-asistencia"
+        class="stab-btn px-5 py-2.5 rounded-xl text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition flex items-center gap-2">
+        <i class="fa-solid fa-calendar-check text-emerald-600"></i> Asistencia
+      </button>
+      <button type="button" onclick="switchStudentTab('perfil')" id="stab-perfil"
+        class="stab-btn px-5 py-2.5 rounded-xl text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition flex items-center gap-2">
+        <i class="fa-solid fa-id-card text-indigo-600"></i> Mi Perfil y Seguridad
+      </button>
+    </nav>
 
-      <!-- Columna Reporte de Asistencias -->
-      <div class="lg:col-span-5 glass-bento p-6 sm:p-8 h-fit">
-        <div class="flex items-center justify-between mb-5">
+    <!-- ==================== APARTADO 1: MATERIAL DE ESTUDIO ==================== -->
+    <section id="view-materiales" class="space-y-5">
+      <div class="glass-bento p-6 sm:p-8">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-5 mb-6 border-b border-black/[0.06]">
           <div>
-            <h2 class="text-lg font-bold">Historial de Asistencia</h2>
-            <p class="text-xs text-[#6e6e73]">Clases regulares, recuperaciones y reforzamientos</p>
+            <h2 class="text-xl font-bold tracking-tight">Material de Estudio y Canciones</h2>
+            <p class="text-xs text-[#6e6e73] mt-0.5">
+              Abre partituras en PDF, reproduce las pistas por instrumento y deja tus apuntes o consultas directas al profesor en cada tema.
+            </p>
           </div>
-          <i class="fa-solid fa-calendar-check text-emerald-600 text-lg"></i>
+          <span id="materialsCountBadge" class="px-3 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-xs font-semibold w-fit">0 temas</span>
         </div>
-        <div id="studentAttendances" class="space-y-2.5 max-h-[560px] overflow-y-auto pr-1"></div>
-      </div>
 
-    </div>
+        <div id="studentMaterials" class="space-y-6"></div>
+      </div>
+    </section>
+
+    <!-- ==================== APARTADO 2: ASISTENCIA ==================== -->
+    <section id="view-asistencia" class="hidden space-y-5">
+      <div class="glass-bento p-6 sm:p-8">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 mb-6 border-b border-black/[0.06]">
+          <div>
+            <h2 class="text-xl font-bold tracking-tight">Registro de Asistencia</h2>
+            <p class="text-xs text-[#6e6e73] mt-0.5">
+              Detalle de tus sesiones regulares, recuperaciones, reforzamientos y el docente que registró cada clase.
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <select id="attFilterSelect" onchange="renderAttendancesList()" class="bg-white border border-black/10 rounded-xl px-3.5 py-2 text-xs font-semibold">
+              <option value="Todos">Todas las sesiones</option>
+              <option value="Regular">Clases regulares</option>
+              <option value="Recuperacion">Recuperaciones</option>
+              <option value="Reforzamiento">Reforzamientos extra</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="studentAttendances" class="grid grid-cols-1 md:grid-cols-2 gap-3.5"></div>
+      </div>
+    </section>
+
+    <!-- ==================== APARTADO 3: MI PERFIL Y SEGURIDAD ==================== -->
+    <section id="view-perfil" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Tarjeta Foto y Descripción Personal -->
+        <div class="lg:col-span-7 glass-bento p-6 sm:p-8 space-y-6">
+          <div>
+            <h2 class="text-xl font-bold tracking-tight">Mi Perfil de Estudiante</h2>
+            <p class="text-xs text-[#6e6e73] mt-0.5">Personaliza tu fotografía y una breve descripción sobre tus instrumentos, cursos o metas.</p>
+          </div>
+
+          <!-- Subida de Foto -->
+          <div class="flex flex-col sm:flex-row sm:items-center gap-5 p-4 rounded-2xl bg-[#f5f5f7] border border-black/[0.05]">
+            <div class="shrink-0">
+              <img id="profileAvatarPreview" src="" alt="Avatar" class="w-24 h-24 rounded-2xl object-cover border border-black/10 bg-white hidden">
+              <div id="profileAvatarPlaceholder" class="w-24 h-24 rounded-2xl bg-white border border-black/10 text-[#6e6e73] flex items-center justify-center text-3xl">
+                <i class="fa-solid fa-camera"></i>
+              </div>
+            </div>
+            <div class="space-y-2.5 flex-1">
+              <label class="block text-xs font-bold text-[#1d1d1f]">Fotografía de perfil</label>
+              <p class="text-[11px] text-[#6e6e73]">Formatos permitidos: JPG, PNG o WEBP (máximo 8 MB).</p>
+              <div class="flex flex-wrap items-center gap-2">
+                <input type="file" id="avatarFileInput" accept="image/jpeg,image/png,image/webp,image/gif"
+                  class="text-xs text-[#6e6e73] file:mr-3 file:py-1.5 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[#0071e3]/10 file:text-[#0071e3] hover:file:bg-[#0071e3]/20">
+                <button type="button" id="btnSaveAvatar" onclick="uploadStudentAvatar()"
+                  class="px-4 py-1.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold transition">
+                  Subir foto
+                </button>
+              </div>
+              <span id="avatarFeedback" class="block text-[11px] font-semibold text-emerald-600"></span>
+            </div>
+          </div>
+
+          <!-- Formulario Descripción Personal -->
+          <form id="bioForm" class="space-y-3">
+            <div>
+              <label class="block text-xs font-bold text-[#1d1d1f] mb-1.5">Descripción personal / Sobre mí</label>
+              <textarea id="bioInput" rows="4" maxlength="400"
+                placeholder="Ej: Estudiante de guitarra eléctrica y acústica en Sol Music. Practicando escalas pentatónicas y repertorio de rock en español..."
+                class="w-full bg-white border border-black/10 rounded-2xl px-4 py-3 text-xs leading-relaxed focus:outline-none focus:border-[#0071e3] resize-none"></textarea>
+              <div class="flex justify-between text-[10px] text-[#6e6e73] mt-1">
+                <span>Visible en tu ficha académica</span>
+                <span id="bioCharCount">0/400</span>
+              </div>
+            </div>
+            <div class="flex items-center justify-between pt-1">
+              <span id="bioFeedback" class="text-xs font-semibold text-emerald-600"></span>
+              <button type="submit" class="px-5 py-2.5 rounded-full bg-[#1d1d1f] hover:bg-black text-white text-xs font-semibold transition">
+                Guardar descripción
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Tarjeta Cambio de Contraseña -->
+        <div class="lg:col-span-5 glass-bento p-6 sm:p-8 h-fit space-y-5">
+          <div>
+            <h2 class="text-xl font-bold tracking-tight">Seguridad de Cuenta</h2>
+            <p class="text-xs text-[#6e6e73] mt-0.5">Actualiza tu contraseña de acceso a la intranet.</p>
+          </div>
+
+          <form id="studentPassForm" class="space-y-3.5">
+            <div>
+              <label class="block text-xs font-medium text-[#6e6e73] mb-1">Contraseña actual *</label>
+              <input type="password" id="curPassInput" required placeholder="••••••••"
+                class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-[#0071e3]">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-[#6e6e73] mb-1">Nueva contraseña (mín. 6 caracteres) *</label>
+              <input type="password" id="newPassInput" required minlength="6" placeholder="••••••••"
+                class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-[#0071e3]">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-[#6e6e73] mb-1">Confirmar nueva contraseña *</label>
+              <input type="password" id="confirmPassInput" required minlength="6" placeholder="••••••••"
+                class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs focus:outline-none focus:border-[#0071e3]">
+            </div>
+
+            <div id="passFeedbackBox" class="hidden p-3 rounded-xl text-xs font-medium"></div>
+
+            <button type="submit" class="w-full py-3 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold transition shadow-sm">
+              <i class="fa-solid fa-key mr-1.5"></i> Actualizar Contraseña
+            </button>
+          </form>
+        </div>
+
+      </div>
+    </section>
 
   </main>
 
-  <!-- ==================== MODAL VISOR PDF PARA EL ESTUDIANTE ==================== -->
+  <!-- ==================== MODAL VISOR PDF ==================== -->
   <div id="pdfViewerModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6">
     <div class="bg-white rounded-3xl max-w-5xl w-full h-[88vh] flex flex-col overflow-hidden shadow-2xl">
       <div class="px-5 py-3.5 border-b border-black/[0.08] flex items-center justify-between bg-[#f5f5f7]">
@@ -131,9 +272,24 @@
     const token = localStorage.getItem('dc_token');
     if (!token) window.location.href = '/intranet';
 
+    const authHeaders = () => ({ 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' });
+    let dashboardData = null;
+
     function logout() {
       localStorage.clear();
       window.location.href = '/intranet';
+    }
+
+    function switchStudentTab(tabName) {
+      ['materiales', 'asistencia', 'perfil'].forEach(t => {
+        document.getElementById(`view-${t}`).classList.toggle('hidden', t !== tabName);
+        const btn = document.getElementById(`stab-${t}`);
+        if (t === tabName) {
+          btn.className = "stab-btn px-5 py-2.5 rounded-xl bg-white text-[#1d1d1f] shadow-sm text-xs font-semibold transition flex items-center gap-2";
+        } else {
+          btn.className = "stab-btn px-5 py-2.5 rounded-xl text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition flex items-center gap-2";
+        }
+      });
     }
 
     function openPdfModal(fileUrl, title) {
@@ -152,6 +308,25 @@
       if (!url) return null;
       const match = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
       return match ? `https://www.youtube.com/embed/${match[1]}` : null;
+    }
+
+    function updateAvatarDisplays(avatarFile) {
+      const hasAvatar = Boolean(avatarFile);
+      const url = hasAvatar ? `/intranet/api/avatars/${avatarFile}?t=${Date.now()}` : '';
+
+      ['navAvatarImg', 'heroAvatarImg', 'profileAvatarPreview'].forEach(id => {
+        const img = document.getElementById(id);
+        if (hasAvatar) {
+          img.src = url;
+          img.classList.remove('hidden');
+        } else {
+          img.classList.add('hidden');
+        }
+      });
+
+      ['navAvatarFallback', 'heroAvatarFallback', 'profileAvatarPlaceholder'].forEach(id => {
+        document.getElementById(id).classList.toggle('hidden', hasAvatar);
+      });
     }
 
     function renderStudentFile(f) {
@@ -201,55 +376,59 @@
       }
     }
 
-    async function loadStudentPortal() {
-      const res = await fetch('/intranet/api/student/dashboard', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.status === 401) return logout();
-      const data = await res.json();
+    function renderMaterialsSection(materials) {
+      document.getElementById('materialsCountBadge').innerText = `${materials.length} tema(s)`;
+      const container = document.getElementById('studentMaterials');
 
-      document.getElementById('studentName').innerText = `Hola, ${data.student.full_name}`;
-      document.getElementById('studentCode').innerText = `Usuario: ${data.student.code}`;
-      document.getElementById('groupBadge').innerText = data.student.group_name || 'Sin grupo asignado';
-
-      if (data.student.schedule) {
-        const schEl = document.getElementById('studentSchedule');
-        schEl.innerHTML = `<i class="fa-regular fa-clock mr-1"></i>Horario: ${data.student.schedule}`;
-        schEl.classList.remove('hidden');
+      if (!materials.length) {
+        container.innerHTML = '<p class="text-xs text-[#6e6e73] text-center py-10">Tu docente aún no ha subido materiales para este grupo.</p>';
+        return;
       }
 
-      const catBadge = document.getElementById('categoryBadge');
-      const cat = data.student.category || 'Particulares';
-      catBadge.innerText = cat;
-      if (cat === 'Sol Music') {
-        catBadge.className = 'inline-block px-3 py-1 rounded-full bg-amber-500/15 text-amber-800 text-xs font-semibold';
-      }
-
-      const currentMonth = new Date().toISOString().slice(0, 7);
-      const quota = data.student.monthly_quota || 8;
-      const regularAtts = data.attendances.filter(a => (a.session_type === 'Regular' || a.session_type === 'Recuperacion' || !a.session_type));
-      const usedMonth = regularAtts.filter(a =>
-        a.date.startsWith(currentMonth) && ['Presente', 'Tardanza', 'Justificado'].includes(a.status)
-      ).length;
-      const refCount = data.attendances.filter(a => a.session_type === 'Reforzamiento').length;
-
-      const totalReg = regularAtts.length;
-      const validReg = regularAtts.filter(a => ['Presente', 'Tardanza', 'Justificado'].includes(a.status)).length;
-      const pct = totalReg > 0 ? Math.round((validReg / totalReg) * 100) : 100;
-
-      document.getElementById('statBlock').innerText = `${usedMonth}/${quota}`;
-      document.getElementById('statRef').innerText = refCount;
-      document.getElementById('statPct').innerText = `${pct}%`;
-
-      document.getElementById('studentMaterials').innerHTML = data.materials.map(m => {
+      container.innerHTML = materials.map(m => {
         const ytEmbed = getYouTubeEmbedUrl(m.external_url);
+        const notes = m.notes || [];
+
+        const notesHtml = notes.map(n => {
+          const isTeacherReply = n.sender_role === 'admin' || n.sender_role === 'teacher';
+          const isPersonal = n.note_type === 'personal';
+
+          if (isTeacherReply) {
+            return `
+              <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs space-y-1">
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-emerald-800"><i class="fa-solid fa-chalkboard-user mr-1"></i>Respuesta de ${n.sender_name}</span>
+                  <span class="text-[10px] text-emerald-700">${new Date(n.created_at).toLocaleDateString('es-PE')}</span>
+                </div>
+                <p class="text-[#1d1d1f] leading-relaxed">${n.content}</p>
+              </div>
+            `;
+          }
+
+          return `
+            <div class="p-3 rounded-xl ${isPersonal ? 'bg-amber-500/10 border border-amber-500/20' : 'bg-[#0071e3]/[0.07] border border-[#0071e3]/20'} text-xs flex items-start justify-between gap-2">
+              <div class="space-y-1">
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isPersonal ? 'bg-amber-500/20 text-amber-900' : 'bg-[#0071e3]/15 text-[#0071e3]'}">
+                  ${isPersonal ? 'Apunte personal' : 'Consulta enviada al profesor'}
+                </span>
+                <p class="text-[#1d1d1f] leading-relaxed">${n.content}</p>
+              </div>
+              <button type="button" onclick="deleteStudentNote(${n.id})" class="text-[#6e6e73] hover:text-red-600 text-xs p-1" title="Eliminar">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          `;
+        }).join('');
+
         return `
-          <div class="p-5 rounded-2xl bg-white/95 border border-black/[0.06] space-y-3">
+          <div class="p-5 sm:p-6 rounded-2xl bg-white/95 border border-black/[0.06] space-y-4">
             <div class="flex items-start justify-between gap-2">
-              <h3 class="text-base font-bold text-[#1d1d1f]">${m.title}</h3>
+              <div>
+                <h3 class="text-base sm:text-lg font-bold text-[#1d1d1f]">${m.title}</h3>
+                ${m.description ? `<p class="text-xs text-[#6e6e73] mt-1 leading-relaxed">${m.description}</p>` : ''}
+              </div>
               <span class="text-[10px] text-[#6e6e73] shrink-0">${new Date(m.created_at).toLocaleDateString('es-PE')}</span>
             </div>
-            ${m.description ? `<p class="text-xs text-[#6e6e73] leading-relaxed">${m.description}</p>` : ''}
 
             ${ytEmbed ? `
               <div class="aspect-video w-full rounded-2xl overflow-hidden bg-black">
@@ -263,12 +442,48 @@
               </div>` : '')}
 
             ${m.files && m.files.length ? `
-              <div class="space-y-2 pt-1">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
                 ${m.files.map(renderStudentFile).join('')}
               </div>` : ''}
+
+            <!-- Bloques de Apuntes y Consultas Directas con el Profesor -->
+            <div class="pt-3 border-t border-black/[0.06] space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-[#1d1d1f]"><i class="fa-regular fa-comments mr-1.5 text-[#0071e3]"></i>Mis notas y consultas al docente</span>
+              </div>
+
+              ${notesHtml ? `<div class="space-y-2">${notesHtml}</div>` : ''}
+
+              <div class="flex flex-col sm:flex-row gap-2">
+                <select id="noteType-${m.id}" class="bg-[#f5f5f7] border border-black/10 rounded-xl px-3 py-2 text-xs font-semibold sm:w-44">
+                  <option value="consulta">Consulta al profesor</option>
+                  <option value="personal">Nota personal (privada)</option>
+                </select>
+                <input type="text" id="noteInput-${m.id}" placeholder="Escribe tu duda sobre este tema o un apunte de práctica..."
+                  class="flex-1 bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:border-[#0071e3]">
+                <button type="button" onclick="sendMaterialNote(${m.id})"
+                  class="px-4 py-2 rounded-xl bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold shrink-0 transition">
+                  Enviar
+                </button>
+              </div>
+            </div>
           </div>
         `;
-      }).join('') || '<p class="text-xs text-[#6e6e73] text-center py-8">El profesor aún no ha subido materiales para tu grupo.</p>';
+      }).join('');
+    }
+
+    function renderAttendancesList() {
+      if (!dashboardData) return;
+      const filter = document.getElementById('attFilterSelect').value;
+      let list = dashboardData.attendances || [];
+
+      if (filter === 'Regular') {
+        list = list.filter(a => (a.session_type === 'Regular' || !a.session_type));
+      } else if (filter === 'Recuperacion') {
+        list = list.filter(a => a.session_type === 'Recuperacion');
+      } else if (filter === 'Reforzamiento') {
+        list = list.filter(a => a.session_type === 'Reforzamiento');
+      }
 
       const badgeStyles = {
         'Presente': 'bg-emerald-500/10 text-emerald-700',
@@ -279,17 +494,23 @@
         'Reforzamiento': 'bg-purple-500/10 text-purple-700'
       };
 
-      document.getElementById('studentAttendances').innerHTML = data.attendances.map(a => {
+      const container = document.getElementById('studentAttendances');
+      if (!list.length) {
+        container.innerHTML = '<p class="col-span-full text-xs text-[#6e6e73] text-center py-10">No hay registros de asistencia en esta categoría.</p>';
+        return;
+      }
+
+      container.innerHTML = list.map(a => {
         const isRef = a.session_type === 'Reforzamiento';
         const isRec = a.session_type === 'Recuperacion';
         const label = isRec ? 'Recuperación' : a.status;
         const styleKey = isRec ? 'Recuperacion' : a.status;
 
         return `
-          <div class="p-3.5 rounded-2xl bg-white/90 border border-black/[0.06] flex items-start justify-between gap-3">
+          <div class="p-4 rounded-2xl bg-white/95 border border-black/[0.06] flex items-start justify-between gap-3">
             <div class="space-y-1">
               <div class="flex flex-wrap items-center gap-2">
-                <p class="text-xs font-semibold text-[#1d1d1f]">${a.date}</p>
+                <p class="text-xs font-bold text-[#1d1d1f]">${a.date}</p>
                 ${isRef ? `<span class="px-2 py-0.5 rounded-full bg-purple-500/10 text-purple-700 text-[10px] font-semibold">Reforzamiento${a.arrival_time ? ` • ${a.arrival_time}` : ''}</span>` : ''}
               </div>
               ${a.recorded_by_name ? `<p class="text-[11px] text-[#0071e3] font-medium"><i class="fa-solid fa-chalkboard-user mr-1"></i>Marcado por: ${a.recorded_by_name}</p>` : ''}
@@ -298,7 +519,179 @@
             <span class="px-3 py-1 rounded-full text-[11px] font-semibold shrink-0 ${badgeStyles[styleKey] || 'bg-black/5'}">${label}</span>
           </div>
         `;
-      }).join('') || '<p class="text-xs text-[#6e6e73] text-center py-8">Aún no tienes asistencias registradas.</p>';
+      }).join('');
+    }
+
+    async function loadStudentPortal() {
+      const res = await fetch('/intranet/api/student/dashboard', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.status === 401) return logout();
+      dashboardData = await res.json();
+
+      const stu = dashboardData.student;
+      document.getElementById('studentName').innerText = stu.full_name;
+      document.getElementById('navStudentShortName').innerText = stu.full_name.split(' ')[0];
+      document.getElementById('studentCode').innerText = `Usuario: ${stu.code}`;
+      document.getElementById('groupBadge').innerText = stu.group_name || 'Sin grupo asignado';
+
+      updateAvatarDisplays(stu.avatar_file);
+
+      const bioInput = document.getElementById('bioInput');
+      bioInput.value = stu.bio || '';
+      document.getElementById('bioCharCount').innerText = `${(stu.bio || '').length}/400`;
+      const bioPreview = document.getElementById('studentBioPreview');
+      if (stu.bio) {
+        bioPreview.innerText = stu.bio;
+        bioPreview.classList.remove('hidden');
+      } else {
+        bioPreview.classList.add('hidden');
+      }
+
+      if (stu.schedule) {
+        const schEl = document.getElementById('studentSchedule');
+        schEl.innerHTML = `<i class="fa-regular fa-clock mr-1"></i>Horario: ${stu.schedule}`;
+        schEl.classList.remove('hidden');
+      }
+
+      const catBadge = document.getElementById('categoryBadge');
+      const cat = stu.category || 'Particulares';
+      catBadge.innerText = cat;
+      if (cat === 'Sol Music') {
+        catBadge.className = 'inline-block px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-800 text-[11px] font-semibold';
+      }
+
+      const currentMonth = new Date().toISOString().slice(0, 7);
+      const quota = stu.monthly_quota || 8;
+      const regularAtts = dashboardData.attendances.filter(a => (a.session_type === 'Regular' || a.session_type === 'Recuperacion' || !a.session_type));
+      const usedMonth = regularAtts.filter(a =>
+        a.date.startsWith(currentMonth) && ['Presente', 'Tardanza', 'Justificado'].includes(a.status)
+      ).length;
+      const refCount = dashboardData.attendances.filter(a => a.session_type === 'Reforzamiento').length;
+
+      const totalReg = regularAtts.length;
+      const validReg = regularAtts.filter(a => ['Presente', 'Tardanza', 'Justificado'].includes(a.status)).length;
+      const pct = totalReg > 0 ? Math.round((validReg / totalReg) * 100) : 100;
+
+      document.getElementById('statBlock').innerText = `${usedMonth}/${quota}`;
+      document.getElementById('statRef').innerText = refCount;
+      document.getElementById('statPct').innerText = `${pct}%`;
+
+      renderMaterialsSection(dashboardData.materials || []);
+      renderAttendancesList();
+    }
+
+    // ==================== ACCIONES DE PERFIL, SEGURIDAD Y CONSULTAS ====================
+    document.getElementById('bioInput').addEventListener('input', (e) => {
+      document.getElementById('bioCharCount').innerText = `${e.target.value.length}/400`;
+    });
+
+    document.getElementById('bioForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const bio = document.getElementById('bioInput').value;
+      const res = await fetch('/intranet/api/student/profile', {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ bio })
+      });
+      if (res.ok) {
+        const fb = document.getElementById('bioFeedback');
+        fb.innerText = 'Descripción actualizada';
+        loadStudentPortal();
+        setTimeout(() => fb.innerText = '', 3000);
+      }
+    });
+
+    async function uploadStudentAvatar() {
+      const input = document.getElementById('avatarFileInput');
+      if (!input.files || !input.files[0]) {
+        alert('Selecciona primero una imagen');
+        return;
+      }
+      const btn = document.getElementById('btnSaveAvatar');
+      btn.disabled = true;
+      btn.innerText = 'Subiendo...';
+
+      const formData = new FormData();
+      formData.append('avatar', input.files[0]);
+
+      const res = await fetch('/intranet/api/student/avatar', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+      });
+      btn.disabled = false;
+      btn.innerText = 'Subir foto';
+
+      if (res.ok) {
+        const data = await res.json();
+        updateAvatarDisplays(data.avatar_file);
+        input.value = '';
+        const fb = document.getElementById('avatarFeedback');
+        fb.innerText = 'Foto de perfil actualizada';
+        setTimeout(() => fb.innerText = '', 3000);
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Error subiendo la fotografía');
+      }
+    }
+
+    document.getElementById('studentPassForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const currentPassword = document.getElementById('curPassInput').value;
+      const newPassword = document.getElementById('newPassInput').value;
+      const confirmPassword = document.getElementById('confirmPassInput').value;
+      const box = document.getElementById('passFeedbackBox');
+
+      if (newPassword !== confirmPassword) {
+        box.className = 'p-3 rounded-xl bg-red-500/10 text-red-700 text-xs font-medium';
+        box.innerText = 'Las contraseñas nuevas no coinciden';
+        box.classList.remove('hidden');
+        return;
+      }
+
+      const res = await fetch('/intranet/api/change-password', {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ currentPassword, newPassword })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        box.className = 'p-3 rounded-xl bg-emerald-500/10 text-emerald-700 text-xs font-medium';
+        box.innerText = 'Contraseña actualizada correctamente';
+        box.classList.remove('hidden');
+        document.getElementById('studentPassForm').reset();
+      } else {
+        box.className = 'p-3 rounded-xl bg-red-500/10 text-red-700 text-xs font-medium';
+        box.innerText = data.error || 'Error actualizando contraseña';
+        box.classList.remove('hidden');
+      }
+    });
+
+    async function sendMaterialNote(materialId) {
+      const noteType = document.getElementById(`noteType-${materialId}`).value;
+      const input = document.getElementById(`noteInput-${materialId}`);
+      const content = input.value.trim();
+      if (!content) return;
+
+      const res = await fetch(`/intranet/api/student/materials/${materialId}/notes`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ note_type: noteType, content })
+      });
+      if (res.ok) {
+        input.value = '';
+        loadStudentPortal();
+      }
+    }
+
+    async function deleteStudentNote(noteId) {
+      if (!confirm('¿Eliminar esta nota o consulta?')) return;
+      await fetch(`/intranet/api/student/notes/${noteId}`, {
+        method: 'DELETE',
+        headers: authHeaders()
+      });
+      loadStudentPortal();
     }
 
     loadStudentPortal();

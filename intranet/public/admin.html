@@ -58,7 +58,7 @@
         <i class="fa-solid fa-calendar-week mr-1.5 text-[#0071e3]"></i> Asistencia Semanal
       </button>
       <button onclick="switchTab('materiales')" id="tab-materiales" class="tab-btn px-5 py-2 rounded-xl text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition">
-        <i class="fa-solid fa-folder-plus mr-1.5 text-indigo-600"></i> Subir Materiales / Canciones
+        <i class="fa-solid fa-folder-plus mr-1.5 text-indigo-600"></i> Materiales y Consultas
       </button>
       <button onclick="switchTab('alumnos')" id="tab-alumnos" class="tab-btn px-5 py-2 rounded-xl text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition">
         <i class="fa-solid fa-users mr-1.5 text-emerald-600"></i> Alumnado
@@ -136,11 +136,11 @@
       </div>
     </section>
 
-    <!-- ==================== SECCIÓN 2: SUBIR MATERIALES MÚLTIPLES / CANCIONES ==================== -->
+    <!-- ==================== SECCIÓN 2: SUBIR MATERIALES MÚLTIPLES Y RESPONDER CONSULTAS ==================== -->
     <section id="panel-materiales" class="hidden space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        <div class="lg:col-span-6 glass-bento p-6 sm:p-8 h-fit">
+        <div class="lg:col-span-5 glass-bento p-6 sm:p-8 h-fit">
           <h2 class="text-lg font-bold mb-1">Publicar Material o Canción de Estudio</h2>
           <p class="text-xs text-[#6e6e73] mb-5">
             Selecciona varios archivos a la vez dentro de la misma fila (por ejemplo, PDF y MP3 de 1ra Guitarra juntos) o agrega tantas filas como necesites.
@@ -197,8 +197,8 @@
           </form>
         </div>
 
-        <div class="lg:col-span-6 glass-bento p-6 sm:p-8">
-          <h2 class="text-lg font-bold mb-4">Materiales y Canciones Publicadas</h2>
+        <div class="lg:col-span-7 glass-bento p-6 sm:p-8">
+          <h2 class="text-lg font-bold mb-4">Materiales Publicados y Consultas de Alumnos</h2>
           <div id="materialsList" class="space-y-4"></div>
         </div>
 
@@ -606,7 +606,6 @@
       ].forEach(lbl => addFileRow(lbl));
     }
 
-    // Inicializar con 2 filas listas
     addFileRow('General (Canción completa)');
     addFileRow('1ra Guitarra');
 
@@ -1095,11 +1094,20 @@
         const divBadge = isSol
           ? '<span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 font-semibold text-[10px]">Sol Music</span>'
           : '<span class="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 font-semibold text-[10px]">Particulares</span>';
+        const avatarThumb = s.avatar_file
+          ? `<img src="/intranet/api/avatars/${s.avatar_file}" class="w-8 h-8 rounded-full object-cover border border-black/10 shrink-0">`
+          : `<div class="w-8 h-8 rounded-full bg-[#0071e3]/10 text-[#0071e3] flex items-center justify-center text-xs font-bold shrink-0">${s.full_name.charAt(0)}</div>`;
         return `
           <tr>
             <td class="py-3 px-2">
-              <p class="font-semibold text-[#1d1d1f]">${s.full_name}</p>
-              ${s.schedule ? `<p class="text-[11px] text-[#0071e3] font-medium"><i class="fa-regular fa-clock mr-1"></i>${s.schedule} (${s.monthly_quota || 8}/mes)</p>` : `<p class="text-[11px] text-[#6e6e73]">Bloque: ${s.monthly_quota || 8} clases/mes</p>`}
+              <div class="flex items-center gap-2.5">
+                ${avatarThumb}
+                <div>
+                  <p class="font-semibold text-[#1d1d1f]">${s.full_name}</p>
+                  ${s.schedule ? `<p class="text-[11px] text-[#0071e3] font-medium"><i class="fa-regular fa-clock mr-1"></i>${s.schedule} (${s.monthly_quota || 8}/mes)</p>` : `<p class="text-[11px] text-[#6e6e73]">Bloque: ${s.monthly_quota || 8} clases/mes</p>`}
+                  ${s.bio ? `<p class="text-[10px] text-[#6e6e73] italic mt-0.5 line-clamp-1">"${s.bio}"</p>` : ''}
+                </div>
+              </div>
             </td>
             <td class="py-3 px-2 text-[#6e6e73] font-mono">${s.code}</td>
             <td class="py-3 px-2 space-y-1">
@@ -1149,6 +1157,66 @@
       }
     }
 
+    function renderConsultasAdmin(mat) {
+      const consultas = mat.consultas || [];
+      if (!consultas.length) return '';
+
+      // Agrupar hilo de consultas por estudiante
+      const byStudent = {};
+      consultas.forEach(c => {
+        if (!byStudent[c.student_id]) {
+          byStudent[c.student_id] = { student_name: c.student_name || 'Estudiante', messages: [] };
+        }
+        byStudent[c.student_id].messages.push(c);
+      });
+
+      return `
+        <div class="pt-3 border-t border-black/[0.07] space-y-3">
+          <p class="text-xs font-bold text-[#0071e3]"><i class="fa-solid fa-comments mr-1.5"></i>Consultas directas de alumnos (${Object.keys(byStudent).length})</p>
+          ${Object.entries(byStudent).map(([stuId, thread]) => `
+            <div class="p-3 rounded-xl bg-[#0071e3]/[0.05] border border-[#0071e3]/15 space-y-2">
+              <p class="text-[11px] font-bold text-[#1d1d1f]">Alumno: ${thread.student_name}</p>
+              <div class="space-y-1.5">
+                ${thread.messages.map(msg => {
+                  const isStaff = msg.sender_role === 'admin' || msg.sender_role === 'teacher';
+                  return `
+                    <div class="text-xs p-2 rounded-lg ${isStaff ? 'bg-emerald-500/15 text-emerald-950 ml-4' : 'bg-white text-[#1d1d1f]'}">
+                      <span class="font-bold text-[10px] block text-[#6e6e73]">${msg.sender_name}:</span>
+                      <span>${msg.content}</span>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+              <div class="flex gap-1.5 pt-1">
+                <input type="text" id="replyInput-${mat.id}-${stuId}" placeholder="Responder consulta a ${thread.student_name}..."
+                  class="flex-1 bg-white border border-black/10 rounded-lg px-2.5 py-1.5 text-xs">
+                <button type="button" onclick="replyStudentConsulta(${mat.id}, ${stuId})"
+                  class="px-3 py-1.5 rounded-lg bg-[#0071e3] hover:bg-[#0077ed] text-white text-[11px] font-semibold">
+                  Responder
+                </button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    async function replyStudentConsulta(materialId, studentId) {
+      const input = document.getElementById(`replyInput-${materialId}-${studentId}`);
+      const content = input.value.trim();
+      if (!content) return;
+
+      const res = await fetch(`/intranet/api/admin/materials/${materialId}/reply`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ student_id: studentId, content })
+      });
+      if (res.ok) {
+        input.value = '';
+        loadMaterials();
+      }
+    }
+
     async function loadMaterials() {
       const res = await fetch('/intranet/api/admin/materials', { headers: authHeaders() });
       const mats = await res.json();
@@ -1172,6 +1240,8 @@
             </div>` : ''}
 
           ${m.files && m.files.length ? `<div class="space-y-2 pt-1">${m.files.map(renderAttachmentAdmin).join('')}</div>` : ''}
+
+          ${renderConsultasAdmin(m)}
         </div>
       `).join('') || '<p class="text-xs text-[#6e6e73] text-center py-8">Aún no hay materiales publicados.</p>';
     }
