@@ -828,12 +828,22 @@ app.get('/intranet/api/student/dashboard', authMiddleware, (req, res) => {
                     `SELECT * FROM announcements WHERE target_category IN ('Todos', ?) ORDER BY created_at DESC LIMIT 5`,
                     [stuCat],
                     (err5, anns) => {
-                      res.json({
-                        student,
-                        announcements: anns || [],
-                        attendances: attendances || [],
-                        materials: []
-                      });
+                      db.all(
+                        `SELECT id, full_name, schedule, bio, avatar_file
+                         FROM users
+                         WHERE role = 'student' AND group_id = ?
+                         ORDER BY full_name ASC`,
+                        [student.group_id],
+                        (err6, classmates) => {
+                          res.json({
+                            student,
+                            classmates: classmates || [],
+                            announcements: anns || [],
+                            attendances: attendances || [],
+                            materials: []
+                          });
+                        }
+                      );
                     }
                   );
                 }
@@ -855,12 +865,22 @@ app.get('/intranet/api/student/dashboard', authMiddleware, (req, res) => {
                       `SELECT * FROM announcements WHERE target_category IN ('Todos', ?) ORDER BY created_at DESC LIMIT 5`,
                       [stuCat],
                       (err5, anns) => {
-                        res.json({
-                          student,
-                          announcements: anns || [],
-                          attendances: attendances || [],
-                          materials: enrichedMats.map(m => ({ ...m, notes: byMat[m.id] || [] }))
-                        });
+                        db.all(
+                          `SELECT id, full_name, schedule, bio, avatar_file
+                           FROM users
+                           WHERE role = 'student' AND group_id = ?
+                           ORDER BY full_name ASC`,
+                          [student.group_id],
+                          (err6, classmates) => {
+                            res.json({
+                              student,
+                              classmates: classmates || [],
+                              announcements: anns || [],
+                              attendances: attendances || [],
+                              materials: enrichedMats.map(m => ({ ...m, notes: byMat[m.id] || [] }))
+                            });
+                          }
+                        );
                       }
                     );
                   }
