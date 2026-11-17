@@ -173,6 +173,16 @@ db.serialize(() => {
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
 
+  db.run(`CREATE TABLE IF NOT EXISTS announcements (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    message TEXT NOT NULL,
+    target_category TEXT NOT NULL DEFAULT 'Todos',
+    event_date TEXT DEFAULT '',
+    created_by_name TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+
   db.all(`SELECT id, file_name, original_name FROM materials WHERE file_name IS NOT NULL AND file_name != ''`, [], (err, legacyRows) => {
     if (!err && Array.isArray(legacyRows)) {
       legacyRows.forEach(r => {
@@ -742,7 +752,56 @@ app.delete('/intranet/api/admin/materials/:id', authMiddleware, staffOnly, (req,
   });
 });
 
+// ================= TABLÓN DE AVISOS Y EVENTOS =================
+app.get('/intranet/api/admin/announcements', authMiddleware, staffOnly, (req, res) => {
+  if (req.user.role === 'admin') {
+    db.all(`SELECT * FROM announcements ORDER BY created_at DESC`, [], (err, rows) => res.json(rows || []));
+  } else {
+    db.all(
+      `SELECT * FROM announcements WHERE target_category IN ('Todos', 'Sol Music') ORDER BY created_at DESC`,
+      [],
+      (err, rows) => res.json(rows || [])
+    );
+  }
+});
+
+app.post('/intranet/api/admin/announcements', authMiddleware, staffOnly, (req, res) => {
+  const { title, message, target_category, event_date } = req.body;
+  if (!title || !message) return res.status(400).json({ error: 'Título y mensaje del aviso son obligatorios' });
+
+  const target = req.user.role === 'admin'
+    ? (['Todos', 'Particulares', 'Sol Music'].includes(target_category) ? target_category : 'Todos')
+    : 'Sol Music';
+
+  db.run(
+    `INSERT INTO announcements (title, message, target_category, event_date, created_by_name)
+     VALUES (?, ?, ?, ?, ?)`,
+    [title.trim(), message.trim(), target, (event_date || '').trim(), req.user.full_name],
+    function (err) {
+      if (err) return res.status(500).json({ error: 'Error publicando anuncio' });
+      res.json({ id: this.lastID });
+    }
+  );
+});
+
+app.delete('/intranet/api/admin/announcements/:id', authMiddleware, staffOnly, (req, res) => {
+  if (req.user.role === 'admin') {
+    db.run(`DELETE FROM announcements WHERE id = ?`, [req.params.id], () => res.json({ ok: true }));
+  } else {
+    db.run(`DELETE FROM announcements WHERE id = ? AND target_category = 'Sol Music'`, [req.params.id], () => res.json({ ok: true }));
+  }
+});
+
+// ================= COPIA DE SEGURIDAD SQLITE (SOLO ADMIN) =================
+app.get('/intranet/api/admin/backup', authMiddleware, adminOnly, (req, res) => {
+  const dbPath = path.join(dataDir, 'intranet.db');
+  if (!fs.existsSync(dbPath)) return res.status(404).json({ error: 'Base de datos no encontrada' });
+  const stamp = new Date().toISOString().slice(0, 10);
+  res.download(dbPath, `intranet_dccorp_backup_${stamp}.db`);
+});
+
 // ================= PORTAL DEL ESTUDIANTE =================
+
 app.get('/intranet/api/student/dashboard', authMiddleware, (req, res) => {
   db.get(
     `SELECT u.id, u.code, u.full_name, u.group_id, u.schedule, u.monthly_quota, u.bio, u.avatar_file,
@@ -764,11 +823,19 @@ app.get('/intranet/api/student/dashboard', authMiddleware, (req, res) => {
             (err3, materials) => {
               attachFilesToMaterials(materials || [], (enrichedMats) => {
                 if (!enrichedMats.length) {
-                  return res.json({
-                    student,
-                    attendances: attendances || [],
-                    materials: []
-                  });
+                  const stuCat = student.category || 'Particulares';
+                  return db.all(
+                    `SELECT * FROM announcements WHERE target_category IN ('Todos', ?) ORDER BY created_at DESC LIMIT 5`,
+                    [stuCat],
+                    (err5, anns) => {
+                      res.json({
+                        student,
+                        announcements: anns || [],
+                        attendances: attendances || [],
+                        materials: []
+                      });
+                    }
+                  );
                 }
                 const ids = enrichedMats.map(m => m.id);
                 const placeholders = ids.map(() => '?').join(',');
@@ -783,11 +850,19 @@ app.get('/intranet/api/student/dashboard', authMiddleware, (req, res) => {
                       if (!byMat[n.material_id]) byMat[n.material_id] = [];
                       byMat[n.material_id].push(n);
                     });
-                    res.json({
-                      student,
-                      attendances: attendances || [],
-                      materials: enrichedMats.map(m => ({ ...m, notes: byMat[m.id] || [] }))
-                    });
+                    const stuCat = student.category || 'Particulares';
+                    db.all(
+                      `SELECT * FROM announcements WHERE target_category IN ('Todos', ?) ORDER BY created_at DESC LIMIT 5`,
+                      [stuCat],
+                      (err5, anns) => {
+                        res.json({
+                          student,
+                          announcements: anns || [],
+                          attendances: attendances || [],
+                          materials: enrichedMats.map(m => ({ ...m, notes: byMat[m.id] || [] }))
+                        });
+                      }
+                    );
                   }
                 );
               });
