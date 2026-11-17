@@ -76,7 +76,6 @@ db.serialize(() => {
     UNIQUE(student_id, date, session_type)
   )`);
 
-  // Migración suave si attendance tenía el índice antiguo
   db.all(`PRAGMA table_info(attendance)`, [], (err, cols) => {
     if (!err && Array.isArray(cols)) {
       const hasSessionType = cols.some(c => c.name === 'session_type');
@@ -333,7 +332,7 @@ app.delete('/intranet/api/admin/students/:id', authMiddleware, staffOnly, (req, 
   });
 });
 
-// ================= ASISTENCIA SEMANAL GRÁFICA (Bloque 8/mes + Recuperación + Reforzamientos) =================
+// ================= ASISTENCIA SEMANAL GRÁFICA =================
 app.get('/intranet/api/admin/weekly-attendance', authMiddleware, staffOnly, (req, res) => {
   const { group_id, start_date, end_date } = req.query;
   if (!group_id || !start_date || !end_date) {
@@ -372,7 +371,6 @@ app.get('/intranet/api/admin/weekly-attendance', authMiddleware, staffOnly, (req
   });
 });
 
-// Guarda, actualiza o elimina un registro individual al hacer clic en una celda de la semana
 app.post('/intranet/api/admin/attendance/cell', authMiddleware, staffOnly, (req, res) => {
   const { student_id, group_id, date, status, session_type, arrival_time, note } = req.body;
   if (!student_id || !group_id || !date) {
@@ -383,7 +381,6 @@ app.post('/intranet/api/admin/attendance/cell', authMiddleware, staffOnly, (req,
   verifyGroupAccess(req.user, group_id, (allowed) => {
     if (!allowed) return res.status(403).json({ error: 'No tienes permiso sobre este grupo' });
 
-    // Si status viene vacío o 'Clear', borramos el registro de ese día/tipo
     if (!status || status === 'Clear') {
       db.run(
         `DELETE FROM attendance WHERE student_id = ? AND date = ? AND session_type = ?`,
@@ -423,6 +420,52 @@ app.post('/intranet/api/admin/attendance/cell', authMiddleware, staffOnly, (req,
       }
     );
   });
+});
+
+// ================= RESUMEN DIARIO PARA EXPORTAR EN IMAGEN =================
+app.get('/intranet/api/admin/daily-summary', authMiddleware, staffOnly, (req, res) => {
+  const date = req.query.date;
+  if (!date) return res.status(400).json({ error: 'Falta la fecha' });
+
+  const monthPrefix = date.slice(0, 7);
+
+  if (req.user.role === 'admin') {
+    db.all(
+      `SELECT a.id, a.student_id, a.group_id, a.date, a.status, a.note, a.session_type, a.arrival_time, a.recorded_by_name,
+              u.full_name AS student_name, u.code AS student_code, u.schedule, u.monthly_quota,
+              g.name AS group_name, g.category,
+              (SELECT COUNT(*) FROM attendance a2
+               WHERE a2.student_id = u.id
+                 AND a2.session_type IN ('Regular', 'Recuperacion')
+                 AND substr(a2.date, 1, 7) = ?
+                 AND a2.status IN ('Presente', 'Tardanza', 'Justificado')) AS used_this_month
+       FROM attendance a
+       INNER JOIN users u ON a.student_id = u.id
+       LEFT JOIN groups g ON a.group_id = g.id
+       WHERE a.date = ?
+       ORDER BY g.category ASC, g.name ASC, u.full_name ASC`,
+      [monthPrefix, date],
+      (err, rows) => res.json({ date, records: rows || [] })
+    );
+  } else {
+    db.all(
+      `SELECT a.id, a.student_id, a.group_id, a.date, a.status, a.note, a.session_type, a.arrival_time, a.recorded_by_name,
+              u.full_name AS student_name, u.code AS student_code, u.schedule, u.monthly_quota,
+              g.name AS group_name, g.category,
+              (SELECT COUNT(*) FROM attendance a2
+               WHERE a2.student_id = u.id
+                 AND a2.session_type IN ('Regular', 'Recuperacion')
+                 AND substr(a2.date, 1, 7) = ?
+                 AND a2.status IN ('Presente', 'Tardanza', 'Justificado')) AS used_this_month
+       FROM attendance a
+       INNER JOIN users u ON a.student_id = u.id
+       INNER JOIN groups g ON a.group_id = g.id
+       WHERE a.date = ? AND g.category = 'Sol Music'
+       ORDER BY g.name ASC, u.full_name ASC`,
+      [monthPrefix, date],
+      (err, rows) => res.json({ date, records: rows || [] })
+    );
+  }
 });
 
 // ================= MATERIALES =================
