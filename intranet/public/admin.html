@@ -280,6 +280,12 @@
               <input type="text" id="stuCode" required placeholder="Usuario o DNI de acceso (ej: 74859612)" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
               <input type="text" id="stuPass" required placeholder="Contraseña inicial (ej: Alumno2026)" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
               <select id="stuGroupSelect" required class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs font-medium"></select>
+              <div>
+                <label class="block text-[11px] font-medium text-[#6e6e73] mb-1">Especialidad Musical *</label>
+                <select id="stuInstrument" required class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs font-semibold">
+                  <option value="Guitarra acustica">Guitarra acustica</option><option value="Guitarra electrica">Guitarra electrica</option><option value="Bajo eléctrico">Bajo eléctrico</option><option value="Ukelele">Ukelele</option><option value="Piano">Piano</option><option value="Bateria">Bateria</option><option value="Trompeta">Trompeta</option><option value="Eufonio">Eufonio</option><option value="Trombón">Trombón</option><option value="Saxofon Alto">Saxofon Alto</option><option value="Saxofón Tenor">Saxofón Tenor</option><option value="Flauta traversa">Flauta traversa</option><option value="Flauta dulce">Flauta dulce</option><option value="Clarinete">Clarinete</option><option value="Violín">Violín</option><option value="Viola">Viola</option><option value="Violonchelo">Violonchelo</option><option value="Melódica">Melódica</option>
+                </select>
+              </div>
               
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <div class="sm:col-span-2">
@@ -583,6 +589,63 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+
+  <!-- ==================== MODAL EDITAR ESTUDIANTE ==================== -->
+  <div id="editStudentModal" class="hidden fixed inset-0 z-50 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto" onclick="if(event.target===this) closeEditStudentModal()">
+    <div class="glass-bento p-6 sm:p-7 max-w-lg w-full bg-white my-auto space-y-5 relative">
+      <button type="button" onclick="closeEditStudentModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 text-[#1d1d1f] flex items-center justify-center">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div>
+        <span class="px-2.5 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[11px] font-semibold">Gestión Académica</span>
+        <h3 class="text-lg font-bold text-[#1d1d1f] mt-1">Editar Datos del Estudiante</h3>
+        <p class="text-xs text-[#6e6e73]">Modifica su información, horario, cupo mensual o especialidad musical.</p>
+      </div>
+
+      <form id="editStudentForm" class="space-y-3.5">
+        <input type="hidden" id="editStuId">
+        <div>
+          <label class="block text-xs font-semibold text-[#6e6e73] mb-1">Nombre completo *</label>
+          <input type="text" id="editStuName" required class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-[#6e6e73] mb-1">Grupo / Subgrupo *</label>
+          <select id="editStuGroupSelect" required class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2.5 text-xs font-semibold"></select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-[#6e6e73] mb-1">Especialidad Musical *</label>
+          <select id="editStuInstrument" required class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2.5 text-xs font-semibold">
+            <option value="Guitarra acustica">Guitarra acustica</option><option value="Guitarra electrica">Guitarra electrica</option><option value="Bajo eléctrico">Bajo eléctrico</option><option value="Ukelele">Ukelele</option><option value="Piano">Piano</option><option value="Bateria">Bateria</option><option value="Trompeta">Trompeta</option><option value="Eufonio">Eufonio</option><option value="Trombón">Trombón</option><option value="Saxofon Alto">Saxofon Alto</option><option value="Saxofón Tenor">Saxofón Tenor</option><option value="Flauta traversa">Flauta traversa</option><option value="Flauta dulce">Flauta dulce</option><option value="Clarinete">Clarinete</option><option value="Violín">Violín</option><option value="Viola">Viola</option><option value="Violonchelo">Violonchelo</option><option value="Melódica">Melódica</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div class="sm:col-span-2">
+            <label class="block text-[10px] font-semibold text-[#6e6e73] mb-1">Horario fijo</label>
+            <input type="text" id="editStuSchedule" placeholder="Ej: Martes y Jueves 4pm" class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2 text-xs">
+          </div>
+          <div>
+            <label class="block text-[10px] font-semibold text-[#6e6e73] mb-1">Clases / mes</label>
+            <input type="number" id="editStuQuota" min="1" max="31" class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2 text-xs font-semibold text-center">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-[#6e6e73] mb-1">Nueva contraseña (opcional — dejar en blanco para mantener la actual)</label>
+          <input type="text" id="editStuPass" placeholder="Mínimo 6 caracteres si deseas cambiarla" class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2.5 text-xs font-mono">
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeEditStudentModal()" class="px-4 py-2 rounded-full text-xs font-medium text-[#6e6e73]">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold transition">Guardar Cambios</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -1402,7 +1465,10 @@
               <div class="flex items-center gap-2.5">
                 ${avatarThumb}
                 <div>
-                  <p class="font-semibold text-[#1d1d1f]">${s.full_name}</p>
+                  <div class="flex items-center gap-2">
+                    <p class="font-semibold text-[#1d1d1f]">${s.full_name}</p>
+                    <span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 font-semibold text-[10px]"><i class="fa-solid fa-guitar mr-1"></i>${s.instrument || 'Guitarra acustica'}</span>
+                  </div>
                   ${s.schedule ? `<p class="text-[11px] text-[#0071e3] font-medium"><i class="fa-regular fa-clock mr-1"></i>${s.schedule} (${s.monthly_quota || 8}/mes)</p>` : `<p class="text-[11px] text-[#6e6e73]">Bloque: ${s.monthly_quota || 8} clases/mes</p>`}
                   ${s.bio ? `<p class="text-[10px] text-[#6e6e73] italic mt-0.5 line-clamp-1">"${s.bio}"</p>` : ''}
                 </div>
@@ -1418,6 +1484,11 @@
             </td>
             <td class="py-3 px-2 text-right">
               <div class="inline-flex items-center gap-1.5">
+                <button type="button" onclick="openEditStudentModal(${s.id})"
+                  class="p-1.5 rounded-full bg-[#0071e3]/10 hover:bg-[#0071e3]/20 text-[#0071e3] text-xs transition"
+                  title="Editar alumno">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                </button>
                 <button type="button" onclick="sendCredentialsWhatsApp(${s.id})"
                   class="px-2.5 py-1 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold inline-flex items-center gap-1 transition"
                   title="Enviar usuario y contraseña por WhatsApp">
@@ -1462,16 +1533,21 @@
               <div class="flex flex-wrap items-center gap-1.5">
                 ${divBadge}
                 <span class="px-2.5 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] font-medium text-[11px]">${s.group_name || 'Sin grupo'}</span>
+                <span class="px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-800 font-semibold text-[10px]"><i class="fa-solid fa-guitar mr-1"></i>${s.instrument || 'Guitarra acustica'}</span>
                 ${s.schedule ? `<span class="text-[11px] text-[#0071e3] font-medium"><i class="fa-regular fa-clock mr-1"></i>${s.schedule}</span>` : ''}
               </div>
-              <div class="grid grid-cols-2 gap-2 pt-1">
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1">
+                <button type="button" onclick="openEditStudentModal(${s.id})"
+                  class="py-2 rounded-xl bg-[#0071e3]/15 text-[#0071e3] text-xs font-semibold flex items-center justify-center gap-1 active:scale-95 transition">
+                  <i class="fa-solid fa-pen-to-square"></i> Editar
+                </button>
                 <button type="button" onclick="sendCredentialsWhatsApp(${s.id})"
-                  class="py-2 rounded-xl bg-emerald-600 text-white text-xs font-semibold flex items-center justify-center gap-1.5 active:scale-95 transition">
-                  <i class="fa-brands fa-whatsapp text-sm"></i> Enviar WhatsApp
+                  class="py-2 rounded-xl bg-emerald-600 text-white text-xs font-semibold flex items-center justify-center gap-1 active:scale-95 transition">
+                  <i class="fa-brands fa-whatsapp"></i> WhatsApp
                 </button>
                 <button type="button" onclick="copyCredentialsText(${s.id})"
-                  class="py-2 rounded-xl bg-black/5 text-[#1d1d1f] text-xs font-semibold flex items-center justify-center gap-1.5 active:scale-95 transition">
-                  <i class="fa-regular fa-copy"></i> Copiar Datos
+                  class="col-span-2 sm:col-span-1 py-2 rounded-xl bg-black/5 text-[#1d1d1f] text-xs font-semibold flex items-center justify-center gap-1 active:scale-95 transition">
+                  <i class="fa-regular fa-copy"></i> Copiar
                 </button>
               </div>
             </div>
@@ -1667,6 +1743,7 @@
           code: document.getElementById('stuCode').value,
           password: document.getElementById('stuPass').value,
           group_id: document.getElementById('stuGroupSelect').value,
+          instrument: document.getElementById('stuInstrument').value,
           schedule: document.getElementById('stuSchedule').value,
           monthly_quota: document.getElementById('stuQuota').value
         })
@@ -1844,6 +1921,53 @@
       a.click();
       URL.revokeObjectURL(url);
     }
+
+
+    function openEditStudentModal(studentId) {
+      const stu = studentsCache.find(s => Number(s.id) === Number(studentId));
+      if (!stu) return;
+
+      document.getElementById('editStuId').value = stu.id;
+      document.getElementById('editStuName').value = stu.full_name;
+      document.getElementById('editStuSchedule').value = stu.schedule || '';
+      document.getElementById('editStuQuota').value = stu.monthly_quota || 8;
+      document.getElementById('editStuInstrument').value = stu.instrument || 'Guitarra acustica';
+      document.getElementById('editStuPass').value = '';
+
+      const sel = document.getElementById('editStuGroupSelect');
+      sel.innerHTML = groupsCache.map(g => `<option value="${g.id}" ${Number(g.id) === Number(stu.group_id) ? 'selected' : ''}>${g.name}</option>`).join('');
+
+      document.getElementById('editStudentModal').classList.remove('hidden');
+    }
+
+    function closeEditStudentModal() {
+      document.getElementById('editStudentModal').classList.add('hidden');
+    }
+
+    document.getElementById('editStudentForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const studentId = document.getElementById('editStuId').value;
+      const full_name = document.getElementById('editStuName').value;
+      const group_id = document.getElementById('editStuGroupSelect').value;
+      const instrument = document.getElementById('editStuInstrument').value;
+      const schedule = document.getElementById('editStuSchedule').value;
+      const monthly_quota = document.getElementById('editStuQuota').value;
+      const new_password = document.getElementById('editStuPass').value;
+
+      const res = await fetch(`/intranet/api/admin/students/${studentId}`, {
+        method: 'PUT',
+        headers: authHeaders(),
+        body: JSON.stringify({ full_name, group_id, instrument, schedule, monthly_quota, new_password })
+      });
+
+      if (res.ok) {
+        closeEditStudentModal();
+        loadAllData();
+      } else {
+        const d = await res.json();
+        alert(d.error || 'Error al actualizar estudiante');
+      }
+    });
 
     loadAllData().then(initAdminRealtimeChat);
   </script>

@@ -360,6 +360,7 @@
         <div class="space-y-1">
           <div class="flex flex-wrap items-center justify-center gap-1.5">
             <span id="cmModalBadge" class="px-2.5 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[11px] font-semibold">Grupo</span>
+            <span id="cmModalInstBadge" class="px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-800 text-[11px] font-bold"><i class="fa-solid fa-guitar mr-1"></i><span>Especialidad</span></span>
             <span id="cmModalYouTag" class="hidden px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 text-[11px] font-bold">Tú</span>
           </div>
           <h3 id="cmModalName" class="text-lg font-bold text-[#1d1d1f]">Nombre del compañero</h3>
@@ -967,6 +968,9 @@
                 <p class="text-sm font-bold text-[#1d1d1f] truncate">${cm.full_name}</p>
                 ${isMe ? '<span class="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 text-[9px] font-bold shrink-0">Tú</span>' : ''}
               </div>
+              <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
+                <span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 font-semibold text-[10px]"><i class="fa-solid fa-guitar mr-1"></i>${cm.instrument || 'Guitarra acustica'}</span>
+              </div>
               ${cm.schedule ? `<p class="text-[11px] text-[#0071e3] font-medium truncate"><i class="fa-regular fa-clock mr-1"></i>${cm.schedule}</p>` : ''}
               <p class="text-xs text-[#6e6e73] line-clamp-2 leading-relaxed">
                 ${cm.bio ? cm.bio : '<span class="italic opacity-75">Sin descripción personal</span>'}
@@ -986,6 +990,7 @@
       const isMe = Number(cm.id) === Number(dashboardData.student.id);
       document.getElementById('cmModalName').innerText = cm.full_name;
       document.getElementById('cmModalBadge').innerText = dashboardData.student.group_name || 'Grupo';
+      document.getElementById('cmModalInstBadge').querySelector('span').innerText = cm.instrument || 'Guitarra acustica';
       document.getElementById('cmModalYouTag').classList.toggle('hidden', !isMe);
 
       const schEl = document.getElementById('cmModalSchedule');
