@@ -306,33 +306,39 @@
         </div>
 
         <div class="lg:col-span-7 glass-bento p-6 sm:p-8">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
               <h3 class="text-lg font-bold" id="directoryTitle">Directorio de Alumnado</h3>
               <p class="text-xs text-[#6e6e73]" id="studentCount">0 alumnos</p>
             </div>
 
             <div id="adminCategoryFilter" class="inline-flex p-1 rounded-xl bg-black/[0.05] text-xs font-semibold">
-              <button onclick="setStudentCategoryFilter('Todos')" id="cat-Todos" class="cat-btn px-3 py-1.5 rounded-lg bg-white text-[#1d1d1f] shadow-sm transition">
+              <button onclick="setStudentCategoryFilter('Todos')" id="cat-Todos" class="cat-btn px-3.5 py-1.5 rounded-lg bg-white text-[#1d1d1f] shadow-sm transition">
                 Todos
               </button>
-              <button onclick="setStudentCategoryFilter('Particulares')" id="cat-Particulares" class="cat-btn px-3 py-1.5 rounded-lg text-[#6e6e73] hover:text-[#1d1d1f] transition">
+              <button onclick="setStudentCategoryFilter('Particulares')" id="cat-Particulares" class="cat-btn px-3.5 py-1.5 rounded-lg text-[#6e6e73] hover:text-[#1d1d1f] transition">
                 Particulares
               </button>
-              <button onclick="setStudentCategoryFilter('Sol Music')" id="cat-Sol Music" class="cat-btn px-3 py-1.5 rounded-lg text-[#6e6e73] hover:text-[#1d1d1f] transition">
+              <button onclick="setStudentCategoryFilter('Sol Music')" id="cat-Sol Music" class="cat-btn px-3.5 py-1.5 rounded-lg text-[#6e6e73] hover:text-[#1d1d1f] transition">
                 Sol Music
               </button>
             </div>
           </div>
 
-          <div class="mb-4">
+          <!-- Filtros limpios: Buscador + Selector de Subgrupo específico -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-5">
             <div class="relative">
               <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-[#6e6e73] text-xs">
                 <i class="fa-solid fa-magnifying-glass"></i>
               </span>
               <input type="search" id="dirStudentSearch" oninput="renderStudentsViews()"
-                placeholder="Buscar alumno por nombre, usuario/DNI o subgrupo..."
-                class="w-full bg-white border border-black/10 rounded-xl pl-9 pr-3.5 py-2 text-xs focus:outline-none focus:border-[#0071e3]">
+                placeholder="Buscar por nombre o DNI..."
+                class="w-full bg-white border border-black/10 rounded-xl pl-9 pr-3.5 py-2.5 text-xs focus:outline-none focus:border-[#0071e3]">
+            </div>
+            <div>
+              <select id="dirGroupFilter" onchange="renderStudentsViews()" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#1d1d1f]">
+                <option value="">Visualizar todos los subgrupos</option>
+              </select>
             </div>
           </div>
 
@@ -608,6 +614,11 @@
 
       <form id="editStudentForm" class="space-y-3.5">
         <input type="hidden" id="editStuId">
+        <div>
+          <label class="block text-xs font-semibold text-[#6e6e73] mb-1">Usuario / DNI de acceso *</label>
+          <input type="text" id="editStuCode" required class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2.5 text-xs font-mono">
+        </div>
+
         <div>
           <label class="block text-xs font-semibold text-[#6e6e73] mb-1">Nombre completo *</label>
           <input type="text" id="editStuName" required class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
@@ -1386,6 +1397,14 @@
         if (prev && groupsCache.some(g => String(g.id) === prev)) el.value = prev;
       });
 
+      const dirGroupF = document.getElementById('dirGroupFilter');
+      if (dirGroupF) {
+        const prevF = dirGroupF.value;
+        dirGroupF.innerHTML = '<option value="">Visualizar todos los subgrupos</option>' +
+          groupsCache.map(g => `<option value="${g.id}">${isAdmin ? `[${g.category || 'Particulares'}] ` : ''}${g.name}</option>`).join('');
+        if (prevF) dirGroupF.value = prevF;
+      }
+
       document.getElementById('groupsTags').innerHTML = groupsCache.map(g => {
         const isSol = g.category === 'Sol Music';
         const pillClass = isSol ? 'bg-amber-500/15 text-amber-800' : 'bg-indigo-500/10 text-indigo-700';
@@ -1442,13 +1461,19 @@
 
     function renderStudentsViews() {
       const q = (document.getElementById('dirStudentSearch')?.value || '').trim().toLowerCase();
-      const filtered = q
-        ? studentsCache.filter(s =>
-            (s.full_name || '').toLowerCase().includes(q) ||
-            (s.code || '').toLowerCase().includes(q) ||
-            (s.group_name || '').toLowerCase().includes(q)
-          )
-        : studentsCache;
+      const selectedGroupId = document.getElementById('dirGroupFilter')?.value || '';
+
+      let filtered = studentsCache;
+      if (q) {
+        filtered = filtered.filter(s =>
+          (s.full_name || '').toLowerCase().includes(q) ||
+          (s.code || '').toLowerCase().includes(q) ||
+          (s.group_name || '').toLowerCase().includes(q)
+        );
+      }
+      if (selectedGroupId) {
+        filtered = filtered.filter(s => String(s.group_id) === String(selectedGroupId));
+      }
 
       document.getElementById('studentCount').innerText = `${filtered.length} alumnos${isAdmin ? ` (${currentCategoryFilter})` : ' en Sol Music'}`;
       document.getElementById('studentsTableBody').innerHTML = filtered.map(s => {
@@ -1460,46 +1485,38 @@
           ? `<img src="/intranet/api/avatars/${s.avatar_file}" class="w-8 h-8 rounded-full object-cover border border-black/10 shrink-0">`
           : `<div class="w-8 h-8 rounded-full bg-[#0071e3]/10 text-[#0071e3] flex items-center justify-center text-xs font-bold shrink-0">${s.full_name.charAt(0)}</div>`;
         return `
-          <tr>
-            <td class="py-3 px-2">
-              <div class="flex items-center gap-2.5">
+          <tr class="hover:bg-black/[0.02] transition">
+            <td class="py-3.5 px-3">
+              <div class="flex items-center gap-3">
                 ${avatarThumb}
-                <div>
-                  <div class="flex items-center gap-2">
-                    <p class="font-semibold text-[#1d1d1f]">${s.full_name}</p>
+                <div class="space-y-0.5">
+                  <p class="font-bold text-[#1d1d1f]">${s.full_name}</p>
+                  <div class="flex flex-wrap items-center gap-1.5">
                     <span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 font-semibold text-[10px]"><i class="fa-solid fa-guitar mr-1"></i>${s.instrument || 'Guitarra acustica'}</span>
+                    ${s.schedule ? `<span class="text-[11px] text-[#0071e3] font-medium"><i class="fa-regular fa-clock mr-1"></i>${s.schedule}</span>` : ''}
                   </div>
-                  ${s.schedule ? `<p class="text-[11px] text-[#0071e3] font-medium"><i class="fa-regular fa-clock mr-1"></i>${s.schedule} (${s.monthly_quota || 8}/mes)</p>` : `<p class="text-[11px] text-[#6e6e73]">Bloque: ${s.monthly_quota || 8} clases/mes</p>`}
-                  ${s.bio ? `<p class="text-[10px] text-[#6e6e73] italic mt-0.5 line-clamp-1">"${s.bio}"</p>` : ''}
                 </div>
               </div>
             </td>
-            <td class="py-3 px-2 font-mono text-[11px] text-[#6e6e73]">
-              <span class="block font-bold text-[#1d1d1f]">${s.code}</span>
-              ${s.plain_hint ? `<span class="text-[10px] text-[#6e6e73]">Clave: ${s.plain_hint}</span>` : ''}
+            <td class="py-3.5 px-3 font-mono text-xs">
+              <span class="font-bold text-[#1d1d1f]">${s.code}</span>
             </td>
-            <td class="py-3 px-2 space-y-1">
-              <div>${divBadge}</div>
-              <div><span class="px-2.5 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] font-medium text-[11px]">${s.group_name || 'Sin grupo'}</span></div>
+            <td class="py-3.5 px-3">
+              <span class="px-2.5 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] font-semibold text-[11px]">${s.group_name || 'Sin grupo'}</span>
             </td>
-            <td class="py-3 px-2 text-right">
-              <div class="inline-flex items-center gap-1.5">
+            <td class="py-3.5 px-3 text-right">
+              <div class="inline-flex items-center gap-1">
                 <button type="button" onclick="openEditStudentModal(${s.id})"
-                  class="p-1.5 rounded-full bg-[#0071e3]/10 hover:bg-[#0071e3]/20 text-[#0071e3] text-xs transition"
-                  title="Editar alumno">
-                  <i class="fa-solid fa-pen-to-square"></i>
+                  class="px-3 py-1.5 rounded-xl bg-[#0071e3]/10 hover:bg-[#0071e3]/20 text-[#0071e3] text-xs font-semibold transition"
+                  title="Editar datos y usuario">
+                  <i class="fa-solid fa-pen-to-square mr-1"></i> Editar
                 </button>
                 <button type="button" onclick="sendCredentialsWhatsApp(${s.id})"
-                  class="px-2.5 py-1 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold inline-flex items-center gap-1 transition"
-                  title="Enviar usuario y contraseña por WhatsApp">
-                  <i class="fa-brands fa-whatsapp"></i> Enviar
+                  class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold inline-flex items-center gap-1 transition"
+                  title="Enviar por WhatsApp">
+                  <i class="fa-brands fa-whatsapp"></i>
                 </button>
-                <button type="button" onclick="copyCredentialsText(${s.id})"
-                  class="p-1.5 rounded-full bg-black/5 hover:bg-black/10 text-[#1d1d1f] text-xs transition"
-                  title="Copiar credenciales">
-                  <i class="fa-regular fa-copy"></i>
-                </button>
-                <button type="button" onclick="deleteStudent(${s.id})" class="text-red-500 hover:text-red-700 text-xs p-1.5" title="Eliminar alumno">
+                <button type="button" onclick="deleteStudent(${s.id})" class="p-2 rounded-xl text-red-500 hover:bg-red-50 text-xs transition" title="Eliminar">
                   <i class="fa-solid fa-trash"></i>
                 </button>
               </div>
@@ -1928,6 +1945,7 @@
       if (!stu) return;
 
       document.getElementById('editStuId').value = stu.id;
+      document.getElementById('editStuCode').value = stu.code || '';
       document.getElementById('editStuName').value = stu.full_name;
       document.getElementById('editStuSchedule').value = stu.schedule || '';
       document.getElementById('editStuQuota').value = stu.monthly_quota || 8;
@@ -1947,6 +1965,7 @@
     document.getElementById('editStudentForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const studentId = document.getElementById('editStuId').value;
+      const code = document.getElementById('editStuCode').value;
       const full_name = document.getElementById('editStuName').value;
       const group_id = document.getElementById('editStuGroupSelect').value;
       const instrument = document.getElementById('editStuInstrument').value;
@@ -1957,7 +1976,7 @@
       const res = await fetch(`/intranet/api/admin/students/${studentId}`, {
         method: 'PUT',
         headers: authHeaders(),
-        body: JSON.stringify({ full_name, group_id, instrument, schedule, monthly_quota, new_password })
+        body: JSON.stringify({ code, full_name, group_id, instrument, schedule, monthly_quota, new_password })
       });
 
       if (res.ok) {
