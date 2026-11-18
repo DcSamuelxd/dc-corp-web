@@ -464,13 +464,14 @@ app.delete('/intranet/api/admin/students/:id', authMiddleware, staffOnly, (req, 
 // ================= EDITAR ESTUDIANTE Y ESPECIALIDAD =================
 app.put('/intranet/api/admin/students/:id', authMiddleware, staffOnly, (req, res) => {
   const studentId = req.params.id;
-  const { full_name, group_id, schedule, monthly_quota, instrument, new_password } = req.body;
+  const { code, full_name, group_id, schedule, monthly_quota, instrument, new_password } = req.body;
 
-  if (!full_name || !group_id) {
-    return res.status(400).json({ error: 'Nombre y grupo son obligatorios' });
+  if (!full_name || !group_id || !code) {
+    return res.status(400).json({ error: 'Usuario, nombre y grupo son obligatorios' });
   }
   const quota = parseInt(monthly_quota, 10) || 8;
   const inst = instrument || 'Guitarra acustica';
+  const newCode = code.trim();
 
   db.get(`SELECT id, group_id FROM users WHERE id = ? AND role = 'student'`, [studentId], (err, row) => {
     if (err || !row) return res.status(404).json({ error: 'Estudiante no encontrado' });
@@ -481,26 +482,82 @@ app.put('/intranet/api/admin/students/:id', authMiddleware, staffOnly, (req, res
       verifyGroupAccess(req.user, row.group_id, (allowedCurrent) => {
         if (!allowedCurrent) return res.status(403).json({ error: 'No tienes permiso para modificar a este estudiante' });
 
-        if (new_password && new_password.trim().length >= 6) {
-          const hash = bcrypt.hashSync(new_password.trim(), 10);
-          db.run(
-            `UPDATE users SET full_name = ?, group_id = ?, schedule = ?, monthly_quota = ?, instrument = ?, password_hash = ?, plain_hint = ? WHERE id = ?`,
-            [full_name.trim(), group_id, (schedule || '').trim(), quota, inst, hash, new_password.trim(), studentId],
-            (errUp) => {
-              if (errUp) return res.status(500).json({ error: 'Error actualizando estudiante' });
-              res.json({ ok: true });
-            }
-          );
-        } else {
-          db.run(
-            `UPDATE users SET full_name = ?, group_id = ?, schedule = ?, monthly_quota = ?, instrument = ? WHERE id = ?`,
-            [full_name.trim(), group_id, (schedule || '').trim(), quota, inst, studentId],
-            (errUp) => {
-              if (errUp) return res.status(500).json({ error: 'Error actualizando estudiante' });
-              res.json({ ok: true });
-            }
-          );
-        }
+        // Verificar si el nuevo código ya lo usa otro usuario
+        db.get(`SELECT id FROM users WHERE LOWER(code) = LOWER(?) AND id != ?`, [newCode, studentId], (errDup, dup) => {
+          if (dup) return res.status(400).json({ error: 'Ese usuario ya está en uso por otro miembro' });
+
+          if (new_password && new_password.trim().length >= 6) {
+            const hash = bcrypt.hashSync(new_password.trim(), 10);
+            db.run(
+              `UPDATE users SET code = ?, full_name = ?, group_id = ?, schedule = ?, monthly_quota = ?, instrument = ?, password_hash = ?, plain_hint = ? WHERE id = ?`,
+              [newCode, full_name.trim(), group_id, (schedule || '').trim(), quota, inst, hash, new_password.trim(), studentId],
+              (errUp) => {
+                if (errUp) return res.status(500).json({ error: 'Error actualizando estudiante' });
+                res.json({ ok: true });
+              }
+            );
+          } else {
+            db.run(
+              `UPDATE users SET code = ?, full_name = ?, group_id = ?, schedule = ?, monthly_quota = ?, instrument = ? WHERE id = ?`,
+              [newCode, full_name.trim(), group_id, (schedule || '').trim(), quota, inst, studentId],
+              (errUp) => {
+                if (errUp) return res.status(500).json({ error: 'Error actualizando estudiante' });
+                res.json({ ok: true });
+              }
+            );
+          }
+        });
+      });
+    });
+  });
+});
+
+
+// ================= EDITAR ESTUDIANTE, USUARIO Y ESPECIALIDAD =================
+app.put('/intranet/api/admin/students/:id', authMiddleware, staffOnly, (req, res) => {
+  const studentId = req.params.id;
+  const { code, full_name, group_id, schedule, monthly_quota, instrument, new_password } = req.body;
+
+  if (!full_name || !group_id || !code) {
+    return res.status(400).json({ error: 'Usuario, nombre y grupo son obligatorios' });
+  }
+  const quota = parseInt(monthly_quota, 10) || 8;
+  const inst = instrument || 'Guitarra acustica';
+  const newCode = code.trim();
+
+  db.get(`SELECT id, group_id FROM users WHERE id = ? AND role = 'student'`, [studentId], (err, row) => {
+    if (err || !row) return res.status(404).json({ error: 'Estudiante no encontrado' });
+
+    verifyGroupAccess(req.user, group_id, (allowedTarget) => {
+      if (!allowedTarget) return res.status(403).json({ error: 'No tienes permiso para mover al alumno a este grupo' });
+
+      verifyGroupAccess(req.user, row.group_id, (allowedCurrent) => {
+        if (!allowedCurrent) return res.status(403).json({ error: 'No tienes permiso para modificar a este estudiante' });
+
+        db.get(`SELECT id FROM users WHERE LOWER(code) = LOWER(?) AND id != ?`, [newCode, studentId], (errDup, dup) => {
+          if (dup) return res.status(400).json({ error: 'Ese usuario ya está en uso por otro miembro' });
+
+          if (new_password && new_password.trim().length >= 6) {
+            const hash = bcrypt.hashSync(new_password.trim(), 10);
+            db.run(
+              `UPDATE users SET code = ?, full_name = ?, group_id = ?, schedule = ?, monthly_quota = ?, instrument = ?, password_hash = ?, plain_hint = ? WHERE id = ?`,
+              [newCode, full_name.trim(), group_id, (schedule || '').trim(), quota, inst, hash, new_password.trim(), studentId],
+              (errUp) => {
+                if (errUp) return res.status(500).json({ error: 'Error actualizando estudiante' });
+                res.json({ ok: true });
+              }
+            );
+          } else {
+            db.run(
+              `UPDATE users SET code = ?, full_name = ?, group_id = ?, schedule = ?, monthly_quota = ?, instrument = ? WHERE id = ?`,
+              [newCode, full_name.trim(), group_id, (schedule || '').trim(), quota, inst, studentId],
+              (errUp) => {
+                if (errUp) return res.status(500).json({ error: 'Error actualizando estudiante' });
+                res.json({ ok: true });
+              }
+            );
+          }
+        });
       });
     });
   });
