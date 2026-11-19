@@ -202,7 +202,7 @@
             </div>
 
             <div>
-              <label class="block text-xs font-medium text-[#6e6e73] mb-1">Video de referencia en YouTube o enlace externo</label>
+              <label class="block text-xs font-medium text-[#6e6e73] mb-1">Video de referencia en YouTube o enlace externo <span class="text-[10px] text-[#6e6e73] font-normal">(opcional)</span></label>
               <input type="url" id="matUrl" placeholder="https://www.youtube.com/watch?v=..."
                 class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
             </div>
@@ -598,6 +598,65 @@
     </div>
   </div>
 
+
+
+  <!-- ==================== MODAL EDITAR MATERIAL / CANCIÓN ==================== -->
+  <div id="editMaterialModal" class="hidden fixed inset-0 z-50 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto" onclick="if(event.target===this) closeEditMaterialModal()">
+    <div class="glass-bento p-6 sm:p-7 max-w-2xl w-full bg-white my-auto space-y-5 relative">
+      <button type="button" onclick="closeEditMaterialModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 text-[#1d1d1f] flex items-center justify-center">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div>
+        <span class="px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 text-[11px] font-semibold">Edición de Repertorio</span>
+        <h3 class="text-lg font-bold text-[#1d1d1f] mt-1">Editar Material o Canción</h3>
+        <p class="text-xs text-[#6e6e73]">Modifica datos, reetiqueta o elimina archivos existentes, o añade nuevas pistas/PDFs sin borrar la publicación.</p>
+      </div>
+
+      <form id="editMaterialForm" class="space-y-4">
+        <input type="hidden" id="editMatId">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-[#6e6e73] mb-1">Título del tema o canción *</label>
+            <input type="text" id="editMatTitle" required class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-[#6e6e73] mb-1">Video de YouTube / enlace (opcional)</label>
+            <input type="url" id="editMatUrl" placeholder="Déjalo vacío si no deseas video" class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-[#6e6e73] mb-1">Indicaciones / notas de estudio</label>
+          <textarea id="editMatDesc" rows="2" class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2.5 text-xs resize-none"></textarea>
+        </div>
+
+        <!-- Archivos ya subidos -->
+        <div class="p-4 rounded-2xl bg-[#f5f5f7] border border-black/[0.06] space-y-2.5">
+          <span class="block text-xs font-bold text-[#1d1d1f]">Archivos actuales</span>
+          <div id="editExistingFilesList" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
+        </div>
+
+        <!-- Agregar nuevos archivos -->
+        <div class="p-4 rounded-2xl bg-[#f5f5f7] border border-black/[0.06] space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-[#1d1d1f]">Añadir nuevos archivos (PDF o MP3)</span>
+            <button type="button" onclick="addEditFileRow()" class="px-3 py-1 rounded-full bg-[#0071e3]/10 hover:bg-[#0071e3]/20 text-[#0071e3] text-[11px] font-semibold">
+              + Nueva fila
+            </button>
+          </div>
+          <div id="editNewFileRows" class="space-y-2 max-h-44 overflow-y-auto pr-1"></div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeEditMaterialModal()" class="px-4 py-2 rounded-full text-xs font-medium text-[#6e6e73]">Cancelar</button>
+          <button type="submit" id="btnSaveEditMat" class="px-5 py-2.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold transition">
+            Guardar Cambios
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- ==================== MODAL EDITAR ESTUDIANTE ==================== -->
   <div id="editStudentModal" class="hidden fixed inset-0 z-50 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto" onclick="if(event.target===this) closeEditStudentModal()">
@@ -1573,6 +1632,16 @@
       }
     }
 
+
+    function cleanDisplayName(str) {
+      if (!str) return '';
+      try {
+        return decodeURIComponent(escape(str));
+      } catch {
+        return str;
+      }
+    }
+
     function renderAttachmentAdmin(f) {
       const fileUrl = `/intranet/api/files/${f.file_name}?token=${token}`;
       if (f.file_type === 'pdf') {
@@ -1580,7 +1649,7 @@
           <div class="p-2.5 rounded-xl bg-[#f5f5f7] border border-black/[0.06] flex items-center justify-between gap-2">
             <div class="min-w-0">
               <span class="px-2 py-0.5 rounded-md bg-red-500/10 text-red-700 text-[10px] font-bold">${f.label}</span>
-              <p class="text-xs font-medium text-[#1d1d1f] truncate mt-0.5">${f.original_name}</p>
+              <p class="text-xs font-medium text-[#1d1d1f] truncate mt-0.5">${cleanDisplayName(f.original_name)}</p>
             </div>
             <button type="button" onclick="openPdfModal('${fileUrl}', '${f.label} — ${f.original_name.replace(/'/g, '')}')"
               class="px-3 py-1.5 rounded-full bg-red-600 hover:bg-red-700 text-white text-[11px] font-semibold shrink-0 transition">
@@ -1593,7 +1662,7 @@
           <div class="p-2.5 rounded-xl bg-[#f5f5f7] border border-black/[0.06] space-y-1.5">
             <div class="flex items-center justify-between gap-2">
               <span class="px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-700 text-[10px] font-bold"><i class="fa-solid fa-headphones mr-1"></i>${f.label}</span>
-              <span class="text-[11px] text-[#6e6e73] truncate">${f.original_name}</span>
+              <span class="text-[11px] text-[#6e6e73] truncate">${cleanDisplayName(f.original_name)}</span>
             </div>
             <audio controls preload="none" src="${fileUrl}" class="w-full h-8"></audio>
           </div>
@@ -1601,7 +1670,7 @@
       } else {
         return `
           <div class="p-2.5 rounded-xl bg-[#f5f5f7] border border-black/[0.06] flex items-center justify-between gap-2">
-            <span class="text-xs font-medium truncate"><strong class="text-[#0071e3]">[${f.label}]</strong> ${f.original_name}</span>
+            <span class="text-xs font-medium truncate"><strong class="text-[#0071e3]">[${f.label}]</strong> ${cleanDisplayName(f.original_name)}</span>
             <a href="${fileUrl}" target="_blank" class="text-[#0071e3] text-xs font-semibold hover:underline shrink-0">Descargar</a>
           </div>
         `;
@@ -1701,34 +1770,249 @@
       };
     }
 
+    const selectedAdminMatInstrument = {};
+
+    function getYtEmbed(url) {
+      if (!url) return null;
+      const match = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+      return match ? `https://www.youtube.com/embed/${match[1]}` : null;
+    }
+
+    function selectAdminInstrument(matId, label) {
+      selectedAdminMatInstrument[matId] = label;
+      const mat = materialsCache.find(item => Number(item.id) === Number(matId));
+      if (!mat) return;
+      const stageEl = document.getElementById(`adminSolStage-${matId}`);
+      const sideEl = document.getElementById(`adminSolSidebar-${matId}`);
+      if (stageEl) stageEl.innerHTML = renderAdminSolStage(mat, label);
+      if (sideEl) sideEl.innerHTML = renderAdminSolSidebar(mat, label);
+    }
+
+    function renderAdminSolSidebar(m, activeLabel) {
+      const files = m.files || [];
+      const labels = Array.from(new Set(files.map(f => f.label || 'General (Canción completa)')));
+      if (!labels.length) labels.push('General (Canción completa)');
+
+      return `
+        <div class="space-y-1.5">
+          <span class="block text-[10px] font-bold uppercase tracking-wider text-[#6e6e73] px-1">Instrumento / Parte</span>
+          <div class="flex flex-row lg:flex-col gap-1.5 overflow-x-auto pb-1 lg:pb-0">
+            ${labels.map(lbl => {
+              const isAct = lbl === activeLabel;
+              return `
+                <button type="button" onclick="selectAdminInstrument(${m.id}, '${lbl.replace(/'/g, "\'")}')"
+                  class="shrink-0 text-left px-3 py-2 rounded-xl text-xs font-semibold transition flex items-center justify-between gap-2 ${
+                    isAct
+                      ? 'bg-[#1d1d1f] text-white shadow-sm'
+                      : 'bg-[#f5f5f7] hover:bg-black/[0.06] text-[#1d1d1f]'
+                  }">
+                  <span class="truncate">${lbl}</span>
+                  <i class="fa-solid fa-chevron-right text-[10px] opacity-60 hidden lg:inline"></i>
+                </button>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderAdminSolStage(m, activeLabel) {
+      const ytEmbed = getYtEmbed(m.external_url);
+      const matchingFiles = (m.files || []).filter(f => (f.label || 'General (Canción completa)') === activeLabel);
+
+      return `
+        <div class="space-y-3">
+          ${ytEmbed ? `
+            <div class="aspect-video w-full rounded-2xl overflow-hidden bg-black">
+              <iframe src="${ytEmbed}" class="w-full h-full border-0" allowfullscreen></iframe>
+            </div>
+          ` : (m.external_url ? `
+            <a href="${m.external_url}" target="_blank"
+              class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-red-600/10 text-red-700 hover:bg-red-600/20 text-xs font-semibold transition">
+              <i class="fa-brands fa-youtube"></i> Abrir enlace de referencia
+            </a>
+          ` : '')}
+
+          <div class="p-3.5 rounded-2xl bg-[#f5f5f7]/80 border border-black/[0.06] space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-[#1d1d1f]">${activeLabel}</span>
+              <span class="text-[10px] text-[#6e6e73]">${matchingFiles.length} archivo(s)</span>
+            </div>
+            ${matchingFiles.length
+              ? matchingFiles.map(renderAttachmentAdmin).join('')
+              : '<p class="text-xs text-[#6e6e73] py-2">Sin archivos asignados a esta etiqueta aún.</p>'
+            }
+          </div>
+        </div>
+      `;
+    }
+
     async function loadMaterials() {
       const res = await fetch('/intranet/api/admin/materials', { headers: authHeaders() });
       materialsCache = await res.json();
-      document.getElementById('materialsList').innerHTML = materialsCache.map(m => `
-        <div class="p-4 sm:p-5 rounded-2xl bg-white/90 border border-black/[0.06] space-y-3">
-          <div class="flex items-start justify-between gap-3">
-            <div>
-              <span class="px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 text-[10px] font-semibold">[${m.category || 'Particulares'}] ${m.group_name || 'General'}</span>
-              <h4 class="text-sm font-bold text-[#1d1d1f] mt-1">${m.title}</h4>
-              ${m.description ? `<p class="text-xs text-[#6e6e73] mt-0.5">${m.description}</p>` : ''}
+      document.getElementById('materialsList').innerHTML = materialsCache.map(m => {
+        const isSol = m.category === 'Sol Music';
+        const files = m.files || [];
+        const defaultLbl = selectedAdminMatInstrument[m.id]
+          || (files[0] ? files[0].label : 'General (Canción completa)');
+        selectedAdminMatInstrument[m.id] = defaultLbl;
+
+        const bodyContent = isSol
+          ? `
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 pt-1">
+              <div class="lg:col-span-8" id="adminSolStage-${m.id}">
+                ${renderAdminSolStage(m, defaultLbl)}
+              </div>
+              <div class="lg:col-span-4" id="adminSolSidebar-${m.id}">
+                ${renderAdminSolSidebar(m, defaultLbl)}
+              </div>
             </div>
-            <button onclick="deleteMaterial(${m.id})" class="text-red-500 hover:text-red-700 text-xs p-1"><i class="fa-solid fa-trash"></i></button>
+          `
+          : `
+            ${m.external_url ? `
+              <div>
+                <a href="${m.external_url}" target="_blank"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-600/10 text-red-700 hover:bg-red-600/20 text-xs font-semibold transition">
+                  <i class="fa-brands fa-youtube"></i> Ver video / enlace de referencia
+                </a>
+              </div>` : ''}
+            ${files.length ? `<div class="space-y-2 pt-1">${files.map(renderAttachmentAdmin).join('')}</div>` : ''}
+          `;
+
+        return `
+          <div class="p-4 sm:p-5 rounded-2xl bg-white/90 border border-black/[0.06] space-y-3">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <span class="px-2.5 py-0.5 rounded-full ${isSol ? 'bg-amber-500/15 text-amber-800' : 'bg-indigo-500/10 text-indigo-700'} text-[10px] font-semibold">[${m.category || 'Particulares'}] ${m.group_name || 'General'}</span>
+                <h4 class="text-sm font-bold text-[#1d1d1f] mt-1">${m.title}</h4>
+                ${m.description ? `<p class="text-xs text-[#6e6e73] mt-0.5">${m.description}</p>` : ''}
+              </div>
+              <div class="flex items-center gap-1.5 shrink-0">
+                ${isSol ? `
+                  <button type="button" onclick="openEditMaterialModal(${m.id})" class="px-2.5 py-1 rounded-lg bg-[#0071e3]/10 hover:bg-[#0071e3]/20 text-[#0071e3] text-xs font-semibold transition" title="Editar canción">
+                    <i class="fa-solid fa-pen-to-square mr-1"></i> Editar
+                  </button>` : ''}
+                <button type="button" onclick="deleteMaterial(${m.id})" class="text-red-500 hover:text-red-700 text-xs p-1.5" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+              </div>
+            </div>
+
+            ${bodyContent}
+
+            ${renderConsultasAdmin(m)}
           </div>
-
-          ${m.external_url ? `
-            <div>
-              <a href="${m.external_url}" target="_blank"
-                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-600/10 text-red-700 hover:bg-red-600/20 text-xs font-semibold transition">
-                <i class="fa-brands fa-youtube"></i> Ver video / enlace de referencia
-              </a>
-            </div>` : ''}
-
-          ${m.files && m.files.length ? `<div class="space-y-2 pt-1">${m.files.map(renderAttachmentAdmin).join('')}</div>` : ''}
-
-          ${renderConsultasAdmin(m)}
-        </div>
-      `).join('') || '<p class="text-xs text-[#6e6e73] text-center py-8">Aún no hay materiales publicados.</p>';
+        `;
+      }).join('') || '<p class="text-xs text-[#6e6e73] text-center py-8">Aún no hay materiales publicados.</p>';
     }
+
+    let editDeletedFileIds = [];
+
+    function addEditFileRow(defaultLabel = '1ra Guitarra') {
+      const container = document.getElementById('editNewFileRows');
+      const row = document.createElement('div');
+      row.className = 'edit-new-file-row bg-white p-2 rounded-xl border border-black/10 flex flex-col sm:flex-row sm:items-center gap-2';
+      const opts = INSTRUMENT_OPTIONS.map(o => `<option value="${o}" ${o === defaultLabel ? 'selected' : ''}>${o}</option>`).join('');
+      row.innerHTML = `
+        <select class="edit-new-label bg-[#f5f5f7] border border-black/10 rounded-lg px-2.5 py-1.5 text-xs font-semibold sm:w-44 shrink-0">${opts}</select>
+        <input type="file" multiple accept=".pdf,.mp3,.wav,.ogg,.m4a,.doc,.docx,.zip,.gpx" class="edit-new-input flex-1 text-xs">
+        <button type="button" onclick="this.parentElement.remove()" class="text-red-500 px-2 py-1 text-xs"><i class="fa-solid fa-xmark"></i></button>
+      `;
+      container.appendChild(row);
+    }
+
+    function openEditMaterialModal(matId) {
+      const mat = materialsCache.find(item => Number(item.id) === Number(matId));
+      if (!mat) return;
+
+      editDeletedFileIds = [];
+      document.getElementById('editMatId').value = mat.id;
+      document.getElementById('editMatTitle').value = mat.title || '';
+      document.getElementById('editMatUrl').value = mat.external_url || '';
+      document.getElementById('editMatDesc').value = mat.description || '';
+      document.getElementById('editNewFileRows').innerHTML = '';
+
+      const listEl = document.getElementById('editExistingFilesList');
+      const files = mat.files || [];
+      if (!files.length) {
+        listEl.innerHTML = '<p class="text-xs text-[#6e6e73]">No hay archivos adjuntos en esta publicación.</p>';
+      } else {
+        listEl.innerHTML = files.map(f => {
+          const opts = INSTRUMENT_OPTIONS.map(o => `<option value="${o}" ${o === f.label ? 'selected' : ''}>${o}</option>`).join('');
+          return `
+            <div id="existingFileRow-${f.id}" class="flex flex-wrap items-center justify-between gap-2 bg-white p-2 rounded-xl border border-black/10 text-xs">
+              <select data-file-id="${f.id}" class="edit-existing-label bg-[#f5f5f7] border border-black/10 rounded-lg px-2 py-1 text-xs font-semibold">${opts}</select>
+              <span class="flex-1 truncate font-medium text-[#1d1d1f]">${cleanDisplayName(f.original_name)}</span>
+              <button type="button" onclick="markExistingFileDelete(${f.id})" class="text-red-600 hover:bg-red-50 px-2 py-1 rounded-lg text-xs" title="Quitar archivo">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          `;
+        }).join('');
+      }
+
+      document.getElementById('editMaterialModal').classList.remove('hidden');
+    }
+
+    function markExistingFileDelete(fileId) {
+      if (!editDeletedFileIds.includes(fileId)) editDeletedFileIds.push(fileId);
+      const row = document.getElementById(`existingFileRow-${fileId}`);
+      if (row) row.remove();
+    }
+
+    function closeEditMaterialModal() {
+      document.getElementById('editMaterialModal').classList.add('hidden');
+    }
+
+    document.getElementById('editMaterialForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const matId = document.getElementById('editMatId').value;
+      const btn = document.getElementById('btnSaveEditMat');
+      btn.disabled = true;
+      btn.innerText = 'Guardando...';
+
+      const formData = new FormData();
+      formData.append('title', document.getElementById('editMatTitle').value);
+      formData.append('external_url', document.getElementById('editMatUrl').value);
+      formData.append('description', document.getElementById('editMatDesc').value);
+      formData.append('deleted_file_ids', JSON.stringify(editDeletedFileIds));
+
+      const updatedMeta = [];
+      document.querySelectorAll('.edit-existing-label').forEach(sel => {
+        const fid = Number(sel.dataset.fileId);
+        if (!editDeletedFileIds.includes(fid)) {
+          updatedMeta.push({ id: fid, label: sel.value });
+        }
+      });
+      formData.append('updated_files_meta', JSON.stringify(updatedMeta));
+
+      const newLabels = [];
+      document.querySelectorAll('.edit-new-file-row').forEach(row => {
+        const inp = row.querySelector('.edit-new-input');
+        const sel = row.querySelector('.edit-new-label');
+        if (inp && inp.files && inp.files.length > 0) {
+          Array.from(inp.files).forEach(file => {
+            formData.append('files', file);
+            newLabels.push(sel.value);
+          });
+        }
+      });
+      formData.append('labels', JSON.stringify(newLabels));
+
+      const res = await fetch(`/intranet/api/admin/materials/${matId}`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+      });
+
+      btn.disabled = false;
+      btn.innerText = 'Guardar Cambios';
+      if (res.ok) {
+        closeEditMaterialModal();
+        loadMaterials();
+      } else {
+        const d = await res.json();
+        alert(d.error || 'Error guardando los cambios');
+      }
+    });
 
     document.getElementById('groupForm').addEventListener('submit', async (e) => {
       e.preventDefault();

@@ -639,6 +639,16 @@
       });
     }
 
+
+    function cleanStudentFileName(str) {
+      if (!str) return '';
+      try {
+        return decodeURIComponent(escape(str));
+      } catch {
+        return str;
+      }
+    }
+
     function renderStudentFile(f) {
       const fileUrl = `/intranet/api/files/${f.file_name}?token=${token}`;
       if (f.file_type === 'pdf') {
@@ -646,14 +656,14 @@
           <div class="p-3.5 rounded-2xl bg-[#f5f5f7] border border-black/[0.06] flex flex-wrap items-center justify-between gap-2">
             <div class="min-w-0">
               <span class="px-2 py-1.5 sm:py-0.5 rounded-lg sm:rounded-md bg-red-500/10 text-red-700 text-[10px] font-bold">${f.label}</span>
-              <p class="text-xs font-semibold text-[#1d1d1f] truncate mt-0.5">${f.original_name}</p>
+              <p class="text-xs font-semibold text-[#1d1d1f] truncate mt-0.5">${cleanStudentFileName(f.original_name)}</p>
             </div>
             <div class="flex items-center gap-1.5 shrink-0">
               <button type="button" onclick="openPdfModal('${fileUrl}', '${f.label} — ${f.original_name.replace(/'/g, '')}')"
                 class="px-3 py-1.5 rounded-full bg-red-600 hover:bg-red-700 text-white text-[11px] font-semibold transition">
                 <i class="fa-solid fa-eye mr-1"></i> Abrir PDF
               </button>
-              <a href="${fileUrl}" download="${f.original_name}"
+              <a href="${fileUrl}" download="${cleanStudentFileName(f.original_name)}"
                 class="px-3 py-1.5 rounded-full bg-black/5 hover:bg-black/10 text-[#1d1d1f] text-[11px] font-semibold transition">
                 <i class="fa-solid fa-download"></i>
               </a>
@@ -668,8 +678,8 @@
                 <i class="fa-solid fa-headphones mr-1"></i>Pista: ${f.label}
               </span>
               <div class="flex items-center gap-2">
-                <span class="text-[11px] text-[#6e6e73] truncate max-w-[180px]">${f.original_name}</span>
-                <a href="${fileUrl}" download="${f.original_name}" class="text-[11px] text-[#0071e3] font-semibold hover:underline shrink-0">
+                <span class="text-[11px] text-[#6e6e73] truncate max-w-[180px]">${cleanStudentFileName(f.original_name)}</span>
+                <a href="${fileUrl}" download="${cleanStudentFileName(f.original_name)}" class="text-[11px] text-[#0071e3] font-semibold hover:underline shrink-0">
                   <i class="fa-solid fa-download mr-0.5"></i> MP3
                 </a>
               </div>
@@ -701,8 +711,8 @@
       } else {
         return `
           <div class="p-3 rounded-xl bg-[#f5f5f7] border border-black/[0.06] flex items-center justify-between gap-2">
-            <span class="text-xs font-medium truncate"><strong class="text-[#0071e3]">[${f.label}]</strong> ${f.original_name}</span>
-            <a href="${fileUrl}" download="${f.original_name}" class="px-3 py-1 rounded-full bg-[#0071e3] text-white text-[11px] font-semibold shrink-0">
+            <span class="text-xs font-medium truncate"><strong class="text-[#0071e3]">[${f.label}]</strong> ${cleanStudentFileName(f.original_name)}</span>
+            <a href="${fileUrl}" download="${cleanStudentFileName(f.original_name)}" class="px-3 py-1 rounded-full bg-[#0071e3] text-white text-[11px] font-semibold shrink-0">
               Descargar
             </a>
           </div>
@@ -741,9 +751,104 @@
       `;
     }
 
+    const selectedStudentSongLabel = {};
+
+    function normalizeInstrumentMatch(stuInst, availableLabels) {
+      if (!stuInst || !availableLabels.length) return availableLabels[0] || 'General (Canción completa)';
+      const low = stuInst.toLowerCase();
+      // Buscar coincidencia directa o parcial (ej: "Bajo eléctrico" -> "Bajo", "Guitarra electrica" -> "Guitarra", "Piano" -> "Piano / Teclado")
+      const exact = availableLabels.find(l => l.toLowerCase() === low);
+      if (exact) return exact;
+      const partial = availableLabels.find(l => {
+        const ll = l.toLowerCase();
+        if (low.includes('guitarra') && ll.includes('guitarra')) return true;
+        if (low.includes('bajo') && ll.includes('bajo')) return true;
+        if (low.includes('piano') && ll.includes('piano')) return true;
+        if (low.includes('bater') && ll.includes('bater')) return true;
+        if (low.includes('sax') && ll.includes('sax')) return true;
+        if (low.includes('flauta') && ll.includes('flauta')) return true;
+        if ((low.includes('viol') || low.includes('cello')) && (ll.includes('cuerdas') || ll.includes(low))) return true;
+        return ll.includes(low) || low.includes(ll);
+      });
+      return partial || availableLabels[0];
+    }
+
+    function selectStudentSongLabel(matId, label) {
+      selectedStudentSongLabel[matId] = label;
+      const mat = (dashboardData.materials || []).find(item => Number(item.id) === Number(matId));
+      if (!mat) return;
+      const stage = document.getElementById(`stuSolStage-${matId}`);
+      const side = document.getElementById(`stuSolSidebar-${matId}`);
+      if (stage) stage.innerHTML = renderStudentSolStage(mat, label);
+      if (side) side.innerHTML = renderStudentSolSidebar(mat, label);
+    }
+
+    function renderStudentSolSidebar(m, activeLabel) {
+      const files = m.files || [];
+      const labels = Array.from(new Set(files.map(f => f.label || 'General (Canción completa)')));
+      if (!labels.length) labels.push('General (Canción completa)');
+
+      return `
+        <div class="p-3.5 rounded-2xl bg-[#f5f5f7] border border-black/[0.06] space-y-2">
+          <span class="block text-[10px] font-bold uppercase tracking-wider text-[#6e6e73]">Seleccionar pista / parte</span>
+          <div class="flex flex-row lg:flex-col gap-1.5 overflow-x-auto pb-1 lg:pb-0">
+            ${labels.map(lbl => {
+              const isAct = lbl === activeLabel;
+              return `
+                <button type="button" onclick="selectStudentSongLabel(${m.id}, '${lbl.replace(/'/g, "\'")}')"
+                  class="shrink-0 text-left px-3.5 py-2.5 rounded-xl text-xs font-semibold transition flex items-center justify-between gap-2 ${
+                    isAct
+                      ? 'bg-[#0071e3] text-white shadow-sm'
+                      : 'bg-white hover:bg-black/[0.04] text-[#1d1d1f] border border-black/[0.06]'
+                  }">
+                  <span class="truncate">${lbl}</span>
+                  <i class="fa-solid fa-music text-[10px] ${isAct ? 'text-white/90' : 'text-[#0071e3]'} hidden lg:inline"></i>
+                </button>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderStudentSolStage(m, activeLabel) {
+      const ytEmbed = getYouTubeEmbedUrl(m.external_url);
+      const matchingFiles = (m.files || []).filter(f => (f.label || 'General (Canción completa)') === activeLabel);
+
+      return `
+        <div class="space-y-4">
+          ${ytEmbed ? `
+            <div class="aspect-video w-full rounded-2xl overflow-hidden bg-black shadow-sm">
+              <iframe src="${ytEmbed}" class="w-full h-full border-0" allowfullscreen></iframe>
+            </div>
+          ` : (m.external_url ? `
+            <div>
+              <a href="${m.external_url}" target="_blank"
+                class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-black/5 hover:bg-black/10 text-[#1d1d1f] text-xs font-medium transition">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir enlace de referencia
+              </a>
+            </div>
+          ` : '')}
+
+          <div class="p-4 rounded-2xl bg-[#f5f5f7]/80 border border-black/[0.06] space-y-2.5">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-[#1d1d1f]">${activeLabel}</span>
+              <span class="text-[10px] font-semibold text-[#0071e3]">Material activo</span>
+            </div>
+            ${matchingFiles.length
+              ? `<div class="space-y-2.5">${matchingFiles.map(renderStudentFile).join('')}</div>`
+              : '<p class="text-xs text-[#6e6e73] py-2">No hay archivos cargados para esta sección todavía.</p>'
+            }
+          </div>
+        </div>
+      `;
+    }
+
     function renderMaterialsSection(materials) {
       document.getElementById('materialsCountBadge').innerText = `${materials.length} tema(s)`;
       const container = document.getElementById('studentMaterials');
+      const isSolMusic = (dashboardData && dashboardData.student && dashboardData.student.category === 'Sol Music');
+      const stuInstrument = dashboardData && dashboardData.student ? dashboardData.student.instrument : '';
 
       if (!materials.length) {
         container.innerHTML = '<p class="text-xs text-[#6e6e73] text-center py-10">Tu docente aún no ha subido materiales para este grupo.</p>';
@@ -755,16 +860,26 @@
         const notes = m.notes || [];
         const notesHtml = notes.map(renderSingleNoteBubble).join('');
 
-        return `
-          <div class="p-5 sm:p-6 rounded-2xl bg-white/95 border border-black/[0.06] space-y-4">
-            <div class="flex items-start justify-between gap-2">
-              <div>
-                <h3 class="text-base sm:text-lg font-bold text-[#1d1d1f]">${m.title}</h3>
-                ${m.description ? `<p class="text-xs text-[#6e6e73] mt-1 leading-relaxed">${m.description}</p>` : ''}
-              </div>
-              <span class="text-[10px] text-[#6e6e73] shrink-0">${new Date(m.created_at).toLocaleDateString('es-PE')}</span>
-            </div>
+        let contentBlock = '';
+        if (isSolMusic) {
+          const files = m.files || [];
+          const labels = Array.from(new Set(files.map(f => f.label || 'General (Canción completa)')));
+          if (!labels.length) labels.push('General (Canción completa)');
+          const activeLbl = selectedStudentSongLabel[m.id] || normalizeInstrumentMatch(stuInstrument, labels);
+          selectedStudentSongLabel[m.id] = activeLbl;
 
+          contentBlock = `
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 pt-1">
+              <div class="lg:col-span-8" id="stuSolStage-${m.id}">
+                ${renderStudentSolStage(m, activeLbl)}
+              </div>
+              <div class="lg:col-span-4" id="stuSolSidebar-${m.id}">
+                ${renderStudentSolSidebar(m, activeLbl)}
+              </div>
+            </div>
+          `;
+        } else {
+          contentBlock = `
             ${ytEmbed ? `
               <div class="aspect-video w-full rounded-2xl overflow-hidden bg-black">
                 <iframe src="${ytEmbed}" class="w-full h-full border-0" allowfullscreen></iframe>
@@ -780,6 +895,20 @@
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
                 ${m.files.map(renderStudentFile).join('')}
               </div>` : ''}
+          `;
+        }
+
+        return `
+          <div class="p-5 sm:p-6 rounded-2xl bg-white/95 border border-black/[0.06] space-y-4">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <h3 class="text-base sm:text-lg font-bold text-[#1d1d1f]">${m.title}</h3>
+                ${m.description ? `<p class="text-xs text-[#6e6e73] mt-1 leading-relaxed">${m.description}</p>` : ''}
+              </div>
+              <span class="text-[10px] text-[#6e6e73] shrink-0">${new Date(m.created_at).toLocaleDateString('es-PE')}</span>
+            </div>
+
+            ${contentBlock}
 
             <div class="pt-3 border-t border-black/[0.06] space-y-3">
               <div class="flex items-center justify-between">
