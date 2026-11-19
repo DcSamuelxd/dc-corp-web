@@ -731,9 +731,7 @@
         <div id="captureCard" style="width: 720px; background-color: #ffffff; color: #1d1d1f; padding: 28px; border-radius: 16px; border: 1px solid #e5e7eb; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', sans-serif;">
           <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid #e5e7eb; padding-bottom: 16px; margin-bottom: 18px;">
             <div style="display: flex; align-items: center; gap: 12px;">
-              <div style="width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, #0071e3 0%, #2563eb 100%); display: flex; align-items: center; justify-content: center; color: #ffffff; font-weight: 800; font-size: 15px; letter-spacing: -0.5px; flex-shrink: 0;">
-                DC
-              </div>
+              <img id="capLogoImg" src="/logo.svg" alt="DC CORP" crossorigin="anonymous" style="height: 44px; width: auto; max-width: 170px; object-fit: contain; flex-shrink: 0;">
               <div>
                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                   <span style="font-size: 15px; font-weight: 800; color: #1d1d1f; letter-spacing: -0.3px;">DC CORP</span>
@@ -1501,6 +1499,19 @@
       btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generando...';
 
       try {
+        const logoImg = document.getElementById('capLogoImg');
+        let originalLogoSrc = '';
+        if (logoImg && logoImg.complete && logoImg.naturalWidth > 0) {
+          originalLogoSrc = logoImg.src;
+          const tmpC = document.createElement('canvas');
+          const ratio = logoImg.naturalHeight ? (logoImg.naturalWidth / logoImg.naturalHeight) : 2.5;
+          tmpC.width = 360;
+          tmpC.height = Math.max(80, Math.round(360 / ratio));
+          const tctx = tmpC.getContext('2d');
+          tctx.drawImage(logoImg, 0, 0, tmpC.width, tmpC.height);
+          logoImg.src = tmpC.toDataURL('image/png');
+        }
+
         const canvas = await html2canvas(card, {
           scale: 2,
           backgroundColor: '#ffffff',
@@ -1546,6 +1557,10 @@
       } catch (err) {
         alert('Error al generar la imagen');
       } finally {
+        const logoImgRest = document.getElementById('capLogoImg');
+        if (logoImgRest && logoImgRest.src.startsWith('data:')) {
+          logoImgRest.src = '/logo.svg';
+        }
         btn.disabled = false;
         btn.innerHTML = '<i class="fa-solid fa-download"></i> Guardar / Compartir PNG';
       }
