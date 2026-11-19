@@ -1921,7 +1921,18 @@
       const q = (document.getElementById('dirStudentSearch')?.value || '').trim().toLowerCase();
       const selectedGroupId = document.getElementById('dirGroupFilter')?.value || '';
 
-      let filtered = studentsCache;
+      // Deduplicar estrictamente por ID de estudiante para que cada alumno aparezca una sola vez con todos sus subgrupos
+      const uniqueById = [];
+      const seenIds = new Set();
+      for (const item of (studentsCache || [])) {
+        const sid = Number(item.id);
+        if (!seenIds.has(sid)) {
+          seenIds.add(sid);
+          uniqueById.push(item);
+        }
+      }
+
+      let filtered = uniqueById;
       if (q) {
         filtered = filtered.filter(s =>
           (s.full_name || '').toLowerCase().includes(q) ||
