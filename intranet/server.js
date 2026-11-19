@@ -233,6 +233,7 @@ db.serialize(() => {
         [adminCode, 'Víctor Samuel Castro Delgado', hash]
       );
       console.log('Admin inicializado -> Usuario: admin | Clave: DcCorp2026!');
+  db.run(`UPDATE users SET is_faculty = 1 WHERE role = 'admin'`, () => {});
     }
   });
 });
@@ -434,7 +435,7 @@ app.get('/intranet/api/admin/teachers', authMiddleware, adminOnly, (req, res) =>
   db.all(
     `SELECT id, code, full_name, role, plain_hint, bio, avatar_file, whatsapp, specialty, is_faculty
      FROM users
-     WHERE role = 'teacher' OR (role = 'admin' AND is_faculty = 1)
+     WHERE role = 'teacher' OR role = 'admin'
      ORDER BY role ASC, full_name ASC`,
     [],
     (err, teachers) => res.json(teachers || [])
