@@ -575,17 +575,18 @@ app.get('/intranet/api/admin/students', authMiddleware, staffOnly, (req, res) =>
 
   let sql = `SELECT DISTINCT u.id, u.code, u.full_name, u.group_id, u.schedule, u.monthly_quota,
                     u.bio, u.avatar_file, u.plain_hint, u.instrument,
-                    g.name AS group_name, g.category
+                    gMain.name AS group_name, gMain.category
              FROM users u
+             LEFT JOIN groups gMain ON gMain.id = u.group_id
              LEFT JOIN student_groups sg ON sg.student_id = u.id
-             LEFT JOIN groups g ON g.id = COALESCE(sg.group_id, u.group_id)
+             LEFT JOIN groups gSub ON gSub.id = sg.group_id
              WHERE u.role = 'student'`;
   const params = [];
 
   if (req.user.role !== 'admin') {
     sql += ` AND g.category = 'Sol Music'`;
   } else if (category && category !== 'Todos') {
-    sql += ` AND g.category = ?`;
+    sql += ` AND (gMain.category = ? OR gSub.category = ?)`;
     params.push(category);
   }
 
