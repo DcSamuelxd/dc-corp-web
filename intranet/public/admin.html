@@ -733,7 +733,7 @@
             <div class="flex items-center gap-3 min-w-0">
               <img src="/logo.svg" alt="DC CORP" class="h-10 w-auto shrink-0" crossorigin="anonymous">
               <div class="min-w-0">
-                <div id="capScopeBadge" class="inline-block px-2.5 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[10px] font-bold uppercase tracking-wide whitespace-nowrap">Reporte General</div>
+                <div id="capScopeBadge" class="px-3 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[10px] font-bold uppercase tracking-wide whitespace-nowrap" style="display:inline-block;line-height:1.3;padding-top:4px;padding-bottom:5px;">Reporte General</div>
                 <h4 class="text-base font-bold tracking-tight text-[#1d1d1f] mt-1 leading-snug">Reporte Diario de Asistencias</h4>
               </div>
             </div>
@@ -1436,7 +1436,7 @@
                       ${item.note ? ` • "${item.note}"` : ''}
                     </p>
                   </div>
-                  <span class="inline-flex items-center justify-center px-3 py-1.5 rounded-full text-[10px] font-bold border leading-none whitespace-nowrap shrink-0 ${badgeColors[styleKey] || 'bg-gray-100 text-gray-800 border-gray-200'}">
+                  <span class="px-3.5 py-1.5 rounded-full text-[10px] font-bold border whitespace-nowrap shrink-0 ${badgeColors[styleKey] || 'bg-gray-100 text-gray-800 border-gray-200'}" style="display:inline-block;line-height:1.25;padding-top:5px;padding-bottom:6px;">
                     ${statusText}
                   </span>
                 </div>
@@ -1840,18 +1840,13 @@
     }
 
     async function openAdminAsFacultyModal() {
-      // Buscar el registro del admin actual vía /intranet/api/admin/teachers o abrir directamente con los datos del admin
       const res = await fetch('/intranet/api/admin/teachers', { headers: authHeaders() });
       const list = await res.json();
-      const selfEntry = list.find(x => x.role === 'admin');
+      teachersCache = list || [];
+      const selfEntry = teachersCache.find(x => x.role === 'admin');
       if (selfEntry) {
         openTeacherProfileModal(selfEntry.id);
-        return;
       }
-
-      // Si aún no tiene is_faculty=1, activar primero y abrir modal
-      await fetch('/intranet/api/admin/students', { headers: authHeaders() });
-      alert('Usa el formulario de "Registrar Docente" o selecciona tu tarjeta una vez aparezca tu usuario.');
     }
 
     function closeTeacherProfileModal() {
