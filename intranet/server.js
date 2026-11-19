@@ -394,7 +394,7 @@ app.get('/intranet/api/admin/students', authMiddleware, staffOnly, (req, res) =>
   const { group_id, category } = req.query;
 
   if (req.user.role === 'admin') {
-    let sql = `SELECT u.id, u.code, u.full_name, u.group_id, u.schedule, u.monthly_quota, u.bio, u.avatar_file, u.plain_hint, u.instrument,
+    let sql = `SELECT u.id, u.code, u.full_name, u.group_id, u.schedule, u.monthly_quota, u.bio, u.avatar_file, u.instrument, u.plain_hint, u.instrument,
                       g.name AS group_name, g.category
                FROM users u LEFT JOIN groups g ON u.group_id = g.id
                WHERE u.role = 'student'`;
@@ -410,7 +410,7 @@ app.get('/intranet/api/admin/students', authMiddleware, staffOnly, (req, res) =>
     sql += ` ORDER BY u.full_name ASC`;
     db.all(sql, params, (err, rows) => res.json(rows || []));
   } else {
-    let sql = `SELECT u.id, u.code, u.full_name, u.group_id, u.schedule, u.monthly_quota, u.bio, u.avatar_file, u.plain_hint, u.instrument,
+    let sql = `SELECT u.id, u.code, u.full_name, u.group_id, u.schedule, u.monthly_quota, u.bio, u.avatar_file, u.instrument, u.plain_hint, u.instrument,
                       g.name AS group_name, g.category
                FROM users u
                INNER JOIN groups g ON u.group_id = g.id
@@ -831,6 +831,93 @@ app.post('/intranet/api/admin/materials', authMiddleware, staffOnly, upload.arra
   });
 });
 
+
+// ================= EDITAR MATERIAL / CANCIÓN (SIN BORRAR LA PUBLICACIÓN) =================
+app.put('/intranet/api/admin/materials/:id', authMiddleware, staffOnly, upload.array('files', 30), (req, res) => {
+  const materialId = req.params.id;
+  const { title, description, external_url, deleted_file_ids, updated_files_meta, labels } = req.body;
+
+  if (!title || !title.trim()) {
+    return res.status(400).json({ error: 'El título es obligatorio' });
+  }
+
+  db.get(`SELECT id, group_id FROM materials WHERE id = ?`, [materialId], (err, mat) => {
+    if (err || !mat) return res.status(404).json({ error: 'Material no encontrado' });
+
+    verifyGroupAccess(req.user, mat.group_id, (allowed) => {
+      if (!allowed) return res.status(403).json({ error: 'Sin permiso sobre este material' });
+
+      db.run(
+        `UPDATE materials SET title = ?, description = ?, external_url = ? WHERE id = ?`,
+        [title.trim(), (description || '').trim(), (external_url || '').trim(), materialId],
+        (errUp) => {
+          if (errUp) return res.status(500).json({ error: 'Error actualizando el material' });
+
+          let delIds = [];
+          try { delIds = deleted_file_ids ? JSON.parse(deleted_file_ids) : []; } catch { delIds = []; }
+
+          let updMeta = [];
+          try { updMeta = updated_files_meta ? JSON.parse(updated_files_meta) : []; } catch { updMeta = []; }
+
+          let newLabels = [];
+          try { newLabels = labels ? JSON.parse(labels) : []; } catch { newLabels = []; }
+
+          const processUpdatesAndUploads = () => {
+            if (Array.isArray(updMeta) && updMeta.length) {
+              const uStmt = db.prepare(`UPDATE material_files SET label = ? WHERE id = ? AND material_id = ?`);
+              updMeta.forEach(item => {
+                if (item && item.id && item.label) {
+                  uStmt.run(item.label.trim(), item.id, materialId);
+                }
+              });
+              uStmt.finalize();
+            }
+
+            const uploadedFiles = req.files || [];
+            if (uploadedFiles.length) {
+              const iStmt = db.prepare(
+                `INSERT INTO material_files (material_id, label, file_name, original_name, file_type) VALUES (?, ?, ?, ?, ?)`
+              );
+              uploadedFiles.forEach((f, idx) => {
+                const ext = path.extname(f.originalname || '').toLowerCase();
+                const fType = ext === '.pdf'
+                  ? 'pdf'
+                  : (['.mp3', '.wav', '.ogg', '.m4a', '.aac'].includes(ext) ? 'audio' : 'other');
+                const lbl = (newLabels[idx] && newLabels[idx].trim()) ? newLabels[idx].trim() : 'General';
+                iStmt.run(materialId, lbl, f.filename, f.originalname, fType);
+              });
+              iStmt.finalize(() => res.json({ ok: true }));
+            } else {
+              res.json({ ok: true });
+            }
+          };
+
+          if (Array.isArray(delIds) && delIds.length) {
+            const placeholders = delIds.map(() => '?').join(',');
+            db.all(
+              `SELECT id, file_name FROM material_files WHERE material_id = ? AND id IN (${placeholders})`,
+              [materialId, ...delIds],
+              (errF, rowsToDel) => {
+                (rowsToDel || []).forEach(rf => {
+                  const fullP = path.join(uploadsDir, rf.file_name);
+                  if (fs.existsSync(fullP)) fs.unlinkSync(fullP);
+                });
+                db.run(
+                  `DELETE FROM material_files WHERE material_id = ? AND id IN (${placeholders})`,
+                  [materialId, ...delIds],
+                  () => processUpdatesAndUploads()
+                );
+              }
+            );
+          } else {
+            processUpdatesAndUploads();
+          }
+        }
+      );
+    });
+  });
+});
+
 app.delete('/intranet/api/admin/materials/:id', authMiddleware, staffOnly, (req, res) => {
   db.get(`SELECT group_id, file_name FROM materials WHERE id = ?`, [req.params.id], (err, row) => {
     if (!row) return res.status(404).json({ error: 'Material no encontrado' });
@@ -908,7 +995,7 @@ app.get('/intranet/api/admin/backup', authMiddleware, adminOnly, (req, res) => {
 
 app.get('/intranet/api/student/dashboard', authMiddleware, (req, res) => {
   db.get(
-    `SELECT u.id, u.code, u.full_name, u.group_id, u.schedule, u.monthly_quota, u.bio, u.avatar_file,
+    `SELECT u.id, u.code, u.full_name, u.group_id, u.schedule, u.monthly_quota, u.bio, u.avatar_file, u.instrument,
             g.name AS group_name, g.category, g.description AS group_desc
      FROM users u LEFT JOIN groups g ON u.group_id = g.id WHERE u.id = ?`,
     [req.user.id],
