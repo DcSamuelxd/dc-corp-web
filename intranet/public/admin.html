@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
   <meta name="theme-color" content="#f5f5f7">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -85,17 +85,17 @@
         <i class="fa-solid fa-calendar-week mr-1.5 text-[#0071e3]"></i> Asistencia Semanal
       </button>
       <button onclick="switchTab('materiales')" id="tab-materiales" class="tab-btn px-5 py-2 rounded-xl text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition relative">
-        <i class="fa-solid fa-folder-plus mr-1.5 text-indigo-600"></i> Materiales y Consultas
+        <i class="fa-solid fa-chalkboard mr-1.5 text-indigo-600"></i> Aulas y Materiales
         <span id="unreadChatDot" class="hidden ml-1.5 px-1.5 py-0.2 rounded-full bg-red-600 text-white text-[9px] font-bold">Nuevo</span>
       </button>
       <button onclick="switchTab('alumnos')" id="tab-alumnos" class="tab-btn px-5 py-2 rounded-xl text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition">
-        <i class="fa-solid fa-users mr-1.5 text-emerald-600"></i> Alumnado
+        <i class="fa-solid fa-users mr-1.5 text-emerald-600"></i> Subgrupos y Alumnado
       </button>
       <button onclick="switchTab('avisos')" id="tab-avisos" class="tab-btn px-5 py-2 rounded-xl text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition">
         <i class="fa-solid fa-bullhorn mr-1.5 text-rose-600"></i> Avisos
       </button>
       <button onclick="switchTab('profesores')" id="tab-profesores" class="admin-only-tab tab-btn px-5 py-2 rounded-xl text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition">
-        <i class="fa-solid fa-chalkboard-user mr-1.5 text-amber-600"></i> Profesores
+        <i class="fa-solid fa-chalkboard-user mr-1.5 text-amber-600"></i> Plana Docente
       </button>
     </div>
 
@@ -106,13 +106,13 @@
           <div>
             <h2 class="text-xl font-bold tracking-tight">Control Semanal de Asistencias</h2>
             <p class="text-xs text-[#6e6e73] mt-1">
-              Haz clic en cualquier día de la semana para marcar asistencia normal, recuperación o reforzamiento con hora de llegada.
+              Marca asistencia regular, recuperación o reforzamiento con hora de llegada. Los alumnos en múltiples subgrupos aparecen en cada uno que cursen.
             </p>
           </div>
 
           <div class="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 w-full lg:w-auto min-w-0">
             <div class="w-full sm:w-auto min-w-0">
-              <label class="block text-[10px] font-medium text-[#6e6e73] mb-1">Grupo / Subgrupo</label>
+              <label class="block text-[10px] font-medium text-[#6e6e73] mb-1">Aula / Subgrupo</label>
               <select id="attGroupSelect" onchange="loadWeeklyGrid()" class="w-full sm:w-64 max-w-full truncate bg-white border border-black/10 rounded-xl px-3.5 py-2 text-xs font-semibold"></select>
             </div>
 
@@ -148,7 +148,7 @@
               <i class="fa-solid fa-magnifying-glass"></i>
             </span>
             <input type="search" id="attStudentSearch" oninput="filterAttendanceStudents()"
-              placeholder="Buscar alumno en este grupo..."
+              placeholder="Buscar alumno en este subgrupo..."
               class="w-full bg-white border border-black/10 rounded-xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:border-[#0071e3]">
           </div>
         </div>
@@ -178,20 +178,20 @@
       </div>
     </section>
 
-    <!-- ==================== SECCIÓN 2: SUBIR MATERIALES MÚLTIPLES Y CHAT EN VIVO ==================== -->
+    <!-- ==================== SECCIÓN 2: AULAS Y MATERIALES (ESTILO CLASSROOM) ==================== -->
     <section id="panel-materiales" class="hidden space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         <div class="lg:col-span-5 glass-bento p-6 sm:p-8 h-fit">
           <h2 class="text-lg font-bold mb-1">Publicar Material o Canción de Estudio</h2>
           <p class="text-xs text-[#6e6e73] mb-5">
-            Selecciona varios archivos a la vez dentro de la misma fila (por ejemplo, PDF y MP3 de 1ra Guitarra juntos) o agrega tantas filas como necesites.
+            Selecciona varios archivos dentro de cada fila (por ejemplo, PDF y MP3 de 1ra Guitarra juntos) y elige el aula o subgrupo destino.
           </p>
 
           <form id="materialForm" class="space-y-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label class="block text-xs font-medium text-[#6e6e73] mb-1">Grupo / Subgrupo destino *</label>
+                <label class="block text-xs font-medium text-[#6e6e73] mb-1">Aula / Subgrupo destino *</label>
                 <select id="matGroupSelect" required class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs font-medium"></select>
               </div>
               <div>
@@ -215,7 +215,7 @@
 
             <div class="p-4 rounded-2xl bg-[#f5f5f7] border border-black/[0.06] space-y-3">
               <div class="flex flex-wrap items-center justify-between gap-2">
-                <span class="text-xs font-bold text-[#1d1d1f]">Archivos adjuntos (puedes elegir PDF y MP3 juntos en cada fila)</span>
+                <span class="text-xs font-bold text-[#1d1d1f]">Archivos adjuntos</span>
                 <button type="button" onclick="addFileRow()"
                   class="px-3 py-1.5 rounded-full bg-[#0071e3]/10 hover:bg-[#0071e3]/20 text-[#0071e3] text-[11px] font-semibold transition">
                   + Agregar fila
@@ -226,7 +226,7 @@
                 <span class="text-[10px] text-[#6e6e73] mr-1">Plantilla rápida:</span>
                 <button type="button" onclick="loadSongPreset()"
                   class="px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 text-[10px] font-semibold transition">
-                  <i class="fa-solid fa-music mr-1"></i> Cargar pistas de banda (General, Guitarras, Bajo, Piano, Batería, Voz)
+                  <i class="fa-solid fa-music mr-1"></i> Cargar pistas de banda
                 </button>
               </div>
 
@@ -234,27 +234,40 @@
             </div>
 
             <button type="submit" id="btnUploadMat" class="w-full py-3 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold transition shadow-sm">
-              <i class="fa-solid fa-cloud-arrow-up mr-1.5"></i> Publicar Material Completo
+              <i class="fa-solid fa-cloud-arrow-up mr-1.5"></i> Publicar Material en el Aula
             </button>
           </form>
         </div>
 
-        <div class="lg:col-span-7 glass-bento p-6 sm:p-8">
-          <h2 class="text-lg font-bold mb-4">Materiales Publicados y Consultas en Vivo</h2>
+        <div class="lg:col-span-7 space-y-5">
+          <!-- Selector de Aula estilo Google Classroom -->
+          <div class="glass-bento p-5 sm:p-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-600">Tablero de Aulas</span>
+                <h2 class="text-lg font-bold tracking-tight" id="classroomHeaderTitle">Todas las aulas</h2>
+                <p class="text-xs text-[#6e6e73]" id="classroomHeaderMeta">Selecciona un aula para ver su horario, alumnos y materiales.</p>
+              </div>
+              <select id="classroomGroupFilter" onchange="onClassroomGroupFilterChange()" class="bg-white border border-black/10 rounded-xl px-3.5 py-2 text-xs font-semibold min-w-[210px]">
+                <option value="">Todas las aulas / subgrupos</option>
+              </select>
+            </div>
+          </div>
+
           <div id="materialsList" class="space-y-4"></div>
         </div>
 
       </div>
     </section>
 
-    <!-- ==================== SECCIÓN 3: ALUMNADO + ENVÍO RÁPIDO WHATSAPP ==================== -->
+    <!-- ==================== SECCIÓN 3: SUBGRUPOS Y ALUMNADO ==================== -->
     <section id="panel-alumnos" class="hidden space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         <div class="lg:col-span-5 space-y-6">
           <div class="glass-bento p-6">
             <h3 id="groupCardTitle" class="text-base font-bold mb-1">1. Crear Grupo o Subgrupo</h3>
-            <p id="groupCardSubtitle" class="text-xs text-[#6e6e73] mb-4">Clasifica cada curso en Particulares o Sol Music.</p>
+            <p id="groupCardSubtitle" class="text-xs text-[#6e6e73] mb-4">Define modalidad, nombre, horario y descripción.</p>
             <form id="groupForm" class="space-y-3">
               <div id="groupCategoryWrapper">
                 <label class="block text-[11px] font-medium text-[#6e6e73] mb-1">Modalidad / División *</label>
@@ -263,23 +276,31 @@
                   <option value="Sol Music">Sol Music (Academia)</option>
                 </select>
               </div>
-              <input type="text" id="groupName" required placeholder="Ej: Guitarras, Piano, Cuerdas, Cajón..." class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
+              <input type="text" id="groupName" required placeholder="Ej: SOL MUSIC - HUERTOS - BASICO" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
+              <input type="text" id="groupSchedule" placeholder="Horario del subgrupo (Ej: Sábados 10am - 12pm)" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
               <input type="text" id="groupDesc" placeholder="Descripción breve (opcional)" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
               <button type="submit" id="btnCreateGroup" class="w-full py-2.5 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition">
-                + Agregar Grupo
+                + Agregar Subgrupo
               </button>
             </form>
-            <div id="groupsTags" class="flex flex-wrap gap-2 mt-4 pt-4 border-t border-black/[0.06]"></div>
+
+            <!-- Tarjetas interactivas de Subgrupos (no lista simple) -->
+            <div id="groupsCardsGrid" class="space-y-2.5 mt-5 pt-4 border-t border-black/[0.06]"></div>
           </div>
 
           <div class="glass-bento p-6">
             <h3 class="text-base font-bold mb-1">2. Registrar Estudiante</h3>
-            <p class="text-xs text-[#6e6e73] mb-4">Al registrarlo podrás enviarle sus credenciales por WhatsApp en un clic.</p>
+            <p class="text-xs text-[#6e6e73] mb-4">Puedes marcar uno o varios subgrupos a la vez (ej: Básicos e Intermedios).</p>
             <form id="studentForm" class="space-y-3">
               <input type="text" id="stuName" required placeholder="Nombre completo del estudiante" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
               <input type="text" id="stuCode" required placeholder="Usuario o DNI de acceso (ej: 74859612)" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
               <input type="text" id="stuPass" required placeholder="Contraseña inicial (ej: Alumno2026)" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
-              <select id="stuGroupSelect" required class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs font-medium"></select>
+
+              <div>
+                <label class="block text-[11px] font-medium text-[#6e6e73] mb-1.5">Subgrupos asignados (selecciona uno o más) *</label>
+                <div id="stuGroupsChecklist" class="p-3 rounded-xl bg-[#f5f5f7] border border-black/10 max-h-40 overflow-y-auto space-y-1.5 text-xs"></div>
+              </div>
+
               <div>
                 <label class="block text-[11px] font-medium text-[#6e6e73] mb-1">Especialidad Musical *</label>
                 <select id="stuInstrument" required class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs font-semibold">
@@ -325,7 +346,6 @@
             </div>
           </div>
 
-          <!-- Filtros limpios: Buscador + Selector de Subgrupo específico -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-5">
             <div class="relative">
               <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-[#6e6e73] text-xs">
@@ -347,10 +367,10 @@
             <table class="w-full text-left border-collapse">
               <thead>
                 <tr class="border-b border-black/[0.08] text-[11px] uppercase text-[#6e6e73]">
-                  <th class="py-2.5 px-2">Estudiante / Horario</th>
+                  <th class="py-2.5 px-2">Estudiante / Especialidad</th>
                   <th class="py-2.5 px-2">Acceso</th>
-                  <th class="py-2.5 px-2">Subgrupo</th>
-                  <th class="py-2.5 px-2 text-right">WhatsApp / Acción</th>
+                  <th class="py-2.5 px-2">Subgrupos</th>
+                  <th class="py-2.5 px-2 text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody id="studentsTableBody" class="text-xs divide-y divide-black/[0.05]"></tbody>
@@ -361,29 +381,46 @@
       </div>
     </section>
 
-    <!-- ==================== SECCIÓN 4: PROFESORES (SOLO ADMIN) ==================== -->
+    <!-- ==================== SECCIÓN 4: PLANA DOCENTE INTERACTIVA ==================== -->
     <section id="panel-profesores" class="hidden space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        <div class="lg:col-span-5 glass-bento p-6 sm:p-8 h-fit">
-          <h3 class="text-base font-bold mb-1">Registrar Docente Sol Music</h3>
-          <p class="text-xs text-[#6e6e73] mb-4">Crea cuentas para docentes (ej: Prof. Diosdi, Prof. Gabriel, Prof. Jhona).</p>
-          <form id="teacherForm" class="space-y-3">
-            <input type="text" id="teaName" required placeholder="Nombre del profesor (ej: Prof. Diosdi)" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
-            <input type="text" id="teaCode" required placeholder="Usuario de acceso (ej: diosdi)" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
-            <input type="text" id="teaPass" required placeholder="Contraseña inicial" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
-            <button type="submit" class="w-full py-2.5 rounded-full bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold transition">
-              + Crear Cuenta de Profesor
-            </button>
-          </form>
+        <div class="lg:col-span-5 space-y-6">
+          <div class="glass-bento p-6 sm:p-7 h-fit space-y-4">
+            <div>
+              <h3 class="text-base font-bold">Registrar Docente</h3>
+              <p class="text-xs text-[#6e6e73] mt-0.5">Crea cuentas para profesores con especialidad, descripción y WhatsApp.</p>
+            </div>
+            <form id="teacherForm" class="space-y-3">
+              <input type="text" id="teaName" required placeholder="Nombre completo del profesor" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
+              <input type="text" id="teaSpecialty" placeholder="Especialidad o cargo (Ej: Guitarra y Percusión)" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
+              <input type="text" id="teaWhatsapp" placeholder="WhatsApp con código de país (Ej: 51987654321)" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
+              <input type="text" id="teaCode" required placeholder="Usuario de acceso (ej: diosdi)" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
+              <input type="text" id="teaPass" required placeholder="Contraseña inicial" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
+              <textarea id="teaBio" rows="2" placeholder="Descripción o trayectoria docente..." class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2 text-xs resize-none"></textarea>
+              <button type="submit" class="w-full py-2.5 rounded-full bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold transition">
+                + Crear Cuenta de Profesor
+              </button>
+            </form>
+          </div>
         </div>
 
-        <div class="lg:col-span-7 glass-bento p-6 sm:p-8">
-          <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-bold">Plana Docente Sol Music</h3>
-            <span id="teacherCount" class="text-xs font-semibold text-amber-600">0 profesores</span>
+        <div class="lg:col-span-7 glass-bento p-6 sm:p-8 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-black/[0.06]">
+            <div>
+              <h3 class="text-lg font-bold">Plana Docente Interactiva</h3>
+              <p class="text-xs text-[#6e6e73]">Toca cualquier tarjeta para ver su perfil completo, editarlo o contactar por WhatsApp.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="openAdminAsFacultyModal()"
+                class="px-3.5 py-1.5 rounded-full bg-[#0071e3]/10 hover:bg-[#0071e3]/20 text-[#0071e3] text-xs font-semibold transition">
+                <i class="fa-solid fa-user-plus mr-1"></i> Mi Perfil Docente
+              </button>
+              <span id="teacherCount" class="text-xs font-semibold text-amber-700 bg-amber-500/15 px-3 py-1 rounded-full">0 docentes</span>
+            </div>
           </div>
-          <div id="teachersList" class="space-y-3"></div>
+
+          <div id="teachersList" class="grid grid-cols-1 md:grid-cols-2 gap-3.5"></div>
         </div>
 
       </div>
@@ -430,7 +467,6 @@
             </button>
           </form>
 
-          <!-- Tarjeta de Respaldo SQLite para Administrador -->
           <div class="admin-only-tab pt-4 border-t border-black/[0.06] space-y-2">
             <p class="text-xs font-bold text-[#1d1d1f]">Respaldo de Base de Datos</p>
             <p class="text-[11px] text-[#6e6e73]">Descarga una copia completa de alumnos, asistencias, materiales y mensajes.</p>
@@ -449,6 +485,118 @@
     </section>
 
   </main>
+
+  <!-- ==================== MODAL EDITAR SUBGRUPO + VER ALUMNOS ==================== -->
+  <div id="editGroupModal" class="hidden fixed inset-0 z-50 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto" onclick="if(event.target===this) closeEditGroupModal()">
+    <div class="glass-bento p-6 sm:p-7 max-w-lg w-full bg-white my-auto space-y-5 relative">
+      <button type="button" onclick="closeEditGroupModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 text-[#1d1d1f] flex items-center justify-center">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div>
+        <span class="px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 text-[11px] font-semibold">Aula / Subgrupo</span>
+        <h3 id="editGroupModalTitle" class="text-lg font-bold text-[#1d1d1f] mt-1">Editar Subgrupo</h3>
+        <p class="text-xs text-[#6e6e73]">Modifica datos, horario o revisa los estudiantes inscritos en este subgrupo.</p>
+      </div>
+
+      <form id="editGroupForm" class="space-y-3">
+        <input type="hidden" id="editGroupId">
+        <div id="editGroupCategoryWrap">
+          <label class="block text-[11px] font-semibold text-[#6e6e73] mb-1">Modalidad *</label>
+          <select id="editGroupCategory" class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2 text-xs font-semibold">
+            <option value="Particulares">Particulares</option>
+            <option value="Sol Music">Sol Music</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-[#6e6e73] mb-1">Nombre del subgrupo *</label>
+          <input type="text" id="editGroupName" required class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2 text-xs">
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-[#6e6e73] mb-1">Horario de clase</label>
+          <input type="text" id="editGroupSchedule" placeholder="Ej: Martes y Jueves 4pm - 5:30pm" class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2 text-xs">
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-[#6e6e73] mb-1">Descripción</label>
+          <input type="text" id="editGroupDesc" class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2 text-xs">
+        </div>
+        <div class="flex justify-end gap-2 pt-1">
+          <button type="button" onclick="closeEditGroupModal()" class="px-4 py-2 rounded-full text-xs font-medium text-[#6e6e73]">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition">Guardar Subgrupo</button>
+        </div>
+      </form>
+
+      <div class="pt-4 border-t border-black/[0.06] space-y-2">
+        <span class="block text-xs font-bold text-[#1d1d1f]">Alumnos dentro de este subgrupo</span>
+        <div id="editGroupStudentsPreview" class="max-h-40 overflow-y-auto space-y-1.5 text-xs"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL PERFIL Y EDICIÓN DOCENTE ==================== -->
+  <div id="teacherProfileModal" class="hidden fixed inset-0 z-50 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto" onclick="if(event.target===this) closeTeacherProfileModal()">
+    <div class="glass-bento p-6 sm:p-7 max-w-lg w-full bg-white my-auto space-y-5 relative">
+      <button type="button" onclick="closeTeacherProfileModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 text-[#1d1d1f] flex items-center justify-center">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="flex items-center gap-4 pt-1">
+        <img id="tpAvatarImg" src="" alt="Docente" class="w-16 h-16 rounded-2xl object-cover border border-black/10 hidden">
+        <div id="tpAvatarFallback" class="w-16 h-16 rounded-2xl bg-amber-600 text-white flex items-center justify-center text-xl font-bold shrink-0">D</div>
+        <div class="min-w-0">
+          <h3 id="tpModalName" class="text-lg font-bold text-[#1d1d1f] truncate">Docente</h3>
+          <p id="tpModalSub" class="text-xs text-[#6e6e73]"></p>
+          <div class="flex flex-wrap items-center gap-2 mt-1.5">
+            <a id="tpWaLink" href="#" target="_blank" class="hidden px-3 py-1 rounded-full bg-emerald-600 text-white text-[11px] font-semibold inline-flex items-center gap-1">
+              <i class="fa-brands fa-whatsapp"></i> Chatear por WhatsApp
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Subida de foto del docente -->
+      <div class="p-3.5 rounded-2xl bg-[#f5f5f7] border border-black/[0.06] flex flex-wrap items-center justify-between gap-2">
+        <input type="file" id="tpAvatarInput" accept="image/jpeg,image/png,image/webp,image/gif" class="text-xs flex-1 min-w-0">
+        <button type="button" onclick="uploadTeacherAvatar()" class="px-3.5 py-1.5 rounded-full bg-[#1d1d1f] text-white text-xs font-semibold shrink-0">
+          Subir Foto
+        </button>
+      </div>
+
+      <form id="teacherEditForm" class="space-y-3">
+        <input type="hidden" id="tpUserId">
+        <div>
+          <label class="block text-[11px] font-semibold text-[#6e6e73] mb-1">Nombre completo *</label>
+          <input type="text" id="tpFullName" required class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2 text-xs">
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div>
+            <label class="block text-[11px] font-semibold text-[#6e6e73] mb-1">Especialidad o cargo</label>
+            <input type="text" id="tpSpecialty" class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2 text-xs">
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-[#6e6e73] mb-1">WhatsApp (ej: 51999888777)</label>
+            <input type="text" id="tpWhatsapp" class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2 text-xs">
+          </div>
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-[#6e6e73] mb-1">Usuario de acceso</label>
+          <input type="text" id="tpCode" class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2 text-xs font-mono">
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-[#6e6e73] mb-1">Descripción y perfil docente</label>
+          <textarea id="tpBio" rows="3" class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2 text-xs resize-none"></textarea>
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-[#6e6e73] mb-1">Nueva contraseña (opcional)</label>
+          <input type="text" id="tpNewPass" placeholder="Dejar vacío para no cambiar" class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2 text-xs font-mono">
+        </div>
+        <div class="flex justify-end gap-2 pt-1">
+          <button type="button" onclick="closeTeacherProfileModal()" class="px-4 py-2 rounded-full text-xs font-medium text-[#6e6e73]">Cerrar</button>
+          <button type="submit" class="px-5 py-2 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold transition">Guardar Perfil Docente</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- ==================== MODAL VISOR PDF INTEGRADO ==================== -->
   <div id="pdfViewerModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6">
@@ -551,14 +699,14 @@
       <div class="flex flex-wrap items-center justify-between gap-3 border-b border-black/[0.07] pb-4">
         <div>
           <h3 class="text-lg font-bold text-[#1d1d1f]">Exportar Asistencias del Día</h3>
-          <p class="text-xs text-[#6e6e73]">Descarga la imagen PNG o envía el resumen de texto directo por WhatsApp</p>
+          <p class="text-xs text-[#6e6e73]">Guarda o comparte la imagen PNG desde PC o celular</p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
           <input type="date" id="exportDatePicker" onchange="loadDailyExportPreview()"
             class="bg-[#f5f5f7] border border-black/10 rounded-xl px-3 py-1.5 text-xs font-semibold">
           <button type="button" id="btnDownloadPng" onclick="downloadDailyPng()"
             class="px-3.5 py-2 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold shadow-sm inline-flex items-center gap-1.5 transition">
-            <i class="fa-solid fa-download"></i> Imagen PNG
+            <i class="fa-solid fa-download"></i> Guardar / Compartir PNG
           </button>
           <button type="button" onclick="sendDailyReportWhatsApp()"
             class="px-3.5 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-sm inline-flex items-center gap-1.5 transition">
@@ -570,26 +718,35 @@
         </div>
       </div>
 
+      <!-- Vista previa de imagen generada en móvil si se requiere guardar manteniendo pulsado -->
+      <div id="mobileImageSaveBox" class="hidden p-4 rounded-2xl bg-sky-500/10 border border-sky-500/20 space-y-2.5 text-center">
+        <p class="text-xs font-bold text-sky-900">Imagen lista. Mantén presionada la imagen para guardar en Fotos o usa el botón de descarga:</p>
+        <img id="generatedPreviewImg" src="" alt="Reporte PNG" class="max-w-full rounded-xl mx-auto border border-black/10 shadow-sm">
+        <a id="directBlobDownloadLink" href="#" download="Reporte.png" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0071e3] text-white text-xs font-semibold">
+          <i class="fa-solid fa-download"></i> Descargar archivo PNG
+        </a>
+      </div>
+
       <div class="overflow-x-auto bg-[#e9e9ed] p-3 sm:p-5 rounded-2xl">
-        <div id="captureCard" class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-black/[0.06] min-w-[600px] text-[#1d1d1f]">
-          <div class="flex items-center justify-between border-b border-black/[0.08] pb-5 mb-5">
-            <div class="flex items-center gap-3.5">
-              <img src="/logo.svg" alt="DC CORP" class="h-11" crossorigin="anonymous">
-              <div>
-                <span id="capScopeBadge" class="px-2.5 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[10px] font-bold uppercase tracking-wide">Reporte General</span>
-                <h4 class="text-lg font-bold tracking-tight mt-0.5">Reporte Diario de Asistencias</h4>
+        <div id="captureCard" class="bg-white rounded-2xl p-6 sm:p-7 border border-black/[0.08] text-[#1d1d1f]" style="width: 720px; max-width: none;">
+          <div class="flex items-start justify-between gap-4 border-b border-black/[0.08] pb-4 mb-5">
+            <div class="flex items-center gap-3 min-w-0">
+              <img src="/logo.svg" alt="DC CORP" class="h-10 w-auto shrink-0" crossorigin="anonymous">
+              <div class="min-w-0">
+                <div id="capScopeBadge" class="inline-block px-2.5 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[10px] font-bold uppercase tracking-wide whitespace-nowrap">Reporte General</div>
+                <h4 class="text-base font-bold tracking-tight text-[#1d1d1f] mt-1 leading-snug">Reporte Diario de Asistencias</h4>
               </div>
             </div>
-            <div class="text-right">
-              <p id="capDateFormatted" class="text-sm font-bold text-[#1d1d1f] capitalize">Fecha</p>
+            <div class="text-right shrink-0">
+              <p id="capDateFormatted" class="text-xs font-bold text-[#1d1d1f] capitalize">Fecha</p>
               <p id="capGeneratedBy" class="text-[11px] text-[#6e6e73] mt-0.5">Emitido por: —</p>
             </div>
           </div>
 
-          <div id="capStatsRow" class="grid grid-cols-4 gap-2.5 mb-6 text-center"></div>
-          <div id="capRecordsContainer" class="space-y-4"></div>
+          <div id="capStatsRow" class="grid grid-cols-4 gap-2.5 mb-5 text-center"></div>
+          <div id="capRecordsContainer" class="space-y-3.5"></div>
 
-          <div class="mt-6 pt-4 border-t border-black/[0.06] flex items-center justify-between text-[10px] text-[#6e6e73]">
+          <div class="mt-5 pt-3 border-t border-black/[0.06] flex items-center justify-between text-[10px] text-[#6e6e73]">
             <span>DC CORP • Plataforma Académica (dccorp.lat/intranet)</span>
             <span id="capTimestamp"></span>
           </div>
@@ -597,8 +754,6 @@
       </div>
     </div>
   </div>
-
-
 
   <!-- ==================== MODAL EDITAR MATERIAL / CANCIÓN ==================== -->
   <div id="editMaterialModal" class="hidden fixed inset-0 z-50 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto" onclick="if(event.target===this) closeEditMaterialModal()">
@@ -631,13 +786,11 @@
           <textarea id="editMatDesc" rows="2" class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2.5 text-xs resize-none"></textarea>
         </div>
 
-        <!-- Archivos ya subidos -->
         <div class="p-4 rounded-2xl bg-[#f5f5f7] border border-black/[0.06] space-y-2.5">
           <span class="block text-xs font-bold text-[#1d1d1f]">Archivos actuales</span>
           <div id="editExistingFilesList" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
         </div>
 
-        <!-- Agregar nuevos archivos -->
         <div class="p-4 rounded-2xl bg-[#f5f5f7] border border-black/[0.06] space-y-2.5">
           <div class="flex items-center justify-between">
             <span class="text-xs font-bold text-[#1d1d1f]">Añadir nuevos archivos (PDF o MP3)</span>
@@ -658,7 +811,7 @@
     </div>
   </div>
 
-  <!-- ==================== MODAL EDITAR ESTUDIANTE ==================== -->
+  <!-- ==================== MODAL EDITAR ESTUDIANTE (MÚLTIPLES SUBGRUPOS) ==================== -->
   <div id="editStudentModal" class="hidden fixed inset-0 z-50 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto" onclick="if(event.target===this) closeEditStudentModal()">
     <div class="glass-bento p-6 sm:p-7 max-w-lg w-full bg-white my-auto space-y-5 relative">
       <button type="button" onclick="closeEditStudentModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 text-[#1d1d1f] flex items-center justify-center">
@@ -668,7 +821,7 @@
       <div>
         <span class="px-2.5 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[11px] font-semibold">Gestión Académica</span>
         <h3 class="text-lg font-bold text-[#1d1d1f] mt-1">Editar Datos del Estudiante</h3>
-        <p class="text-xs text-[#6e6e73]">Modifica su información, horario, cupo mensual o especialidad musical.</p>
+        <p class="text-xs text-[#6e6e73]">Modifica su usuario, subgrupos (puedes elegir varios), especialidad y horario.</p>
       </div>
 
       <form id="editStudentForm" class="space-y-3.5">
@@ -684,8 +837,8 @@
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-[#6e6e73] mb-1">Grupo / Subgrupo *</label>
-          <select id="editStuGroupSelect" required class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2.5 text-xs font-semibold"></select>
+          <label class="block text-xs font-semibold text-[#6e6e73] mb-1.5">Subgrupos asignados (uno o varios) *</label>
+          <div id="editStuGroupsChecklist" class="p-3 rounded-xl bg-[#f5f5f7] border border-black/10 max-h-40 overflow-y-auto space-y-1.5 text-xs"></div>
         </div>
 
         <div>
@@ -707,7 +860,7 @@
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-[#6e6e73] mb-1">Nueva contraseña (opcional — dejar en blanco para mantener la actual)</label>
+          <label class="block text-xs font-semibold text-[#6e6e73] mb-1">Nueva contraseña (opcional)</label>
           <input type="text" id="editStuPass" placeholder="Mínimo 6 caracteres si deseas cambiarla" class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2.5 text-xs font-mono">
         </div>
 
@@ -738,7 +891,8 @@
       window.location.href = '/intranet';
     }
     const isAdmin = role === 'admin';
-    document.getElementById('userName').innerText = localStorage.getItem('dc_name') || 'Usuario';
+    const currentUserName = localStorage.getItem('dc_name') || 'Usuario';
+    document.getElementById('userName').innerText = currentUserName;
 
     const badge = document.getElementById('roleBadge');
     if (isAdmin) {
@@ -752,7 +906,7 @@
       document.getElementById('groupCategoryWrapper').classList.add('hidden');
       document.getElementById('adminCategoryFilter').classList.add('hidden');
       document.getElementById('groupCardTitle').innerText = '1. Crear Subgrupo en Sol Music';
-      document.getElementById('groupCardSubtitle').innerText = 'Crea tus talleres o secciones a tu gusto (ej: Guitarras, Piano, Cuerdas, Cajón).';
+      document.getElementById('groupCardSubtitle').innerText = 'Define nombre, horario y descripción de tu aula.';
       document.getElementById('btnCreateGroup').innerText = '+ Crear Subgrupo Sol Music';
       document.getElementById('btnCreateGroup').className = 'w-full py-2.5 rounded-full bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold transition';
       document.getElementById('directoryTitle').innerText = 'Alumnado Sol Music';
@@ -808,7 +962,6 @@
       }
     }
 
-    // ==================== VISOR PDF INTEGRADO ====================
     function openPdfModal(fileUrl, title) {
       document.getElementById('pdfModalTitle').innerText = title || 'Documento PDF';
       document.getElementById('pdfFrame').src = fileUrl;
@@ -821,7 +974,6 @@
       document.getElementById('pdfFrame').src = '';
     }
 
-    // ==================== CONSTRUCTOR DE MÚLTIPLES ARCHIVOS ====================
     const INSTRUMENT_OPTIONS = [
       'General (Canción completa)',
       '1ra Guitarra',
@@ -874,7 +1026,6 @@
     addFileRow('General (Canción completa)');
     addFileRow('1ra Guitarra');
 
-    // ==================== LÓGICA DE SEMANA (LUNES A DOMINGO) ====================
     function getMonday(d) {
       const date = new Date(d.getFullYear(), d.getMonth(), d.getDate());
       const day = date.getDay();
@@ -929,7 +1080,7 @@
 
       const container = document.getElementById('weeklyGridContainer');
       if (!groupId) {
-        container.innerHTML = '<p class="text-xs text-[#6e6e73] text-center py-10">Crea primero un grupo o subgrupo en "Alumnado".</p>';
+        container.innerHTML = '<p class="text-xs text-[#6e6e73] text-center py-10">Crea primero un grupo o subgrupo en "Subgrupos y Alumnado".</p>';
         return;
       }
 
@@ -939,14 +1090,14 @@
       weeklyDataCache = await res.json();
 
       if (!weeklyDataCache.students.length) {
-        container.innerHTML = '<p class="text-xs text-[#6e6e73] text-center py-10">No hay alumnos registrados en este grupo todavía.</p>';
+        container.innerHTML = '<p class="text-xs text-[#6e6e73] text-center py-10">No hay alumnos asignados a este subgrupo todavía.</p>';
         return;
       }
 
       const todayISO = formatISO(new Date());
 
       let html = `
-        <table class="w-full text-left border-collapse min-w-[780px]">
+        <table class="hidden md:table w-full text-left border-collapse min-w-[780px]">
           <thead>
             <tr class="border-b border-black/[0.08] text-[11px] text-[#6e6e73]">
               <th class="py-3 px-3 font-semibold w-64">Estudiante / Horario</th>
@@ -961,6 +1112,8 @@
           </thead>
           <tbody class="divide-y divide-black/[0.05] text-xs">
       `;
+
+      let mobileCardsHtml = `<div class="md:hidden space-y-3.5">`;
 
       weeklyDataCache.students.forEach(stu => {
         const quota = stu.monthly_quota || 8;
@@ -985,29 +1138,56 @@
             </td>
         `;
 
+        mobileCardsHtml += `
+          <div class="att-stu-item p-4 rounded-2xl bg-white/95 border border-black/[0.07] shadow-sm space-y-3" data-stu-name="${stu.full_name.toLowerCase()} ${stu.code.toLowerCase()}">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <p class="text-sm font-bold text-[#1d1d1f]">${stu.full_name}</p>
+                ${stu.schedule ? `<p class="text-[11px] text-[#0071e3] font-medium mt-0.5"><i class="fa-regular fa-clock mr-1"></i>${stu.schedule}</p>` : ''}
+              </div>
+              <div class="text-right shrink-0">
+                <span class="text-xs font-bold ${used >= quota ? 'text-red-600' : 'text-[#1d1d1f]'}">${used}/${quota}</span>
+                <div class="w-16 h-1.5 bg-black/10 rounded-full overflow-hidden mt-1">
+                  <div class="h-full ${barColor}" style="width: ${pct}%"></div>
+                </div>
+              </div>
+            </div>
+            <div class="grid grid-cols-7 gap-1 pt-1">
+        `;
+
         days.forEach(d => {
           const dayRecs = weeklyDataCache.records.filter(r => r.student_id === stu.student_id && r.date === d.iso);
           const mainRec = dayRecs.find(r => r.session_type === 'Regular' || r.session_type === 'Recuperacion');
           const refRec = dayRecs.find(r => r.session_type === 'Reforzamiento');
 
           let cellBadge = `<span class="w-8 h-8 rounded-full border border-dashed border-black/15 text-black/25 group-hover:border-[#0071e3] group-hover:text-[#0071e3] inline-flex items-center justify-center transition"><i class="fa-solid fa-plus text-[10px]"></i></span>`;
+          let mBtnStyle = 'bg-[#f5f5f7] border-black/10 text-[#6e6e73]';
+          let mIcon = `<span class="text-[11px] font-bold">${d.dayNum}</span>`;
           let tooltip = 'Clic para marcar asistencia';
 
           if (mainRec) {
             tooltip = `${mainRec.session_type === 'Recuperacion' ? 'Recuperación' : mainRec.status}${mainRec.recorded_by_name ? ` • Marcado por: ${mainRec.recorded_by_name}` : ''}`;
             if (mainRec.session_type === 'Recuperacion') {
               cellBadge = `<span class="w-8 h-8 rounded-full bg-sky-500 text-white shadow-sm inline-flex items-center justify-center font-bold" title="${tooltip}"><i class="fa-solid fa-rotate-right text-xs"></i></span>`;
+              mBtnStyle = 'bg-sky-500 border-sky-500 text-white';
+              mIcon = '<i class="fa-solid fa-rotate-right text-xs"></i>';
             } else if (mainRec.status === 'Presente') {
               cellBadge = `<span class="w-8 h-8 rounded-full bg-emerald-500 text-white shadow-sm inline-flex items-center justify-center font-bold" title="${tooltip}"><i class="fa-solid fa-check text-xs"></i></span>`;
+              mBtnStyle = 'bg-emerald-500 border-emerald-500 text-white';
+              mIcon = '<i class="fa-solid fa-check text-xs"></i>';
             } else if (mainRec.status === 'Tardanza') {
               cellBadge = `<span class="w-8 h-8 rounded-full bg-amber-500 text-white shadow-sm inline-flex items-center justify-center font-bold" title="${tooltip}"><i class="fa-regular fa-clock text-xs"></i></span>`;
+              mBtnStyle = 'bg-amber-500 border-amber-500 text-white';
+              mIcon = '<i class="fa-regular fa-clock text-xs"></i>';
             } else if (mainRec.status === 'Falta') {
               cellBadge = `<span class="w-8 h-8 rounded-full bg-red-500 text-white shadow-sm inline-flex items-center justify-center font-bold" title="${tooltip}"><i class="fa-solid fa-xmark text-xs"></i></span>`;
+              mBtnStyle = 'bg-red-500 border-red-500 text-white';
+              mIcon = '<i class="fa-solid fa-xmark text-xs"></i>';
             }
           }
 
           const refPill = refRec
-            ? `<span class="mt-1 px-1.5 py-0.5 rounded-md bg-purple-600 text-white text-[9px] font-bold leading-none" title="Reforzamiento${refRec.arrival_time ? ` (${refRec.arrival_time})` : ''}${refRec.recorded_by_name ? ` • ${refRec.recorded_by_name}` : ''}"><i class="fa-solid fa-bolt"></i> ${refRec.arrival_time || 'Ref'}</span>`
+            ? `<span class="mt-1 px-1.5 py-0.5 rounded-md bg-purple-600 text-white text-[9px] font-bold leading-none"><i class="fa-solid fa-bolt"></i> ${refRec.arrival_time || 'Ref'}</span>`
             : '';
 
           html += `
@@ -1018,6 +1198,15 @@
                 ${refPill}
               </button>
             </td>
+          `;
+
+          mobileCardsHtml += `
+            <button type="button" onclick="openCellModal(${stu.student_id}, '${d.iso}', '${d.name} ${d.dayNum} ${d.monthShort}')"
+              class="flex flex-col items-center justify-center py-2 rounded-xl border ${d.iso === todayISO && !mainRec ? 'border-[#0071e3] bg-[#0071e3]/5' : mBtnStyle} active:scale-95 transition">
+              <span class="text-[9px] uppercase opacity-80">${d.name.slice(0,2)}</span>
+              <span class="mt-0.5 h-5 flex items-center justify-center">${mIcon}</span>
+              ${refRec ? '<span class="w-1.5 h-1.5 rounded-full bg-purple-600 mt-0.5"></span>' : ''}
+            </button>
           `;
         });
 
@@ -1030,80 +1219,11 @@
             </td>
           </tr>
         `;
+        mobileCardsHtml += `</div></div>`;
       });
 
       html += `</tbody></table>`;
-
-      // Vista de Tarjetas Táctiles optimizada automáticamente para Android / Celular (< 768px)
-      let mobileCardsHtml = `<div class="md:hidden space-y-3.5">`;
-      weeklyDataCache.students.forEach(stu => {
-        const quota = stu.monthly_quota || 8;
-        const used = stu.used_this_month || 0;
-        const pct = Math.min(100, Math.round((used / quota) * 100));
-        const barColor = used >= quota ? 'bg-red-500' : (used >= quota - 1 ? 'bg-amber-500' : 'bg-emerald-500');
-        const weekRegularCount = weeklyDataCache.records.filter(r =>
-          r.student_id === stu.student_id &&
-          (r.session_type === 'Regular' || r.session_type === 'Recuperacion') &&
-          ['Presente', 'Tardanza', 'Justificado'].includes(r.status)
-        ).length;
-
-        mobileCardsHtml += `
-          <div class="att-stu-item p-4 rounded-2xl bg-white/95 border border-black/[0.07] shadow-sm space-y-3" data-stu-name="${stu.full_name.toLowerCase()} ${stu.code.toLowerCase()}">
-            <div class="flex items-start justify-between gap-2">
-              <div>
-                <p class="text-sm font-bold text-[#1d1d1f]">${stu.full_name}</p>
-                ${stu.schedule ? `<p class="text-[11px] text-[#0071e3] font-medium mt-0.5"><i class="fa-regular fa-clock mr-1"></i>${stu.schedule}</p>` : ''}
-                ${weekRegularCount >= 3 ? `<span class="inline-block mt-1 px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-700 text-[10px] font-semibold">${weekRegularCount} clases esta semana</span>` : ''}
-              </div>
-              <div class="text-right shrink-0">
-                <span class="text-xs font-bold ${used >= quota ? 'text-red-600' : 'text-[#1d1d1f]'}">${used}/${quota}</span>
-                <div class="w-16 h-1.5 bg-black/10 rounded-full overflow-hidden mt-1">
-                  <div class="h-full ${barColor}" style="width: ${pct}%"></div>
-                </div>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-7 gap-1 pt-1">
-              ${days.map(d => {
-                const dayRecs = weeklyDataCache.records.filter(r => r.student_id === stu.student_id && r.date === d.iso);
-                const mainRec = dayRecs.find(r => r.session_type === 'Regular' || r.session_type === 'Recuperacion');
-                const refRec = dayRecs.find(r => r.session_type === 'Reforzamiento');
-
-                let btnStyle = 'bg-[#f5f5f7] border-black/10 text-[#6e6e73]';
-                let iconHtml = `<span class="text-[11px] font-bold">${d.dayNum}</span>`;
-
-                if (mainRec) {
-                  if (mainRec.session_type === 'Recuperacion') {
-                    btnStyle = 'bg-sky-500 border-sky-500 text-white';
-                    iconHtml = '<i class="fa-solid fa-rotate-right text-xs"></i>';
-                  } else if (mainRec.status === 'Presente') {
-                    btnStyle = 'bg-emerald-500 border-emerald-500 text-white';
-                    iconHtml = '<i class="fa-solid fa-check text-xs"></i>';
-                  } else if (mainRec.status === 'Tardanza') {
-                    btnStyle = 'bg-amber-500 border-amber-500 text-white';
-                    iconHtml = '<i class="fa-regular fa-clock text-xs"></i>';
-                  } else if (mainRec.status === 'Falta') {
-                    btnStyle = 'bg-red-500 border-red-500 text-white';
-                    iconHtml = '<i class="fa-solid fa-xmark text-xs"></i>';
-                  }
-                }
-
-                return `
-                  <button type="button" onclick="openCellModal(${stu.student_id}, '${d.iso}', '${d.name} ${d.dayNum} ${d.monthShort}')"
-                    class="flex flex-col items-center justify-center py-2 rounded-xl border ${d.iso === todayISO && !mainRec ? 'border-[#0071e3] bg-[#0071e3]/5' : btnStyle} active:scale-95 transition">
-                    <span class="text-[9px] uppercase opacity-80">${d.name.slice(0,2)}</span>
-                    <span class="mt-0.5 h-5 flex items-center justify-center">${iconHtml}</span>
-                    ${refRec ? '<span class="w-1.5 h-1.5 rounded-full bg-purple-600 mt-0.5"></span>' : ''}
-                  </button>
-                `;
-              }).join('')}
-            </div>
-          </div>
-        `;
-      });
       mobileCardsHtml += `</div>`;
-
-      html = html.replace('<table class="w-full text-left border-collapse min-w-[780px]">', '<table class="hidden md:table w-full text-left border-collapse min-w-[780px]">');
       container.innerHTML = mobileCardsHtml + html;
     }
 
@@ -1211,12 +1331,13 @@
       }
     }
 
-    // ==================== EXPORTACIÓN DIARIA EN IMAGEN (PNG) + WHATSAPP ====================
+    // ==================== EXPORTACIÓN DIARIA REPARADA (IMAGEN + MÓVIL) ====================
     let lastDailySummaryData = { date: '', records: [] };
 
     function openDailyExportModal() {
       const today = formatISO(new Date());
       document.getElementById('exportDatePicker').value = today;
+      document.getElementById('mobileImageSaveBox').classList.add('hidden');
       document.getElementById('dailyExportModal').classList.remove('hidden');
       loadDailyExportPreview();
     }
@@ -1236,7 +1357,7 @@
       });
 
       document.getElementById('capDateFormatted').innerText = formatted;
-      document.getElementById('capGeneratedBy').innerText = `Emitido por: ${localStorage.getItem('dc_name') || 'Docente'}`;
+      document.getElementById('capGeneratedBy').innerText = `Emitido por: ${currentUserName}`;
       document.getElementById('capScopeBadge').innerText = isAdmin ? 'DC CORP • Particulares y Sol Music' : 'Sol Music • Academia';
       document.getElementById('capTimestamp').innerText = `Generado: ${new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}`;
 
@@ -1250,21 +1371,21 @@
       const totalRef = recs.filter(r => r.session_type === 'Reforzamiento').length;
 
       document.getElementById('capStatsRow').innerHTML = `
-        <div class="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-          <span class="block text-lg font-bold text-emerald-700">${totalPresentes}</span>
-          <span class="text-[10px] font-semibold text-emerald-800">Presentes</span>
+        <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
+          <span class="block text-lg font-bold text-emerald-700 leading-tight">${totalPresentes}</span>
+          <span class="block text-[10px] font-semibold text-emerald-800 mt-0.5 leading-tight">Presentes</span>
         </div>
-        <div class="p-2.5 rounded-xl bg-sky-500/10 border border-sky-500/20">
-          <span class="block text-lg font-bold text-sky-700">${totalRecup}</span>
-          <span class="text-[10px] font-semibold text-sky-800">Recuperaciones</span>
+        <div class="p-3 rounded-xl bg-sky-50 border border-sky-200">
+          <span class="block text-lg font-bold text-sky-700 leading-tight">${totalRecup}</span>
+          <span class="block text-[10px] font-semibold text-sky-800 mt-0.5 leading-tight">Recuperaciones</span>
         </div>
-        <div class="p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/20">
-          <span class="block text-lg font-bold text-purple-700">${totalRef}</span>
-          <span class="text-[10px] font-semibold text-purple-800">Reforzamientos</span>
+        <div class="p-3 rounded-xl bg-purple-50 border border-purple-200">
+          <span class="block text-lg font-bold text-purple-700 leading-tight">${totalRef}</span>
+          <span class="block text-[10px] font-semibold text-purple-800 mt-0.5 leading-tight">Reforzamientos</span>
         </div>
-        <div class="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20">
-          <span class="block text-lg font-bold text-red-700">${totalFaltasTard}</span>
-          <span class="text-[10px] font-semibold text-red-800">Faltas / Tard.</span>
+        <div class="p-3 rounded-xl bg-red-50 border border-red-200">
+          <span class="block text-lg font-bold text-red-700 leading-tight">${totalFaltasTard}</span>
+          <span class="block text-[10px] font-semibold text-red-800 mt-0.5 leading-tight">Faltas / Tard.</span>
         </div>
       `;
 
@@ -1282,19 +1403,19 @@
       });
 
       const badgeColors = {
-        'Presente': 'bg-emerald-100 text-emerald-800',
-        'Recuperacion': 'bg-sky-100 text-sky-800',
-        'Tardanza': 'bg-amber-100 text-amber-800',
-        'Falta': 'bg-red-100 text-red-800',
-        'Justificado': 'bg-sky-100 text-sky-800',
-        'Reforzamiento': 'bg-purple-100 text-purple-800'
+        'Presente': 'bg-emerald-100 text-emerald-800 border-emerald-200',
+        'Recuperacion': 'bg-sky-100 text-sky-800 border-sky-200',
+        'Tardanza': 'bg-amber-100 text-amber-800 border-amber-200',
+        'Falta': 'bg-red-100 text-red-800 border-red-200',
+        'Justificado': 'bg-sky-100 text-sky-800 border-sky-200',
+        'Reforzamiento': 'bg-purple-100 text-purple-800 border-purple-200'
       };
 
       container.innerHTML = Object.entries(grouped).map(([groupTitle, items]) => `
-        <div class="rounded-2xl border border-black/[0.07] overflow-hidden">
-          <div class="bg-[#f5f5f7] px-4 py-2 flex items-center justify-between">
-            <span class="text-xs font-bold text-[#1d1d1f]">${groupTitle}</span>
-            <span class="text-[10px] font-semibold text-[#6e6e73]">${items.length} registro(s)</span>
+        <div class="rounded-2xl border border-black/[0.08] overflow-hidden">
+          <div class="bg-[#f5f5f7] px-4 py-2.5 flex items-center justify-between border-b border-black/[0.06]">
+            <span class="text-xs font-bold text-[#1d1d1f] leading-snug">${groupTitle}</span>
+            <span class="text-[10px] font-semibold text-[#6e6e73] whitespace-nowrap">${items.length} registro(s)</span>
           </div>
           <div class="divide-y divide-black/[0.05]">
             ${items.map(item => {
@@ -1306,16 +1427,16 @@
               const styleKey = isRef ? 'Reforzamiento' : (isRec ? 'Recuperacion' : item.status);
 
               return `
-                <div class="px-4 py-2.5 flex items-center justify-between gap-3 text-xs">
-                  <div>
-                    <p class="font-semibold text-[#1d1d1f]">${item.student_name}</p>
-                    <p class="text-[10px] text-[#6e6e73]">
+                <div class="px-4 py-3 flex items-center justify-between gap-4 text-xs">
+                  <div class="min-w-0">
+                    <p class="font-semibold text-[#1d1d1f] leading-snug">${item.student_name}</p>
+                    <p class="text-[10px] text-[#6e6e73] mt-0.5 leading-snug">
                       Bloque mes: <strong>${item.used_this_month || 0}/${item.monthly_quota || 8}</strong>
                       ${item.recorded_by_name ? ` • Marcado por: <strong>${item.recorded_by_name}</strong>` : ''}
                       ${item.note ? ` • "${item.note}"` : ''}
                     </p>
                   </div>
-                  <span class="px-2.5 py-1 rounded-full text-[10px] font-bold shrink-0 ${badgeColors[styleKey] || 'bg-gray-100 text-gray-800'}">
+                  <span class="inline-flex items-center justify-center px-3 py-1.5 rounded-full text-[10px] font-bold border leading-none whitespace-nowrap shrink-0 ${badgeColors[styleKey] || 'bg-gray-100 text-gray-800 border-gray-200'}">
                     ${statusText}
                   </span>
                 </div>
@@ -1338,7 +1459,7 @@
       let lines = [
         `*REPORTE DE ASISTENCIAS — ${scope}*`,
         `Fecha: *${dateStr}*`,
-        `Emitido por: ${localStorage.getItem('dc_name') || 'Docente'}`,
+        `Emitido por: ${currentUserName}`,
         ''
       ];
 
@@ -1362,14 +1483,14 @@
       });
 
       lines.push('Portal: https://dccorp.lat/intranet');
-      const waUrl = `https://wa.me/?text=${encodeURIComponent(lines.join('\n'))}`;
-      window.open(waUrl, '_blank');
+      window.open(`https://wa.me/?text=${encodeURIComponent(lines.join('\n'))}`, '_blank');
     }
 
     async function downloadDailyPng() {
       const btn = document.getElementById('btnDownloadPng');
       const card = document.getElementById('captureCard');
       const dateStr = document.getElementById('exportDatePicker').value || formatISO(new Date());
+      const fileName = `Asistencias_DCCORP_${dateStr}.png`;
 
       btn.disabled = true;
       btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generando...';
@@ -1378,21 +1499,54 @@
         const canvas = await html2canvas(card, {
           scale: 2,
           backgroundColor: '#ffffff',
-          useCORS: true
+          useCORS: true,
+          windowWidth: 800,
+          scrollX: 0,
+          scrollY: 0
         });
-        const link = document.createElement('a');
-        link.download = `Asistencias_DCCORP_${dateStr}.png`;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
+
+        canvas.toBlob(async (blob) => {
+          if (!blob) throw new Error('No se pudo generar la imagen');
+          const blobUrl = URL.createObjectURL(blob);
+
+          // Mostrar vista previa de respaldo para móviles
+          const saveBox = document.getElementById('mobileImageSaveBox');
+          const prevImg = document.getElementById('generatedPreviewImg');
+          const dlLink = document.getElementById('directBlobDownloadLink');
+          prevImg.src = blobUrl;
+          dlLink.href = blobUrl;
+          dlLink.download = fileName;
+          saveBox.classList.remove('hidden');
+
+          const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+          const fileObj = new File([blob], fileName, { type: 'image/png' });
+
+          if (isMobileDevice && navigator.canShare && navigator.canShare({ files: [fileObj] })) {
+            try {
+              await navigator.share({
+                files: [fileObj],
+                title: `Reporte Asistencias ${dateStr}`
+              });
+              return;
+            } catch {}
+          }
+
+          const link = document.createElement('a');
+          link.href = blobUrl;
+          link.download = fileName;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }, 'image/png');
       } catch (err) {
         alert('Error al generar la imagen');
       } finally {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fa-solid fa-download"></i> Imagen PNG';
+        btn.innerHTML = '<i class="fa-solid fa-download"></i> Guardar / Compartir PNG';
       }
     }
 
-    // ==================== ENVÍO RÁPIDO DE CREDENCIALES POR WHATSAPP ====================
+    // ==================== ENVÍO RÁPIDO DE CREDENCIALES ====================
     let studentsCache = [];
 
     function sendCredentialsWhatsApp(studentId) {
@@ -1401,7 +1555,7 @@
       const passText = stu.plain_hint ? stu.plain_hint : '(clave asignada al registrar)';
       const scheduleLine = stu.schedule ? `\nHorario: *${stu.schedule}*` : '';
       const msg = [
-        `Hola *${stu.full_name}*, bienvenido(a) a la plataforma académica *DC CORP* (${stu.category || 'Particulares'} - ${stu.group_name || ''}).`,
+        `Hola *${stu.full_name}*, bienvenido(a) a la plataforma académica *DC CORP* (${stu.category || 'Particulares'} - ${stu.group_names || stu.group_name || ''}).`,
         '',
         `Enlace de acceso: https://dccorp.lat/intranet`,
         `Usuario: *${stu.code}*`,
@@ -1423,8 +1577,9 @@
       });
     }
 
-    // ==================== GRUPOS, ALUMNOS, PROFESORES Y MATERIALES ====================
+    // ==================== SUBGRUPOS (TARJETAS + EDICIÓN + MÚLTIPLES SUBGRUPOS POR ALUMNO) ====================
     let groupsCache = [];
+    let teachersCache = [];
     let materialsCache = [];
     let currentCategoryFilter = 'Todos';
 
@@ -1433,21 +1588,129 @@
       ['Todos', 'Particulares', 'Sol Music'].forEach(c => {
         const btn = document.getElementById(`cat-${c}`);
         if (c === cat) {
-          btn.className = "cat-btn px-3 py-1.5 rounded-lg bg-white text-[#1d1d1f] shadow-sm transition";
+          btn.className = "cat-btn px-3.5 py-1.5 rounded-lg bg-white text-[#1d1d1f] shadow-sm transition";
         } else {
-          btn.className = "cat-btn px-3 py-1.5 rounded-lg text-[#6e6e73] hover:text-[#1d1d1f] transition";
+          btn.className = "cat-btn px-3.5 py-1.5 rounded-lg text-[#6e6e73] hover:text-[#1d1d1f] transition";
         }
       });
       loadStudents();
     }
+
+    function renderGroupChecklists() {
+      const createBox = document.getElementById('stuGroupsChecklist');
+      if (createBox) {
+        if (!groupsCache.length) {
+          createBox.innerHTML = '<p class="text-[#6e6e73]">Crea primero un subgrupo arriba.</p>';
+        } else {
+          createBox.innerHTML = groupsCache.map((g, idx) => `
+            <label class="flex items-center gap-2 py-1 px-1.5 rounded-lg hover:bg-white cursor-pointer">
+              <input type="checkbox" name="stuGroupCheck" value="${g.id}" ${idx === 0 ? 'checked' : ''} class="rounded text-[#0071e3]">
+              <span class="font-medium text-[#1d1d1f]">${isAdmin ? `[${g.category}] ` : ''}${g.name}</span>
+            </label>
+          `).join('');
+        }
+      }
+    }
+
+    function renderGroupsCards() {
+      const grid = document.getElementById('groupsCardsGrid');
+      if (!grid) return;
+      if (!groupsCache.length) {
+        grid.innerHTML = '<p class="text-xs text-[#6e6e73]">Aún no hay subgrupos creados.</p>';
+        return;
+      }
+
+      grid.innerHTML = groupsCache.map(g => {
+        const isSol = g.category === 'Sol Music';
+        const badgeCls = isSol ? 'bg-amber-500/15 text-amber-800' : 'bg-indigo-500/10 text-indigo-700';
+        return `
+          <div class="p-3.5 rounded-2xl bg-white/95 border border-black/[0.07] space-y-2">
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <span class="px-2 py-0.5 rounded-full ${badgeCls} text-[10px] font-bold">${g.category}</span>
+                  <span class="px-2 py-0.5 rounded-full bg-black/[0.05] text-[#1d1d1f] text-[10px] font-semibold">
+                    <i class="fa-solid fa-users mr-1 text-[#0071e3]"></i>${g.student_count || 0} alumno(s)
+                  </span>
+                </div>
+                <h4 class="text-xs sm:text-sm font-bold text-[#1d1d1f] mt-1">${g.name}</h4>
+                ${g.schedule ? `<p class="text-[11px] text-[#0071e3] font-medium"><i class="fa-regular fa-clock mr-1"></i>${g.schedule}</p>` : ''}
+                ${g.description ? `<p class="text-[11px] text-[#6e6e73] mt-0.5">${g.description}</p>` : ''}
+              </div>
+              <div class="flex items-center gap-1 shrink-0">
+                <button type="button" onclick="openEditGroupModal(${g.id})" class="px-2.5 py-1 rounded-lg bg-[#0071e3]/10 hover:bg-[#0071e3]/20 text-[#0071e3] text-[11px] font-semibold transition">
+                  <i class="fa-solid fa-pen-to-square mr-1"></i> Editar
+                </button>
+                <button type="button" onclick="deleteGroup(${g.id})" class="p-1.5 text-red-500 hover:bg-red-50 rounded-lg text-xs" title="Eliminar">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function openEditGroupModal(groupId) {
+      const grp = groupsCache.find(g => Number(g.id) === Number(groupId));
+      if (!grp) return;
+
+      document.getElementById('editGroupId').value = grp.id;
+      document.getElementById('editGroupName').value = grp.name;
+      document.getElementById('editGroupSchedule').value = grp.schedule || '';
+      document.getElementById('editGroupDesc').value = grp.description || '';
+      document.getElementById('editGroupCategory').value = grp.category || 'Particulares';
+      document.getElementById('editGroupCategoryWrap').classList.toggle('hidden', !isAdmin);
+
+      // Listar alumnos que pertenecen a este subgrupo
+      const members = studentsCache.filter(s => (s.group_ids || []).includes(Number(grp.id)) || Number(s.group_id) === Number(grp.id));
+      const listEl = document.getElementById('editGroupStudentsPreview');
+      if (!members.length) {
+        listEl.innerHTML = '<p class="text-[#6e6e73] italic">Sin alumnos asignados en este subgrupo.</p>';
+      } else {
+        listEl.innerHTML = members.map(m => `
+          <div class="flex items-center justify-between bg-[#f5f5f7] px-3 py-1.5 rounded-xl">
+            <span class="font-semibold text-[#1d1d1f]">${m.full_name}</span>
+            <span class="text-[10px] font-semibold text-amber-800 bg-amber-500/15 px-2 py-0.5 rounded-full">${m.instrument || 'Guitarra acustica'}</span>
+          </div>
+        `).join('');
+      }
+
+      document.getElementById('editGroupModal').classList.remove('hidden');
+    }
+
+    function closeEditGroupModal() {
+      document.getElementById('editGroupModal').classList.add('hidden');
+    }
+
+    document.getElementById('editGroupForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const gid = document.getElementById('editGroupId').value;
+      const res = await fetch(`/intranet/api/admin/groups/${gid}`, {
+        method: 'PUT',
+        headers: authHeaders(),
+        body: JSON.stringify({
+          name: document.getElementById('editGroupName').value,
+          category: isAdmin ? document.getElementById('editGroupCategory').value : 'Sol Music',
+          schedule: document.getElementById('editGroupSchedule').value,
+          description: document.getElementById('editGroupDesc').value
+        })
+      });
+      if (res.ok) {
+        closeEditGroupModal();
+        loadAllData();
+      } else {
+        const d = await res.json();
+        alert(d.error || 'Error guardando subgrupo');
+      }
+    });
 
     async function loadAllData() {
       const gRes = await fetch('/intranet/api/admin/groups', { headers: authHeaders() });
       if (gRes.status === 401) return logout();
       groupsCache = await gRes.json();
 
-      const selects = ['attGroupSelect', 'matGroupSelect', 'stuGroupSelect'];
-      selects.forEach(id => {
+      ['attGroupSelect', 'matGroupSelect'].forEach(id => {
         const el = document.getElementById(id);
         const prev = el.value;
         el.innerHTML = groupsCache.length
@@ -1456,61 +1719,197 @@
         if (prev && groupsCache.some(g => String(g.id) === prev)) el.value = prev;
       });
 
+      const classSel = document.getElementById('classroomGroupFilter');
+      if (classSel) {
+        const prevC = classSel.value;
+        classSel.innerHTML = '<option value="">Todas las aulas / subgrupos</option>' +
+          groupsCache.map(g => `<option value="${g.id}">${isAdmin ? `[${g.category}] ` : ''}${g.name}</option>`).join('');
+        if (prevC) classSel.value = prevC;
+      }
+
       const dirGroupF = document.getElementById('dirGroupFilter');
       if (dirGroupF) {
         const prevF = dirGroupF.value;
         dirGroupF.innerHTML = '<option value="">Visualizar todos los subgrupos</option>' +
-          groupsCache.map(g => `<option value="${g.id}">${isAdmin ? `[${g.category || 'Particulares'}] ` : ''}${g.name}</option>`).join('');
+          groupsCache.map(g => `<option value="${g.id}">${isAdmin ? `[${g.category}] ` : ''}${g.name}</option>`).join('');
         if (prevF) dirGroupF.value = prevF;
       }
 
-      document.getElementById('groupsTags').innerHTML = groupsCache.map(g => {
-        const isSol = g.category === 'Sol Music';
-        const pillClass = isSol ? 'bg-amber-500/15 text-amber-800' : 'bg-indigo-500/10 text-indigo-700';
-        return `
-          <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full ${pillClass} text-xs font-medium">
-            ${isAdmin ? `<strong>${g.category || 'Particulares'}:</strong> ` : ''}${g.name}
-            <button onclick="deleteGroup(${g.id})" class="hover:text-red-600" title="Eliminar">&times;</button>
-          </span>
-        `;
-      }).join('');
+      renderGroupChecklists();
 
       if (isAdmin) {
         await loadTeachers();
       }
 
       await loadStudents();
+      renderGroupsCards();
       await loadWeeklyGrid();
       await loadMaterials();
       await loadAnnouncementsAdmin();
     }
 
+    // ==================== PLANA DOCENTE INTERACTIVA ====================
     async function loadTeachers() {
       const res = await fetch('/intranet/api/admin/teachers', { headers: authHeaders() });
-      const teachers = await res.json();
-      document.getElementById('teacherCount').innerText = `${teachers.length} profesores`;
-      document.getElementById('teachersList').innerHTML = teachers.map(t => {
-        const waMsg = encodeURIComponent(`Hola *${t.full_name}*, aquí tienes tu acceso docente a *Sol Music* en la intranet DC CORP:\n\nEnlace: https://dccorp.lat/intranet\nUsuario: *${t.code}*\nContraseña: *${t.plain_hint || 'Docente2026'}*`);
+      teachersCache = await res.json();
+      document.getElementById('teacherCount').innerText = `${teachersCache.length} integrante(s)`;
+
+      document.getElementById('teachersList').innerHTML = teachersCache.map(t => {
+        const isSelfAdmin = t.role === 'admin';
+        const avatarEl = t.avatar_file
+          ? `<img src="/intranet/api/avatars/${t.avatar_file}" class="w-12 h-12 rounded-2xl object-cover border border-black/10 shrink-0">`
+          : `<div class="w-12 h-12 rounded-2xl ${isSelfAdmin ? 'bg-[#0071e3]' : 'bg-amber-600'} text-white flex items-center justify-center text-base font-bold shrink-0">${t.full_name.charAt(0)}</div>`;
+
+        const cleanPhone = (t.whatsapp || '').replace(/[^0-9]/g, '');
+        const waDirectUrl = cleanPhone
+          ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(`Hola ${t.full_name}, te contacto desde Sol Music / DC CORP.`)}`
+          : `https://wa.me/?text=${encodeURIComponent(`Hola *${t.full_name}*, aquí tienes tu acceso docente:\n\nEnlace: https://dccorp.lat/intranet\nUsuario: *${t.code}*\nContraseña: *${t.plain_hint || 'Docente2026'}*`)}`;
+
         return `
-          <div class="p-4 rounded-2xl bg-white/90 border border-black/[0.06] flex items-center justify-between gap-4">
-            <div class="space-y-1">
-              <div class="flex items-center gap-2">
-                <h4 class="text-sm font-bold text-[#1d1d1f]">${t.full_name}</h4>
-                <span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 text-[10px] font-semibold">Sol Music</span>
+          <div onclick="openTeacherProfileModal(${t.id})"
+            class="cursor-pointer p-4 rounded-2xl bg-white/95 hover:bg-white border border-black/[0.07] shadow-sm hover:shadow transition flex flex-col justify-between gap-3">
+            <div class="flex items-start gap-3">
+              ${avatarEl}
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <h4 class="text-sm font-bold text-[#1d1d1f] truncate">${t.full_name}</h4>
+                  <span class="px-2 py-0.5 rounded-full ${isSelfAdmin ? 'bg-[#0071e3]/10 text-[#0071e3]' : 'bg-amber-500/15 text-amber-800'} text-[10px] font-bold">
+                    ${t.specialty || (isSelfAdmin ? 'Dirección / Docente' : 'Sol Music')}
+                  </span>
+                </div>
+                <p class="text-[11px] text-[#6e6e73] font-mono mt-0.5">Usuario: ${t.code}${t.whatsapp ? ` • WA: ${t.whatsapp}` : ''}</p>
+                <p class="text-xs text-[#424245] line-clamp-2 mt-1">${t.bio || '<span class="italic text-[#6e6e73]">Toca para ver o editar su perfil docente</span>'}</p>
               </div>
-              <p class="text-xs text-[#6e6e73] font-mono">Usuario: ${t.code}${t.plain_hint ? ` • Clave: ${t.plain_hint}` : ''}</p>
             </div>
-            <div class="flex items-center gap-2">
-              <a href="https://wa.me/?text=${waMsg}" target="_blank" class="px-3 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold inline-flex items-center gap-1 transition" title="Enviar acceso por WhatsApp">
-                <i class="fa-brands fa-whatsapp"></i> Enviar
-              </a>
-              <button onclick="deleteTeacher(${t.id})" class="text-red-500 hover:text-red-700 text-xs p-1.5"><i class="fa-solid fa-trash"></i></button>
+
+            <div class="flex items-center justify-between pt-2 border-t border-black/[0.05]" onclick="event.stopPropagation()">
+              <button type="button" onclick="openTeacherProfileModal(${t.id})" class="text-[11px] font-semibold text-[#0071e3] hover:underline">
+                Ver / Editar perfil
+              </button>
+              <div class="flex items-center gap-1.5">
+                <a href="${waDirectUrl}" target="_blank" class="px-3 py-1 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold inline-flex items-center gap-1 transition">
+                  <i class="fa-brands fa-whatsapp"></i> WhatsApp
+                </a>
+                <button type="button" onclick="deleteTeacher(${t.id})" class="p-1.5 text-red-500 hover:bg-red-50 rounded-lg text-xs" title="Quitar de plana">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
             </div>
           </div>
         `;
-      }).join('') || '<p class="text-xs text-[#6e6e73] text-center py-8">Aún no hay otros profesores registrados.</p>';
+      }).join('') || '<p class="col-span-full text-xs text-[#6e6e73] text-center py-8">Aún no hay docentes en la lista.</p>';
     }
 
+    function openTeacherProfileModal(userId) {
+      const u = teachersCache.find(item => Number(item.id) === Number(userId));
+      if (!u) return;
+
+      document.getElementById('tpUserId').value = u.id;
+      document.getElementById('tpModalName').innerText = u.full_name;
+      document.getElementById('tpModalSub').innerText = `${u.specialty || 'Docente'} • Usuario: ${u.code}`;
+      document.getElementById('tpFullName').value = u.full_name || '';
+      document.getElementById('tpSpecialty').value = u.specialty || '';
+      document.getElementById('tpWhatsapp').value = u.whatsapp || '';
+      document.getElementById('tpCode').value = u.code || '';
+      document.getElementById('tpBio').value = u.bio || '';
+      document.getElementById('tpNewPass').value = '';
+      document.getElementById('tpAvatarInput').value = '';
+
+      const waLink = document.getElementById('tpWaLink');
+      const digits = (u.whatsapp || '').replace(/[^0-9]/g, '');
+      if (digits) {
+        waLink.href = `https://wa.me/${digits}`;
+        waLink.classList.remove('hidden');
+      } else {
+        waLink.classList.add('hidden');
+      }
+
+      const img = document.getElementById('tpAvatarImg');
+      const fb = document.getElementById('tpAvatarFallback');
+      if (u.avatar_file) {
+        img.src = `/intranet/api/avatars/${u.avatar_file}?t=${Date.now()}`;
+        img.classList.remove('hidden');
+        fb.classList.add('hidden');
+      } else {
+        img.classList.add('hidden');
+        fb.innerText = u.full_name.charAt(0);
+        fb.classList.remove('hidden');
+      }
+
+      document.getElementById('teacherProfileModal').classList.remove('hidden');
+    }
+
+    async function openAdminAsFacultyModal() {
+      // Buscar el registro del admin actual vía /intranet/api/admin/teachers o abrir directamente con los datos del admin
+      const res = await fetch('/intranet/api/admin/teachers', { headers: authHeaders() });
+      const list = await res.json();
+      const selfEntry = list.find(x => x.role === 'admin');
+      if (selfEntry) {
+        openTeacherProfileModal(selfEntry.id);
+        return;
+      }
+
+      // Si aún no tiene is_faculty=1, activar primero y abrir modal
+      await fetch('/intranet/api/admin/students', { headers: authHeaders() });
+      alert('Usa el formulario de "Registrar Docente" o selecciona tu tarjeta una vez aparezca tu usuario.');
+    }
+
+    function closeTeacherProfileModal() {
+      document.getElementById('teacherProfileModal').classList.add('hidden');
+    }
+
+    async function uploadTeacherAvatar() {
+      const uid = document.getElementById('tpUserId').value;
+      const inp = document.getElementById('tpAvatarInput');
+      if (!inp.files || !inp.files[0]) {
+        alert('Selecciona primero una imagen');
+        return;
+      }
+      const fd = new FormData();
+      fd.append('avatar', inp.files[0]);
+      const res = await fetch(`/intranet/api/admin/teachers/${uid}/avatar`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: fd
+      });
+      if (res.ok) {
+        const d = await res.json();
+        const img = document.getElementById('tpAvatarImg');
+        img.src = `/intranet/api/avatars/${d.avatar_file}?t=${Date.now()}`;
+        img.classList.remove('hidden');
+        document.getElementById('tpAvatarFallback').classList.add('hidden');
+        await loadTeachers();
+      } else {
+        alert('Error subiendo foto');
+      }
+    }
+
+    document.getElementById('teacherEditForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const uid = document.getElementById('tpUserId').value;
+      const res = await fetch(`/intranet/api/admin/teachers/${uid}`, {
+        method: 'PUT',
+        headers: authHeaders(),
+        body: JSON.stringify({
+          full_name: document.getElementById('tpFullName').value,
+          specialty: document.getElementById('tpSpecialty').value,
+          whatsapp: document.getElementById('tpWhatsapp').value,
+          code: document.getElementById('tpCode').value,
+          bio: document.getElementById('tpBio').value,
+          new_password: document.getElementById('tpNewPass').value,
+          enable_faculty: true
+        })
+      });
+      if (res.ok) {
+        closeTeacherProfileModal();
+        await loadTeachers();
+      } else {
+        const d = await res.json();
+        alert(d.error || 'Error guardando perfil docente');
+      }
+    });
+
+    // ==================== ALUMNADO (MÚLTIPLES SUBGRUPOS) ====================
     async function loadStudents() {
       const query = (isAdmin && currentCategoryFilter !== 'Todos') ? `?category=${encodeURIComponent(currentCategoryFilter)}` : '';
       const res = await fetch(`/intranet/api/admin/students${query}`, { headers: authHeaders() });
@@ -1527,22 +1926,24 @@
         filtered = filtered.filter(s =>
           (s.full_name || '').toLowerCase().includes(q) ||
           (s.code || '').toLowerCase().includes(q) ||
-          (s.group_name || '').toLowerCase().includes(q)
+          (s.group_names || s.group_name || '').toLowerCase().includes(q)
         );
       }
       if (selectedGroupId) {
-        filtered = filtered.filter(s => String(s.group_id) === String(selectedGroupId));
+        filtered = filtered.filter(s => (s.group_ids || []).includes(Number(selectedGroupId)) || String(s.group_id) === String(selectedGroupId));
       }
 
-      document.getElementById('studentCount').innerText = `${filtered.length} alumnos${isAdmin ? ` (${currentCategoryFilter})` : ' en Sol Music'}`;
+      document.getElementById('studentCount').innerText = `${filtered.length} alumno(s)${isAdmin ? ` (${currentCategoryFilter})` : ' en Sol Music'}`;
+
       document.getElementById('studentsTableBody').innerHTML = filtered.map(s => {
-        const isSol = s.category === 'Sol Music';
-        const divBadge = isSol
-          ? '<span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 font-semibold text-[10px]">Sol Music</span>'
-          : '<span class="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 font-semibold text-[10px]">Particulares</span>';
         const avatarThumb = s.avatar_file
           ? `<img src="/intranet/api/avatars/${s.avatar_file}" class="w-8 h-8 rounded-full object-cover border border-black/10 shrink-0">`
           : `<div class="w-8 h-8 rounded-full bg-[#0071e3]/10 text-[#0071e3] flex items-center justify-center text-xs font-bold shrink-0">${s.full_name.charAt(0)}</div>`;
+
+        const grpBadges = (s.groups || []).map(g =>
+          `<span class="inline-block px-2 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] font-semibold text-[10px]">${g.name}</span>`
+        ).join(' ') || `<span class="px-2 py-0.5 rounded-full bg-black/5 text-[10px]">${s.group_name || 'Sin grupo'}</span>`;
+
         return `
           <tr class="hover:bg-black/[0.02] transition">
             <td class="py-3.5 px-3">
@@ -1561,13 +1962,13 @@
               <span class="font-bold text-[#1d1d1f]">${s.code}</span>
             </td>
             <td class="py-3.5 px-3">
-              <span class="px-2.5 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] font-semibold text-[11px]">${s.group_name || 'Sin grupo'}</span>
+              <div class="flex flex-wrap gap-1 max-w-[220px]">${grpBadges}</div>
             </td>
             <td class="py-3.5 px-3 text-right">
               <div class="inline-flex items-center gap-1">
                 <button type="button" onclick="openEditStudentModal(${s.id})"
                   class="px-3 py-1.5 rounded-xl bg-[#0071e3]/10 hover:bg-[#0071e3]/20 text-[#0071e3] text-xs font-semibold transition"
-                  title="Editar datos y usuario">
+                  title="Editar datos y subgrupos">
                   <i class="fa-solid fa-pen-to-square mr-1"></i> Editar
                 </button>
                 <button type="button" onclick="sendCredentialsWhatsApp(${s.id})"
@@ -1587,13 +1988,12 @@
       const mStuContainer = document.getElementById('mobileStudentsCards');
       if (mStuContainer) {
         mStuContainer.innerHTML = filtered.map(s => {
-          const isSol = s.category === 'Sol Music';
-          const divBadge = isSol
-            ? '<span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 font-semibold text-[10px]">Sol Music</span>'
-            : '<span class="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 font-semibold text-[10px]">Particulares</span>';
           const avatarThumb = s.avatar_file
             ? `<img src="/intranet/api/avatars/${s.avatar_file}" class="w-10 h-10 rounded-full object-cover border border-black/10 shrink-0">`
             : `<div class="w-10 h-10 rounded-full bg-[#0071e3]/10 text-[#0071e3] flex items-center justify-center text-sm font-bold shrink-0">${s.full_name.charAt(0)}</div>`;
+          const grpBadges = (s.groups || []).map(g =>
+            `<span class="px-2.5 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] font-semibold text-[10px]">${g.name}</span>`
+          ).join('');
           return `
             <div class="p-4 rounded-2xl bg-white/95 border border-black/[0.07] space-y-3">
               <div class="flex items-start justify-between gap-2">
@@ -1601,29 +2001,23 @@
                   ${avatarThumb}
                   <div>
                     <p class="text-sm font-bold text-[#1d1d1f]">${s.full_name}</p>
-                    <p class="text-[11px] text-[#6e6e73] font-mono">Usuario: <strong class="text-[#1d1d1f]">${s.code}</strong>${s.plain_hint ? ` • Clave: ${s.plain_hint}` : ''}</p>
+                    <p class="text-[11px] text-[#6e6e73] font-mono">Usuario: <strong class="text-[#1d1d1f]">${s.code}</strong></p>
                   </div>
                 </div>
                 <button type="button" onclick="deleteStudent(${s.id})" class="text-red-500 p-2 text-xs"><i class="fa-solid fa-trash"></i></button>
               </div>
               <div class="flex flex-wrap items-center gap-1.5">
-                ${divBadge}
-                <span class="px-2.5 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] font-medium text-[11px]">${s.group_name || 'Sin grupo'}</span>
+                ${grpBadges}
                 <span class="px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-800 font-semibold text-[10px]"><i class="fa-solid fa-guitar mr-1"></i>${s.instrument || 'Guitarra acustica'}</span>
-                ${s.schedule ? `<span class="text-[11px] text-[#0071e3] font-medium"><i class="fa-regular fa-clock mr-1"></i>${s.schedule}</span>` : ''}
               </div>
-              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1">
+              <div class="grid grid-cols-2 gap-2 pt-1">
                 <button type="button" onclick="openEditStudentModal(${s.id})"
                   class="py-2 rounded-xl bg-[#0071e3]/15 text-[#0071e3] text-xs font-semibold flex items-center justify-center gap-1 active:scale-95 transition">
                   <i class="fa-solid fa-pen-to-square"></i> Editar
                 </button>
                 <button type="button" onclick="sendCredentialsWhatsApp(${s.id})"
                   class="py-2 rounded-xl bg-emerald-600 text-white text-xs font-semibold flex items-center justify-center gap-1 active:scale-95 transition">
-                  <i class="fa-brands fa-whatsapp"></i> WhatsApp
-                </button>
-                <button type="button" onclick="copyCredentialsText(${s.id})"
-                  class="col-span-2 sm:col-span-1 py-2 rounded-xl bg-black/5 text-[#1d1d1f] text-xs font-semibold flex items-center justify-center gap-1 active:scale-95 transition">
-                  <i class="fa-regular fa-copy"></i> Copiar
+                  <i class="fa-brands fa-whatsapp text-sm"></i> WhatsApp
                 </button>
               </div>
             </div>
@@ -1632,7 +2026,74 @@
       }
     }
 
+    function openEditStudentModal(studentId) {
+      const stu = studentsCache.find(s => Number(s.id) === Number(studentId));
+      if (!stu) return;
 
+      document.getElementById('editStuId').value = stu.id;
+      document.getElementById('editStuCode').value = stu.code || '';
+      document.getElementById('editStuName').value = stu.full_name;
+      document.getElementById('editStuSchedule').value = stu.schedule || '';
+      document.getElementById('editStuQuota').value = stu.monthly_quota || 8;
+      document.getElementById('editStuInstrument').value = stu.instrument || 'Guitarra acustica';
+      document.getElementById('editStuPass').value = '';
+
+      const currentIds = (stu.group_ids && stu.group_ids.length)
+        ? stu.group_ids.map(Number)
+        : (stu.group_id ? [Number(stu.group_id)] : []);
+
+      const box = document.getElementById('editStuGroupsChecklist');
+      box.innerHTML = groupsCache.map(g => {
+        const checked = currentIds.includes(Number(g.id)) ? 'checked' : '';
+        return `
+          <label class="flex items-center gap-2 py-1 px-1.5 rounded-lg hover:bg-white cursor-pointer">
+            <input type="checkbox" name="editStuGroupCheck" value="${g.id}" ${checked} class="rounded text-[#0071e3]">
+            <span class="font-medium text-[#1d1d1f]">${isAdmin ? `[${g.category}] ` : ''}${g.name}</span>
+          </label>
+        `;
+      }).join('');
+
+      document.getElementById('editStudentModal').classList.remove('hidden');
+    }
+
+    function closeEditStudentModal() {
+      document.getElementById('editStudentModal').classList.add('hidden');
+    }
+
+    document.getElementById('editStudentForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const studentId = document.getElementById('editStuId').value;
+      const checkedIds = Array.from(document.querySelectorAll('input[name="editStuGroupCheck"]:checked')).map(cb => Number(cb.value));
+      if (!checkedIds.length) {
+        alert('Selecciona al menos un subgrupo para el estudiante');
+        return;
+      }
+
+      const res = await fetch(`/intranet/api/admin/students/${studentId}`, {
+        method: 'PUT',
+        headers: authHeaders(),
+        body: JSON.stringify({
+          code: document.getElementById('editStuCode').value,
+          full_name: document.getElementById('editStuName').value,
+          group_ids: checkedIds,
+          group_id: checkedIds[0],
+          instrument: document.getElementById('editStuInstrument').value,
+          schedule: document.getElementById('editStuSchedule').value,
+          monthly_quota: document.getElementById('editStuQuota').value,
+          new_password: document.getElementById('editStuPass').value
+        })
+      });
+
+      if (res.ok) {
+        closeEditStudentModal();
+        loadAllData();
+      } else {
+        const d = await res.json();
+        alert(d.error || 'Error al actualizar estudiante');
+      }
+    });
+
+    // ==================== MATERIALES + AULAS ESTILO CLASSROOM ====================
     function cleanDisplayName(str) {
       if (!str) return '';
       try {
@@ -1691,7 +2152,7 @@
 
       return `
         <div id="consultasContainer-${mat.id}" class="pt-3 border-t border-black/[0.07] space-y-3">
-          <p class="text-xs font-bold text-[#0071e3]"><i class="fa-solid fa-comments mr-1.5"></i>Consultas en vivo de alumnos (${Object.keys(byStudent).length})</p>
+          <p class="text-xs font-bold text-[#0071e3]"><i class="fa-solid fa-comments mr-1.5"></i>Consultas en vivo (${Object.keys(byStudent).length})</p>
           ${Object.entries(byStudent).map(([stuId, thread]) => `
             <div class="p-3 rounded-xl bg-[#0071e3]/[0.05] border border-[#0071e3]/15 space-y-2">
               <p class="text-[11px] font-bold text-[#1d1d1f]">Alumno: ${thread.student_name}</p>
@@ -1708,10 +2169,10 @@
               </div>
               <div class="flex gap-1.5 pt-1">
                 <input type="text" id="replyInput-${mat.id}-${stuId}" onkeydown="if(event.key==='Enter'){event.preventDefault();replyStudentConsulta(${mat.id}, ${stuId});}"
-                  placeholder="Responder consulta a ${thread.student_name}..."
+                  placeholder="Responder a ${thread.student_name}..."
                   class="flex-1 bg-white border border-black/10 rounded-lg px-2.5 py-1.5 text-xs">
                 <button type="button" onclick="replyStudentConsulta(${mat.id}, ${stuId})"
-                  class="px-3 py-1.5 rounded-lg bg-[#0071e3] hover:bg-[#0077ed] text-white text-[11px] font-semibold">
+                  class="px-3 py-1.5 rounded-lg bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold">
                   Responder
                 </button>
               </div>
@@ -1751,7 +2212,9 @@
       }
 
       if (msg.sender_role === 'student' && document.getElementById('panel-materiales').classList.contains('hidden')) {
-        document.getElementById('unreadChatDot').classList.remove('hidden'); const mDot = document.getElementById('mobileUnreadDot'); if (mDot) mDot.classList.remove('hidden');
+        document.getElementById('unreadChatDot').classList.remove('hidden');
+        const mDot = document.getElementById('mobileUnreadDot');
+        if (mDot) mDot.classList.remove('hidden');
       }
     }
 
@@ -1847,10 +2310,35 @@
       `;
     }
 
+    function onClassroomGroupFilterChange() {
+      const gid = document.getElementById('classroomGroupFilter').value;
+      const grp = groupsCache.find(g => String(g.id) === String(gid));
+      const titleEl = document.getElementById('classroomHeaderTitle');
+      const metaEl = document.getElementById('classroomHeaderMeta');
+
+      if (grp) {
+        titleEl.innerText = grp.name;
+        metaEl.innerText = `${grp.category} • ${grp.student_count || 0} alumno(s)${grp.schedule ? ` • Horario: ${grp.schedule}` : ''}`;
+      } else {
+        titleEl.innerText = 'Todas las aulas';
+        metaEl.innerText = 'Selecciona un aula para ver su horario, alumnos y materiales.';
+      }
+      renderMaterialsFiltered();
+    }
+
     async function loadMaterials() {
       const res = await fetch('/intranet/api/admin/materials', { headers: authHeaders() });
       materialsCache = await res.json();
-      document.getElementById('materialsList').innerHTML = materialsCache.map(m => {
+      renderMaterialsFiltered();
+    }
+
+    function renderMaterialsFiltered() {
+      const gid = document.getElementById('classroomGroupFilter')?.value || '';
+      const filteredMats = gid
+        ? materialsCache.filter(m => String(m.group_id) === String(gid))
+        : materialsCache;
+
+      document.getElementById('materialsList').innerHTML = filteredMats.map(m => {
         const isSol = m.category === 'Sol Music';
         const files = m.files || [];
         const defaultLbl = selectedAdminMatInstrument[m.id]
@@ -1901,7 +2389,7 @@
             ${renderConsultasAdmin(m)}
           </div>
         `;
-      }).join('') || '<p class="text-xs text-[#6e6e73] text-center py-8">Aún no hay materiales publicados.</p>';
+      }).join('') || '<p class="text-xs text-[#6e6e73] text-center py-8">No hay materiales publicados en esta aula todavía.</p>';
     }
 
     let editDeletedFileIds = [];
@@ -2022,6 +2510,7 @@
         body: JSON.stringify({
           category: isAdmin ? document.getElementById('groupCategory').value : 'Sol Music',
           name: document.getElementById('groupName').value,
+          schedule: document.getElementById('groupSchedule').value,
           description: document.getElementById('groupDesc').value
         })
       });
@@ -2036,6 +2525,12 @@
 
     document.getElementById('studentForm').addEventListener('submit', async (e) => {
       e.preventDefault();
+      const checkedIds = Array.from(document.querySelectorAll('input[name="stuGroupCheck"]:checked')).map(cb => Number(cb.value));
+      if (!checkedIds.length) {
+        alert('Selecciona al menos un subgrupo');
+        return;
+      }
+
       const res = await fetch('/intranet/api/admin/students', {
         method: 'POST',
         headers: authHeaders(),
@@ -2043,7 +2538,8 @@
           full_name: document.getElementById('stuName').value,
           code: document.getElementById('stuCode').value,
           password: document.getElementById('stuPass').value,
-          group_id: document.getElementById('stuGroupSelect').value,
+          group_ids: checkedIds,
+          group_id: checkedIds[0],
           instrument: document.getElementById('stuInstrument').value,
           schedule: document.getElementById('stuSchedule').value,
           monthly_quota: document.getElementById('stuQuota').value
@@ -2070,8 +2566,11 @@
         headers: authHeaders(),
         body: JSON.stringify({
           full_name: document.getElementById('teaName').value,
+          specialty: document.getElementById('teaSpecialty').value,
+          whatsapp: document.getElementById('teaWhatsapp').value,
           code: document.getElementById('teaCode').value,
-          password: document.getElementById('teaPass').value
+          password: document.getElementById('teaPass').value,
+          bio: document.getElementById('teaBio').value
         })
       });
       if (res.ok) {
@@ -2114,7 +2613,7 @@
         body: formData
       });
       btn.disabled = false;
-      btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-1.5"></i> Publicar Material Completo';
+      btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-1.5"></i> Publicar Material en el Aula';
       if (res.ok) {
         document.getElementById('materialForm').reset();
         document.getElementById('fileRowsContainer').innerHTML = '';
@@ -2127,7 +2626,7 @@
     });
 
     async function deleteGroup(id) {
-      if (!confirm('¿Eliminar este grupo/subgrupo?')) return;
+      if (!confirm('¿Eliminar este subgrupo?')) return;
       await fetch(`/intranet/api/admin/groups/${id}`, { method: 'DELETE', headers: authHeaders() });
       loadAllData();
     }
@@ -2139,7 +2638,7 @@
     }
 
     async function deleteTeacher(id) {
-      if (!confirm('¿Eliminar esta cuenta de profesor?')) return;
+      if (!confirm('¿Quitar de la plana docente?')) return;
       await fetch(`/intranet/api/admin/teachers/${id}`, { method: 'DELETE', headers: authHeaders() });
       loadTeachers();
     }
@@ -2149,7 +2648,6 @@
       await fetch(`/intranet/api/admin/materials/${id}`, { method: 'DELETE', headers: authHeaders() });
       loadMaterials();
     }
-
 
     function filterAttendanceStudents() {
       const q = (document.getElementById('attStudentSearch')?.value || '').trim().toLowerCase();
@@ -2223,57 +2721,9 @@
       URL.revokeObjectURL(url);
     }
 
-
-    function openEditStudentModal(studentId) {
-      const stu = studentsCache.find(s => Number(s.id) === Number(studentId));
-      if (!stu) return;
-
-      document.getElementById('editStuId').value = stu.id;
-      document.getElementById('editStuCode').value = stu.code || '';
-      document.getElementById('editStuName').value = stu.full_name;
-      document.getElementById('editStuSchedule').value = stu.schedule || '';
-      document.getElementById('editStuQuota').value = stu.monthly_quota || 8;
-      document.getElementById('editStuInstrument').value = stu.instrument || 'Guitarra acustica';
-      document.getElementById('editStuPass').value = '';
-
-      const sel = document.getElementById('editStuGroupSelect');
-      sel.innerHTML = groupsCache.map(g => `<option value="${g.id}" ${Number(g.id) === Number(stu.group_id) ? 'selected' : ''}>${g.name}</option>`).join('');
-
-      document.getElementById('editStudentModal').classList.remove('hidden');
-    }
-
-    function closeEditStudentModal() {
-      document.getElementById('editStudentModal').classList.add('hidden');
-    }
-
-    document.getElementById('editStudentForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const studentId = document.getElementById('editStuId').value;
-      const code = document.getElementById('editStuCode').value;
-      const full_name = document.getElementById('editStuName').value;
-      const group_id = document.getElementById('editStuGroupSelect').value;
-      const instrument = document.getElementById('editStuInstrument').value;
-      const schedule = document.getElementById('editStuSchedule').value;
-      const monthly_quota = document.getElementById('editStuQuota').value;
-      const new_password = document.getElementById('editStuPass').value;
-
-      const res = await fetch(`/intranet/api/admin/students/${studentId}`, {
-        method: 'PUT',
-        headers: authHeaders(),
-        body: JSON.stringify({ code, full_name, group_id, instrument, schedule, monthly_quota, new_password })
-      });
-
-      if (res.ok) {
-        closeEditStudentModal();
-        loadAllData();
-      } else {
-        const d = await res.json();
-        alert(d.error || 'Error al actualizar estudiante');
-      }
-    });
-
     loadAllData().then(initAdminRealtimeChat);
   </script>
+
   <!-- Barra de Navegación Inferior Tipo App Nativa (Solo Móvil Android / iOS) -->
   <nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bottom-dock">
     <div id="mobileAdminNavGrid" class="grid grid-cols-5 h-16 max-w-lg mx-auto">
@@ -2284,14 +2734,14 @@
       </button>
       <button type="button" onclick="switchTab('materiales')" id="mtab-materiales"
         class="mtab-btn flex flex-col items-center justify-center gap-1 text-[#6e6e73] font-medium text-[10px] transition relative">
-        <i class="fa-solid fa-folder-plus text-base"></i>
-        <span>Materiales</span>
+        <i class="fa-solid fa-chalkboard text-base"></i>
+        <span>Aulas</span>
         <span id="mobileUnreadDot" class="hidden absolute top-2 right-5 w-2 h-2 rounded-full bg-red-600"></span>
       </button>
       <button type="button" onclick="switchTab('alumnos')" id="mtab-alumnos"
         class="mtab-btn flex flex-col items-center justify-center gap-1 text-[#6e6e73] font-medium text-[10px] transition">
         <i class="fa-solid fa-users text-base"></i>
-        <span>Alumnado</span>
+        <span>Subgrupos</span>
       </button>
       <button type="button" onclick="switchTab('avisos')" id="mtab-avisos"
         class="mtab-btn flex flex-col items-center justify-center gap-1 text-[#6e6e73] font-medium text-[10px] transition">

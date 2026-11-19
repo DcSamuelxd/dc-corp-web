@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
   <meta name="theme-color" content="#f5f5f7">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -81,7 +81,7 @@
 
   <main class="max-w-6xl mx-auto px-5 pt-7 space-y-7">
 
-    <!-- Tarjeta Compacta de Bienvenida -->
+    <!-- Tarjeta Compacta de Bienvenida + Selector de Subgrupo Activo -->
     <div class="glass-bento p-6 sm:p-7 flex flex-col md:flex-row md:items-center justify-between gap-5">
       <div class="flex items-center gap-4">
         <div class="relative shrink-0">
@@ -90,10 +90,12 @@
             <i class="fa-solid fa-user-graduate"></i>
           </div>
         </div>
-        <div class="space-y-1">
+        <div class="space-y-1.5">
           <div class="flex flex-wrap items-center gap-2">
             <span id="categoryBadge" class="inline-block px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 text-[11px] font-semibold">Modalidad</span>
-            <span id="groupBadge" class="inline-block px-2.5 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[11px] font-semibold">Cargando...</span>
+            <select id="studentGroupSwitcher" onchange="onStudentGroupSwitch(this.value)"
+              class="bg-[#0071e3]/10 text-[#0071e3] font-bold text-[11px] px-3 py-1 rounded-full border border-[#0071e3]/20 focus:outline-none">
+            </select>
           </div>
           <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-[#1d1d1f]" id="studentName">Bienvenido</h1>
           <p id="studentBioPreview" class="text-xs text-[#6e6e73] max-w-xl line-clamp-2 hidden"></p>
@@ -162,7 +164,6 @@
           </div>
         </div>
 
-        <!-- Barra Desplegable de Metrónomo y Notas de Afinación Web -->
         <div id="metronomeDrawer" class="hidden mb-6 p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-500/[0.08] to-orange-500/[0.08] border border-amber-500/20 space-y-4">
           <div class="flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center gap-3">
@@ -196,17 +197,16 @@
             </div>
           </div>
 
-          <!-- Generador de Tonos de Referencia para Afinar (Guitarra / Bajo / Cuerdas) -->
           <div class="pt-3 border-t border-amber-500/15 flex flex-wrap items-center justify-between gap-2">
             <span class="text-[11px] font-semibold text-[#6e6e73]"><i class="fa-solid fa-guitar mr-1 text-amber-700"></i>Referencia de afinación (clic para sonar 2.5s):</span>
             <div class="flex flex-wrap gap-1.5">
-              <button type="button" onclick="playReferenceTone(82.41, 'E2 (6ta)')" class="px-2.5 py-1 rounded-lg bg-white hover:bg-amber-500/20 border border-black/10 text-[11px] font-bold">E2 (6ta)</button>
-              <button type="button" onclick="playReferenceTone(110.00, 'A2 (5ta)')" class="px-2.5 py-1 rounded-lg bg-white hover:bg-amber-500/20 border border-black/10 text-[11px] font-bold">A2 (5ta)</button>
-              <button type="button" onclick="playReferenceTone(146.83, 'D3 (4ta)')" class="px-2.5 py-1 rounded-lg bg-white hover:bg-amber-500/20 border border-black/10 text-[11px] font-bold">D3 (4ta)</button>
-              <button type="button" onclick="playReferenceTone(196.00, 'G3 (3ra)')" class="px-2.5 py-1 rounded-lg bg-white hover:bg-amber-500/20 border border-black/10 text-[11px] font-bold">G3 (3ra)</button>
-              <button type="button" onclick="playReferenceTone(246.94, 'B3 (2da)')" class="px-2.5 py-1 rounded-lg bg-white hover:bg-amber-500/20 border border-black/10 text-[11px] font-bold">B3 (2da)</button>
-              <button type="button" onclick="playReferenceTone(329.63, 'E4 (1ra)')" class="px-2.5 py-1 rounded-lg bg-white hover:bg-amber-500/20 border border-black/10 text-[11px] font-bold">E4 (1ra)</button>
-              <button type="button" onclick="playReferenceTone(440.00, 'La 440Hz')" class="px-2.5 py-1 rounded-lg bg-amber-600 text-white text-[11px] font-bold">La 440Hz</button>
+              <button type="button" onclick="playReferenceTone(82.41)" class="px-2.5 py-1 rounded-lg bg-white hover:bg-amber-500/20 border border-black/10 text-[11px] font-bold">E2 (6ta)</button>
+              <button type="button" onclick="playReferenceTone(110.00)" class="px-2.5 py-1 rounded-lg bg-white hover:bg-amber-500/20 border border-black/10 text-[11px] font-bold">A2 (5ta)</button>
+              <button type="button" onclick="playReferenceTone(146.83)" class="px-2.5 py-1 rounded-lg bg-white hover:bg-amber-500/20 border border-black/10 text-[11px] font-bold">D3 (4ta)</button>
+              <button type="button" onclick="playReferenceTone(196.00)" class="px-2.5 py-1 rounded-lg bg-white hover:bg-amber-500/20 border border-black/10 text-[11px] font-bold">G3 (3ra)</button>
+              <button type="button" onclick="playReferenceTone(246.94)" class="px-2.5 py-1 rounded-lg bg-white hover:bg-amber-500/20 border border-black/10 text-[11px] font-bold">B3 (2da)</button>
+              <button type="button" onclick="playReferenceTone(329.63)" class="px-2.5 py-1 rounded-lg bg-white hover:bg-amber-500/20 border border-black/10 text-[11px] font-bold">E4 (1ra)</button>
+              <button type="button" onclick="playReferenceTone(440.00)" class="px-2.5 py-1 rounded-lg bg-amber-600 text-white text-[11px] font-bold">La 440Hz</button>
             </div>
           </div>
         </div>
@@ -402,6 +402,7 @@
 
     const authHeaders = () => ({ 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' });
     let dashboardData = null;
+    let activeGroupId = null;
 
     function logout() {
       localStorage.clear();
@@ -447,7 +448,7 @@
       return match ? `https://www.youtube.com/embed/${match[1]}` : null;
     }
 
-    // ==================== HERRAMIENTAS DE ENSAYO: METRÓNOMO Y TONOS WEB AUDIO ====================
+    // ==================== METRÓNOMO Y TONOS ====================
     let audioCtx = null;
     let metroTimer = null;
     let metroRunning = false;
@@ -542,7 +543,7 @@
       osc.stop(audioCtx.currentTime + 2.5);
     }
 
-    // ==================== CONTROLES DE ENSAYO POR PISTA MP3 (VELOCIDAD + BUCLE A-B) ====================
+    // ==================== CONTROLES DE ENSAYO POR PISTA MP3 ====================
     const abLoops = {};
 
     function formatSecs(sec) {
@@ -639,7 +640,6 @@
       });
     }
 
-
     function cleanStudentFileName(str) {
       if (!str) return '';
       try {
@@ -659,7 +659,7 @@
               <p class="text-xs font-semibold text-[#1d1d1f] truncate mt-0.5">${cleanStudentFileName(f.original_name)}</p>
             </div>
             <div class="flex items-center gap-1.5 shrink-0">
-              <button type="button" onclick="openPdfModal('${fileUrl}', '${f.label} — ${f.original_name.replace(/'/g, '')}')"
+              <button type="button" onclick="openPdfModal('${fileUrl}', '${f.label} — ${cleanStudentFileName(f.original_name).replace(/'/g, '')}')"
                 class="px-3 py-1.5 rounded-full bg-red-600 hover:bg-red-700 text-white text-[11px] font-semibold transition">
                 <i class="fa-solid fa-eye mr-1"></i> Abrir PDF
               </button>
@@ -688,7 +688,6 @@
             <audio id="audio-${f.id}" controls preload="metadata" src="${fileUrl}"
               ontimeupdate="handleAudioTimeUpdate(${f.id})" class="w-full h-9"></audio>
 
-            <!-- Barra de Ensayo Musical: Velocidad + Salto -5s/+5s + Bucle A-B -->
             <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-black/[0.06]">
               <div class="flex items-center gap-1">
                 <span class="text-[10px] font-semibold text-[#6e6e73] mr-1">Velocidad:</span>
@@ -756,7 +755,6 @@
     function normalizeInstrumentMatch(stuInst, availableLabels) {
       if (!stuInst || !availableLabels.length) return availableLabels[0] || 'General (Canción completa)';
       const low = stuInst.toLowerCase();
-      // Buscar coincidencia directa o parcial (ej: "Bajo eléctrico" -> "Bajo", "Guitarra electrica" -> "Guitarra", "Piano" -> "Piano / Teclado")
       const exact = availableLabels.find(l => l.toLowerCase() === low);
       if (exact) return exact;
       const partial = availableLabels.find(l => {
@@ -795,7 +793,7 @@
             ${labels.map(lbl => {
               const isAct = lbl === activeLabel;
               return `
-                <button type="button" onclick="selectStudentSongLabel(${m.id}, '${lbl.replace(/'/g, "\'")}')"
+                <button type="button" onclick="selectStudentSongLabel(${m.id}, '${lbl.replace(/'/g, "\\'")}')"
                   class="shrink-0 text-left px-3.5 py-2.5 rounded-xl text-xs font-semibold transition flex items-center justify-between gap-2 ${
                     isAct
                       ? 'bg-[#0071e3] text-white shadow-sm'
@@ -960,7 +958,7 @@
 
       const container = document.getElementById('studentAttendances');
       if (!list.length) {
-        container.innerHTML = '<p class="col-span-full text-xs text-[#6e6e73] text-center py-10">No hay registros de asistencia en esta categoría.</p>';
+        container.innerHTML = '<p class="col-span-full text-xs text-[#6e6e73] text-center py-10">No hay registros de asistencia en este subgrupo.</p>';
         return;
       }
 
@@ -985,89 +983,6 @@
         `;
       }).join('');
     }
-
-    async function loadStudentPortal() {
-      const res = await fetch('/intranet/api/student/dashboard', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.status === 401) return logout();
-      dashboardData = await res.json();
-
-      const stu = dashboardData.student;
-      document.getElementById('studentName').innerText = stu.full_name;
-      document.getElementById('navStudentShortName').innerText = stu.full_name.split(' ')[0];
-      document.getElementById('studentCode').innerText = `Usuario: ${stu.code}`;
-      document.getElementById('groupBadge').innerText = stu.group_name || 'Sin grupo asignado';
-
-      updateAvatarDisplays(stu.avatar_file);
-
-      const bioInput = document.getElementById('bioInput');
-      bioInput.value = stu.bio || '';
-      document.getElementById('bioCharCount').innerText = `${(stu.bio || '').length}/400`;
-      const bioPreview = document.getElementById('studentBioPreview');
-      if (stu.bio) {
-        bioPreview.innerText = stu.bio;
-        bioPreview.classList.remove('hidden');
-      } else {
-        bioPreview.classList.add('hidden');
-      }
-
-      if (stu.schedule) {
-        const schEl = document.getElementById('studentSchedule');
-        schEl.innerHTML = `<i class="fa-regular fa-clock mr-1"></i>Horario: ${stu.schedule}`;
-        schEl.classList.remove('hidden');
-      }
-
-      const catBadge = document.getElementById('categoryBadge');
-      const cat = stu.category || 'Particulares';
-      catBadge.innerText = cat;
-      if (cat === 'Sol Music') {
-        catBadge.className = 'inline-block px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-800 text-[11px] font-semibold';
-      }
-
-      const currentMonth = new Date().toISOString().slice(0, 7);
-      const quota = stu.monthly_quota || 8;
-      const regularAtts = dashboardData.attendances.filter(a => (a.session_type === 'Regular' || a.session_type === 'Recuperacion' || !a.session_type));
-      const usedMonth = regularAtts.filter(a =>
-        a.date.startsWith(currentMonth) && ['Presente', 'Tardanza', 'Justificado'].includes(a.status)
-      ).length;
-      const refCount = dashboardData.attendances.filter(a => a.session_type === 'Reforzamiento').length;
-
-      const totalReg = regularAtts.length;
-      const validReg = regularAtts.filter(a => ['Presente', 'Tardanza', 'Justificado'].includes(a.status)).length;
-      const pct = totalReg > 0 ? Math.round((validReg / totalReg) * 100) : 100;
-
-      document.getElementById('statBlock').innerText = `${usedMonth}/${quota}`;
-      document.getElementById('statRef').innerText = refCount;
-      document.getElementById('statPct').innerText = `${pct}%`;
-
-      const anns = dashboardData.announcements || [];
-      const bannerEl = document.getElementById('studentAnnouncementsBanner');
-      if (anns.length) {
-        bannerEl.innerHTML = anns.map(a => `
-          <div class="p-4 rounded-2xl bg-gradient-to-r from-rose-500/10 via-amber-500/10 to-orange-500/10 border border-rose-500/20 flex items-start gap-3">
-            <div class="w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 mt-0.5">
-              <i class="fa-solid fa-bullhorn text-xs"></i>
-            </div>
-            <div class="min-w-0 flex-1">
-              <div class="flex flex-wrap items-center gap-2">
-                <h3 class="text-xs sm:text-sm font-bold text-[#1d1d1f]">${a.title}</h3>
-                ${a.event_date ? `<span class="px-2 py-0.5 rounded-full bg-white/80 text-rose-700 text-[10px] font-bold"><i class="fa-regular fa-calendar mr-1"></i>${a.event_date}</span>` : ''}
-              </div>
-              <p class="text-xs text-[#424245] mt-0.5 leading-relaxed">${a.message}</p>
-            </div>
-          </div>
-        `).join('');
-        bannerEl.classList.remove('hidden');
-      } else {
-        bannerEl.classList.add('hidden');
-      }
-
-      renderMaterialsSection(dashboardData.materials || []);
-      renderAttendancesList();
-      renderClassmatesSection();
-    }
-
 
     function renderClassmatesSection() {
       if (!dashboardData) return;
@@ -1158,7 +1073,108 @@
       document.getElementById('classmateProfileModal').classList.add('hidden');
     }
 
-    // ==================== CONEXIÓN EN TIEMPO REAL (SSE) ====================
+    function onStudentGroupSwitch(newGroupId) {
+      activeGroupId = Number(newGroupId);
+      loadStudentPortal(activeGroupId);
+    }
+
+    async function loadStudentPortal(targetGroupId = null) {
+      const url = targetGroupId
+        ? `/intranet/api/student/dashboard?group_id=${encodeURIComponent(targetGroupId)}`
+        : '/intranet/api/student/dashboard';
+      const res = await fetch(url, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.status === 401) return logout();
+      dashboardData = await res.json();
+
+      const stu = dashboardData.student;
+      activeGroupId = stu.active_group_id || stu.group_id;
+
+      document.getElementById('studentName').innerText = stu.full_name;
+      document.getElementById('navStudentShortName').innerText = stu.full_name.split(' ')[0];
+      document.getElementById('studentCode').innerText = `Usuario: ${stu.code}`;
+
+      const switcher = document.getElementById('studentGroupSwitcher');
+      const eGroups = dashboardData.enrolledGroups || [];
+      if (eGroups.length) {
+        switcher.innerHTML = eGroups.map(g =>
+          `<option value="${g.id}" ${Number(g.id) === Number(activeGroupId) ? 'selected' : ''}>${g.name}</option>`
+        ).join('');
+      } else {
+        switcher.innerHTML = `<option value="${activeGroupId || ''}">${stu.group_name || 'Sin grupo'}</option>`;
+      }
+
+      updateAvatarDisplays(stu.avatar_file);
+
+      const bioInput = document.getElementById('bioInput');
+      bioInput.value = stu.bio || '';
+      document.getElementById('bioCharCount').innerText = `${(stu.bio || '').length}/400`;
+      const bioPreview = document.getElementById('studentBioPreview');
+      if (stu.bio) {
+        bioPreview.innerText = stu.bio;
+        bioPreview.classList.remove('hidden');
+      } else {
+        bioPreview.classList.add('hidden');
+      }
+
+      const schText = stu.group_schedule || stu.schedule;
+      if (schText) {
+        const schEl = document.getElementById('studentSchedule');
+        schEl.innerHTML = `<i class="fa-regular fa-clock mr-1"></i>Horario: ${schText}`;
+        schEl.classList.remove('hidden');
+      }
+
+      const catBadge = document.getElementById('categoryBadge');
+      const cat = stu.category || 'Particulares';
+      catBadge.innerText = cat;
+      if (cat === 'Sol Music') {
+        catBadge.className = 'inline-block px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-800 text-[11px] font-semibold';
+      }
+
+      const currentMonth = new Date().toISOString().slice(0, 7);
+      const quota = stu.monthly_quota || 8;
+      const regularAtts = dashboardData.attendances.filter(a => (a.session_type === 'Regular' || a.session_type === 'Recuperacion' || !a.session_type));
+      const usedMonth = regularAtts.filter(a =>
+        a.date.startsWith(currentMonth) && ['Presente', 'Tardanza', 'Justificado'].includes(a.status)
+      ).length;
+      const refCount = dashboardData.attendances.filter(a => a.session_type === 'Reforzamiento').length;
+
+      const totalReg = regularAtts.length;
+      const validReg = regularAtts.filter(a => ['Presente', 'Tardanza', 'Justificado'].includes(a.status)).length;
+      const pct = totalReg > 0 ? Math.round((validReg / totalReg) * 100) : 100;
+
+      document.getElementById('statBlock').innerText = `${usedMonth}/${quota}`;
+      document.getElementById('statRef').innerText = refCount;
+      document.getElementById('statPct').innerText = `${pct}%`;
+
+      const anns = dashboardData.announcements || [];
+      const bannerEl = document.getElementById('studentAnnouncementsBanner');
+      if (anns.length) {
+        bannerEl.innerHTML = anns.map(a => `
+          <div class="p-4 rounded-2xl bg-gradient-to-r from-rose-500/10 via-amber-500/10 to-orange-500/10 border border-rose-500/20 flex items-start gap-3">
+            <div class="w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 mt-0.5">
+              <i class="fa-solid fa-bullhorn text-xs"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <h3 class="text-xs sm:text-sm font-bold text-[#1d1d1f]">${a.title}</h3>
+                ${a.event_date ? `<span class="px-2 py-0.5 rounded-full bg-white/80 text-rose-700 text-[10px] font-bold"><i class="fa-regular fa-calendar mr-1"></i>${a.event_date}</span>` : ''}
+              </div>
+              <p class="text-xs text-[#424245] mt-0.5 leading-relaxed">${a.message}</p>
+            </div>
+          </div>
+        `).join('');
+        bannerEl.classList.remove('hidden');
+      } else {
+        bannerEl.classList.add('hidden');
+      }
+
+      renderMaterialsSection(dashboardData.materials || []);
+      renderAttendancesList();
+      renderClassmatesSection();
+    }
+
     function initRealtimeChat() {
       const evtSource = new EventSource(`/intranet/api/chat/stream?token=${encodeURIComponent(token)}`);
       evtSource.onopen = () => {
@@ -1185,7 +1201,6 @@
       };
     }
 
-    // ==================== ACCIONES DE PERFIL, SEGURIDAD Y CONSULTAS ====================
     document.getElementById('bioInput').addEventListener('input', (e) => {
       document.getElementById('bioCharCount').innerText = `${e.target.value.length}/400`;
     });
@@ -1201,7 +1216,7 @@
       if (res.ok) {
         const fb = document.getElementById('bioFeedback');
         fb.innerText = 'Descripción actualizada';
-        loadStudentPortal();
+        loadStudentPortal(activeGroupId);
         setTimeout(() => fb.innerText = '', 3000);
       }
     });
@@ -1304,11 +1319,12 @@
         method: 'DELETE',
         headers: authHeaders()
       });
-      loadStudentPortal();
+      loadStudentPortal(activeGroupId);
     }
 
     loadStudentPortal().then(initRealtimeChat);
   </script>
+
   <!-- Barra de Navegación Inferior Tipo App Nativa (Solo Móvil Android / iOS) -->
   <nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bottom-dock">
     <div class="grid grid-cols-4 h-16 max-w-md mx-auto">
