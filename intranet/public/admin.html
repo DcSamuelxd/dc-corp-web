@@ -718,20 +718,25 @@
         </div>
       </div>
 
-      <!-- Vista previa de imagen generada en móvil si se requiere guardar manteniendo pulsado -->
-      <div id="mobileImageSaveBox" class="hidden p-4 rounded-2xl bg-sky-500/10 border border-sky-500/20 space-y-2.5 text-center">
-        <p class="text-xs font-bold text-sky-900">Imagen lista. Mantén presionada la imagen para guardar en Fotos o usa el botón de descarga:</p>
+      <!-- Vista previa de imagen generada para guardar o compartir -->
+      <div id="mobileImageSaveBox" class="hidden p-4 rounded-2xl bg-sky-500/10 border border-sky-500/20 space-y-3 text-center">
+        <p class="text-xs font-bold text-sky-900">Imagen generada. Puedes guardarla o volver a la vista de reporte:</p>
         <img id="generatedPreviewImg" src="" alt="Reporte PNG" class="max-w-full rounded-xl mx-auto border border-black/10 shadow-sm">
-        <a id="directBlobDownloadLink" href="#" download="Reporte.png" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0071e3] text-white text-xs font-semibold">
-          <i class="fa-solid fa-download"></i> Descargar archivo PNG
-        </a>
+        <div class="flex flex-wrap items-center justify-center gap-2 pt-1">
+          <a id="directBlobDownloadLink" href="#" download="Reporte.png" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#0071e3] text-white text-xs font-semibold">
+            <i class="fa-solid fa-download"></i> Descargar PNG
+          </a>
+          <button type="button" onclick="backToReportEditor()" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border border-black/15 text-[#1d1d1f] text-xs font-semibold">
+            <i class="fa-solid fa-arrow-left"></i> Volver al reporte
+          </button>
+        </div>
       </div>
 
-      <div class="overflow-x-auto bg-[#e9e9ed] p-3 sm:p-5 rounded-2xl">
+      <div id="capturePreviewWrapper" class="overflow-x-auto bg-[#e9e9ed] p-3 sm:p-5 rounded-2xl">
         <div id="captureCard" style="width: 720px; background-color: #ffffff; color: #1d1d1f; padding: 28px; border-radius: 16px; border: 1px solid #e5e7eb; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', sans-serif;">
           <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid #e5e7eb; padding-bottom: 16px; margin-bottom: 18px;">
             <div style="display: flex; align-items: center; gap: 12px;">
-              <img id="capLogoImg" src="/logo.svg" alt="DC CORP" style="width: 136px; height: 40px; object-fit: contain; flex-shrink: 0;">
+              <img id="capLogoImg" src="/logo.svg" alt="DC CORP" style="height: 36px; width: auto; max-width: 150px; object-fit: contain; flex-shrink: 0;">
               <div>
                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                   <span style="font-size: 15px; font-weight: 800; color: #1d1d1f; letter-spacing: -0.3px;">DC CORP</span>
@@ -1341,8 +1346,14 @@
       const today = formatISO(new Date());
       document.getElementById('exportDatePicker').value = today;
       document.getElementById('mobileImageSaveBox').classList.add('hidden');
+      document.getElementById('capturePreviewWrapper').classList.remove('hidden');
       document.getElementById('dailyExportModal').classList.remove('hidden');
       loadDailyExportPreview();
+    }
+
+    function backToReportEditor() {
+      document.getElementById('mobileImageSaveBox').classList.add('hidden');
+      document.getElementById('capturePreviewWrapper').classList.remove('hidden');
     }
 
     function closeDailyExportModal() {
@@ -1511,8 +1522,9 @@
         const cloneLogo = clone.querySelector('#capLogoImg');
         if (cloneLogo) {
           cloneLogo.setAttribute('src', '/logo.svg');
-          cloneLogo.style.width = '136px';
-          cloneLogo.style.height = '40px';
+          cloneLogo.style.height = '36px';
+          cloneLogo.style.width = 'auto';
+          cloneLogo.style.maxWidth = '150px';
           cloneLogo.style.objectFit = 'contain';
         }
 
@@ -1542,6 +1554,7 @@
           prevImg.src = blobUrl;
           dlLink.href = blobUrl;
           dlLink.download = fileName;
+          document.getElementById('capturePreviewWrapper').classList.add('hidden');
           saveBox.classList.remove('hidden');
 
           const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
