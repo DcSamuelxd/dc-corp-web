@@ -731,7 +731,7 @@
         <div id="captureCard" style="width: 720px; background-color: #ffffff; color: #1d1d1f; padding: 28px; border-radius: 16px; border: 1px solid #e5e7eb; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', sans-serif;">
           <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; border-bottom: 1px solid #e5e7eb; padding-bottom: 16px; margin-bottom: 18px;">
             <div style="display: flex; align-items: center; gap: 12px;">
-              <img id="capLogoImg" src="/logo.svg" alt="DC CORP" crossorigin="anonymous" style="height: 44px; width: auto; max-width: 170px; object-fit: contain; flex-shrink: 0;">
+              <img id="capLogoImg" src="/logo.svg" alt="DC CORP" style="width: 136px; height: 40px; object-fit: contain; flex-shrink: 0;">
               <div>
                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                   <span style="font-size: 15px; font-weight: 800; color: #1d1d1f; letter-spacing: -0.3px;">DC CORP</span>
@@ -1509,23 +1509,21 @@
         clone.style.margin = '0';
 
         const cloneLogo = clone.querySelector('#capLogoImg');
-        const origLogo = document.getElementById('capLogoImg');
-        if (cloneLogo && origLogo && origLogo.complete && origLogo.naturalWidth > 0) {
-          const tmpC = document.createElement('canvas');
-          const ratio = origLogo.naturalHeight ? (origLogo.naturalWidth / origLogo.naturalHeight) : 2.5;
-          tmpC.width = 360;
-          tmpC.height = Math.max(80, Math.round(360 / ratio));
-          const tctx = tmpC.getContext('2d');
-          tctx.drawImage(origLogo, 0, 0, tmpC.width, tmpC.height);
-          cloneLogo.src = tmpC.toDataURL('image/png');
+        if (cloneLogo) {
+          cloneLogo.setAttribute('src', '/logo.svg');
+          cloneLogo.style.width = '136px';
+          cloneLogo.style.height = '40px';
+          cloneLogo.style.objectFit = 'contain';
         }
 
         offscreenWrap.appendChild(clone);
         document.body.appendChild(offscreenWrap);
 
         const canvas = await html2canvas(clone, {
-          scale: 1.5,
+          scale: 1,
           backgroundColor: '#ffffff',
+          useCORS: true,
+          allowTaint: true,
           width: 720,
           height: clone.scrollHeight,
           windowWidth: 760,
