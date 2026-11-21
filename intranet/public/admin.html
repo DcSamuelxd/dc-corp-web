@@ -1498,25 +1498,37 @@
       btn.disabled = true;
       btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generando...';
 
+      let offscreenWrap = null;
       try {
-        const logoImg = document.getElementById('capLogoImg');
-        let originalLogoSrc = '';
-        if (logoImg && logoImg.complete && logoImg.naturalWidth > 0) {
-          originalLogoSrc = logoImg.src;
+        // Clonar tarjeta en un contenedor limpio fuera de cualquier modal con blur/scroll
+        offscreenWrap = document.createElement('div');
+        offscreenWrap.style.cssText = 'position:fixed;left:-10000px;top:0;width:720px;background:#ffffff;z-index:-1;';
+        const clone = card.cloneNode(true);
+        clone.style.width = '720px';
+        clone.style.maxWidth = '720px';
+        clone.style.margin = '0';
+
+        const cloneLogo = clone.querySelector('#capLogoImg');
+        const origLogo = document.getElementById('capLogoImg');
+        if (cloneLogo && origLogo && origLogo.complete && origLogo.naturalWidth > 0) {
           const tmpC = document.createElement('canvas');
-          const ratio = logoImg.naturalHeight ? (logoImg.naturalWidth / logoImg.naturalHeight) : 2.5;
+          const ratio = origLogo.naturalHeight ? (origLogo.naturalWidth / origLogo.naturalHeight) : 2.5;
           tmpC.width = 360;
           tmpC.height = Math.max(80, Math.round(360 / ratio));
           const tctx = tmpC.getContext('2d');
-          tctx.drawImage(logoImg, 0, 0, tmpC.width, tmpC.height);
-          logoImg.src = tmpC.toDataURL('image/png');
+          tctx.drawImage(origLogo, 0, 0, tmpC.width, tmpC.height);
+          cloneLogo.src = tmpC.toDataURL('image/png');
         }
 
-        const canvas = await html2canvas(card, {
-          scale: 2,
+        offscreenWrap.appendChild(clone);
+        document.body.appendChild(offscreenWrap);
+
+        const canvas = await html2canvas(clone, {
+          scale: 1.5,
           backgroundColor: '#ffffff',
-          width: card.offsetWidth,
-          height: card.offsetHeight,
+          width: 720,
+          height: clone.scrollHeight,
+          windowWidth: 760,
           scrollX: 0,
           scrollY: 0
         });
@@ -1557,9 +1569,8 @@
       } catch (err) {
         alert('Error al generar la imagen');
       } finally {
-        const logoImgRest = document.getElementById('capLogoImg');
-        if (logoImgRest && logoImgRest.src.startsWith('data:')) {
-          logoImgRest.src = '/logo.svg';
+        if (offscreenWrap && offscreenWrap.parentNode) {
+          offscreenWrap.parentNode.removeChild(offscreenWrap);
         }
         btn.disabled = false;
         btn.innerHTML = '<i class="fa-solid fa-download"></i> Guardar / Compartir PNG';
