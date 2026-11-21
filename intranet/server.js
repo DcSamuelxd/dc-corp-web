@@ -585,10 +585,10 @@ app.get('/intranet/api/admin/students', authMiddleware, staffOnly, (req, res) =>
   const params = [];
 
   if (req.user.role !== 'admin') {
-    sql += ` AND g.category = 'Sol Music'`;
+    sql += ` AND (gMain.category = 'Sol Music' OR gSub.category = 'Sol Music')`;
   } else if (category && category !== 'Todos') {
     sql += ` AND (gMain.category = ? OR gSub.category = ?)`;
-    params.push(category);
+    params.push(category, category);
   }
 
   if (group_id) {
@@ -599,7 +599,7 @@ app.get('/intranet/api/admin/students', authMiddleware, staffOnly, (req, res) =>
   sql += ` ORDER BY u.full_name ASC`;
 
   db.all(sql, params, (err, rows) => {
-    attachGroupsToStudents(rows || [], (enriched) => res.json(enriched));
+    if (!rows || !rows.length) return res.json([]); attachGroupsToStudents(rows, (enriched) => res.json(enriched));
   });
 });
 
@@ -844,7 +844,7 @@ app.get('/intranet/api/admin/daily-summary', authMiddleware, staffOnly, (req, re
        FROM attendance a
        INNER JOIN users u ON a.student_id = u.id
        INNER JOIN groups g ON a.group_id = g.id
-       WHERE a.date = ? AND g.category = 'Sol Music'
+       WHERE a.date = ? AND (gMain.category = 'Sol Music' OR gSub.category = 'Sol Music')
        ORDER BY g.name ASC, u.full_name ASC`,
       [monthPrefix, date],
       (err, rows) => res.json({ date, records: rows || [] })
