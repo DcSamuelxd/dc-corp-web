@@ -126,7 +126,7 @@
                 <button onclick="changeWeek(7)" class="px-2.5 py-1 rounded-lg hover:bg-black/5 text-xs font-bold" title="Semana siguiente">
                   <i class="fa-solid fa-chevron-right"></i>
                 </button>
-                <button onclick="resetToCurrentWeek()" class="px-2 py-1 rounded-lg bg-[#0071e3]/10 text-[#0071e3] text-[10px] font-semibold hover:bg-[#0071e3]/20">
+                <button onclick="resetToCurrentWeek()" class="px-2.5 py-1 rounded-lg bg-[#0071e3]/10 text-[#0071e3] text-[10px] font-semibold hover:bg-[#0071e3]/20">
                   Hoy
                 </button>
               </div>
@@ -178,10 +178,10 @@
       </div>
     </section>
 
-    <!-- ==================== SECCIÓN 2: AULAS Y MATERIALES (ESTILO CLASSROOM) ==================== -->
+    <!-- ==================== SECCIÓN 2: AULAS Y MATERIALES (TARJETAS DE CLASE) ==================== -->
     <section id="panel-materiales" class="hidden space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
+
         <div class="lg:col-span-5 glass-bento p-6 sm:p-8 h-fit">
           <h2 class="text-lg font-bold mb-1">Publicar Material o Canción de Estudio</h2>
           <p class="text-xs text-[#6e6e73] mb-5">
@@ -260,21 +260,22 @@
         </div>
 
         <div class="lg:col-span-7 space-y-5">
-          <!-- Selector de Aula estilo Google Classroom -->
           <div class="glass-bento p-5 sm:p-6">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-600">Tablero de Aulas</span>
-                <h2 class="text-lg font-bold tracking-tight" id="classroomHeaderTitle">Todas las aulas</h2>
-                <p class="text-xs text-[#6e6e73]" id="classroomHeaderMeta">Selecciona un aula para ver su horario, alumnos y materiales.</p>
+                <h2 class="text-lg font-bold tracking-tight" id="classroomHeaderTitle">Clases y Subgrupos</h2>
+                <p class="text-xs text-[#6e6e73]" id="classroomHeaderMeta">Presiona una tarjeta de clase para ver sus materiales, entregas y consultas.</p>
               </div>
-              <select id="classroomGroupFilter" onchange="onClassroomGroupFilterChange()" class="bg-white border border-black/10 rounded-xl px-3.5 py-2 text-xs font-semibold min-w-[210px]">
-                <option value="">Todas las aulas / subgrupos</option>
-              </select>
+              <button type="button" id="btnBackToClassroomCards" onclick="selectClassroomCard(null)"
+                class="hidden px-3.5 py-2 rounded-full bg-black/[0.06] hover:bg-black/[0.1] text-[#1d1d1f] text-xs font-semibold shrink-0 transition">
+                <i class="fa-solid fa-arrow-left mr-1.5"></i> Todas las tarjetas
+              </button>
             </div>
           </div>
 
-          <div id="materialsList" class="space-y-4"></div>
+          <div id="classroomCardsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5"></div>
+          <div id="materialsList" class="hidden space-y-4"></div>
         </div>
 
       </div>
@@ -283,7 +284,7 @@
     <!-- ==================== SECCIÓN 3: SUBGRUPOS Y ALUMNADO ==================== -->
     <section id="panel-alumnos" class="hidden space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
+
         <div class="lg:col-span-5 space-y-6">
           <div class="glass-bento p-6">
             <h3 id="groupCardTitle" class="text-base font-bold mb-1">1. Crear Grupo o Subgrupo</h3>
@@ -304,7 +305,6 @@
               </button>
             </form>
 
-            <!-- Tarjetas interactivas de Subgrupos (no lista simple) -->
             <div id="groupsCardsGrid" class="space-y-2.5 mt-5 pt-4 border-t border-black/[0.06]"></div>
           </div>
 
@@ -331,24 +331,22 @@
               <div id="stuGradeBox" class="hidden">
                 <label class="block text-[11px] font-medium text-indigo-700 mb-1">Grado / Nivel Académico (Matemáticas) *</label>
                 <select id="stuGrade" class="w-full bg-white border border-indigo-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#1d1d1f]">
-                  
-<option value="1er Grado Primaria">1er Grado Primaria</option>
-<option value="2do Grado Primaria">2do Grado Primaria</option>
-<option value="3er Grado Primaria">3er Grado Primaria</option>
-<option value="4to Grado Primaria">4to Grado Primaria</option>
-<option value="5to Grado Primaria">5to Grado Primaria</option>
-<option value="6to Grado Primaria">6to Grado Primaria</option>
-<option value="1er Año Secundaria">1er Año Secundaria</option>
-<option value="2do Año Secundaria">2do Año Secundaria</option>
-<option value="3er Año Secundaria">3er Año Secundaria</option>
-<option value="4to Año Secundaria">4to Año Secundaria</option>
-<option value="5to Año Secundaria">5to Año Secundaria</option>
-<option value="Preuniversitario / Academia">Preuniversitario / Academia</option>
-<option value="Universitario">Universitario</option>
-
+                  <option value="1er Grado Primaria">1er Grado Primaria</option>
+                  <option value="2do Grado Primaria">2do Grado Primaria</option>
+                  <option value="3er Grado Primaria">3er Grado Primaria</option>
+                  <option value="4to Grado Primaria">4to Grado Primaria</option>
+                  <option value="5to Grado Primaria">5to Grado Primaria</option>
+                  <option value="6to Grado Primaria">6to Grado Primaria</option>
+                  <option value="1er Año Secundaria">1er Año Secundaria</option>
+                  <option value="2do Año Secundaria">2do Año Secundaria</option>
+                  <option value="3er Año Secundaria">3er Año Secundaria</option>
+                  <option value="4to Año Secundaria">4to Año Secundaria</option>
+                  <option value="5to Año Secundaria">5to Año Secundaria</option>
+                  <option value="Preuniversitario / Academia">Preuniversitario / Academia</option>
+                  <option value="Universitario">Universitario</option>
                 </select>
               </div>
-              
+
               <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 <div class="sm:col-span-2">
                   <label class="block text-[10px] font-medium text-[#6e6e73] mb-1">Horario fijo del alumno</label>
@@ -367,14 +365,14 @@
           </div>
         </div>
 
-        <div class="lg:col-span-7 glass-bento p-6 sm:p-8">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+        <div class="lg:col-span-7 glass-bento p-6 sm:p-8 space-y-5">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h3 class="text-lg font-bold" id="directoryTitle">Directorio de Alumnado</h3>
               <p class="text-xs text-[#6e6e73]" id="studentCount">0 alumnos</p>
             </div>
 
-            <div id="adminCategoryFilter" class="inline-flex p-1 rounded-xl bg-black/[0.05] text-xs font-semibold">
+            <div id="adminCategoryFilter" class="inline-flex p-1 rounded-xl bg-black/[0.05] text-xs font-semibold w-fit">
               <button onclick="setStudentCategoryFilter('Todos')" id="cat-Todos" class="cat-btn px-3.5 py-1.5 rounded-lg bg-white text-[#1d1d1f] shadow-sm transition">
                 Todos
               </button>
@@ -387,36 +385,29 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-5">
-            <div class="relative">
-              <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-[#6e6e73] text-xs">
-                <i class="fa-solid fa-magnifying-glass"></i>
-              </span>
-              <input type="search" id="dirStudentSearch" oninput="renderStudentsViews()"
-                placeholder="Buscar por nombre o DNI..."
-                class="w-full bg-white border border-black/10 rounded-xl pl-9 pr-3.5 py-2.5 text-xs focus:outline-none focus:border-[#0071e3]">
+          <!-- Tarjetas de clases para filtrar alumnos -->
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-[#6e6e73]">Filtrar por tarjeta de clase</span>
+              <button type="button" id="btnClearGroupCard" onclick="selectStudentGroupCard('')"
+                class="hidden text-[11px] font-semibold text-[#0071e3] hover:underline">
+                Ver todos los grupos
+              </button>
             </div>
-            <div>
-              <select id="dirGroupFilter" onchange="renderStudentsViews()" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#1d1d1f]">
-                <option value="">Visualizar todos los subgrupos</option>
-              </select>
-            </div>
+            <div id="studentGroupCardsGrid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2.5"></div>
           </div>
 
-          <div id="mobileStudentsCards" class="md:hidden space-y-3 mb-2"></div>
-          <div class="hidden md:block overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-              <thead>
-                <tr class="border-b border-black/[0.08] text-[11px] uppercase text-[#6e6e73]">
-                  <th class="py-2.5 px-2">Estudiante / Especialidad</th>
-                  <th class="py-2.5 px-2">Acceso</th>
-                  <th class="py-2.5 px-2">Subgrupos</th>
-                  <th class="py-2.5 px-2 text-right">Acciones</th>
-                </tr>
-              </thead>
-              <tbody id="studentsTableBody" class="text-xs divide-y divide-black/[0.05]"></tbody>
-            </table>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-[#6e6e73] text-xs">
+              <i class="fa-solid fa-magnifying-glass"></i>
+            </span>
+            <input type="search" id="dirStudentSearch" oninput="renderStudentsViews()"
+              placeholder="Buscar alumno por nombre o DNI..."
+              class="w-full bg-white border border-black/10 rounded-xl pl-9 pr-3.5 py-2.5 text-xs focus:outline-none focus:border-[#0071e3]">
           </div>
+
+          <!-- Lista limpia: al presionar se abre el detalle/perfil/edición -->
+          <div id="studentsCompactList" class="divide-y divide-black/[0.06] rounded-2xl bg-white/95 border border-black/[0.07] overflow-hidden"></div>
         </div>
 
       </div>
@@ -425,7 +416,7 @@
     <!-- ==================== SECCIÓN 4: PLANA DOCENTE INTERACTIVA ==================== -->
     <section id="panel-profesores" class="hidden space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
+
         <div class="lg:col-span-5 space-y-6">
           <div class="glass-bento p-6 sm:p-7 h-fit space-y-4">
             <div>
@@ -527,6 +518,53 @@
 
   </main>
 
+  <!-- ==================== MODAL PERFIL Y ACCIONES DE ESTUDIANTE ==================== -->
+  <div id="studentDetailModal" class="hidden fixed inset-0 z-50 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto" onclick="if(event.target===this) closeStudentDetailModal()">
+    <div class="glass-bento p-6 sm:p-7 max-w-md w-full bg-white my-auto space-y-5 relative">
+      <button type="button" onclick="closeStudentDetailModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 text-[#1d1d1f] flex items-center justify-center">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="flex items-center gap-3.5 pt-1">
+        <img id="sdAvatarImg" src="" alt="Foto" class="w-16 h-16 rounded-2xl object-cover border border-black/10 shrink-0 hidden">
+        <div id="sdAvatarFallback" class="w-16 h-16 rounded-2xl bg-[#0071e3]/15 text-[#0071e3] flex items-center justify-center text-xl font-bold shrink-0">A</div>
+        <div class="min-w-0">
+          <span id="sdAreaBadge" class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold">Área</span>
+          <h3 id="sdName" class="text-lg font-bold text-[#1d1d1f] truncate mt-0.5">Estudiante</h3>
+          <p id="sdCode" class="text-xs text-[#6e6e73] font-mono"></p>
+        </div>
+      </div>
+
+      <div class="p-4 rounded-2xl bg-[#f5f5f7] border border-black/[0.06] space-y-2 text-xs">
+        <div id="sdScheduleRow" class="text-[#0071e3] font-semibold hidden"></div>
+        <div id="sdGroupsRow" class="flex flex-wrap gap-1"></div>
+        <div class="pt-1">
+          <span class="block text-[10px] font-bold uppercase tracking-wide text-[#6e6e73]">Perfil / Descripción</span>
+          <p id="sdBio" class="text-[#1d1d1f] mt-0.5 leading-relaxed"></p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2">
+        <button type="button" id="sdBtnWa"
+          class="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold inline-flex items-center justify-center gap-1.5 transition">
+          <i class="fa-brands fa-whatsapp"></i> WhatsApp
+        </button>
+        <button type="button" id="sdBtnCopy"
+          class="py-2.5 px-3 rounded-xl bg-black/[0.06] hover:bg-black/[0.1] text-[#1d1d1f] text-xs font-semibold inline-flex items-center justify-center gap-1.5 transition">
+          <i class="fa-regular fa-copy"></i> Copiar acceso
+        </button>
+        <button type="button" id="sdBtnEdit"
+          class="py-2.5 px-3 rounded-xl bg-[#0071e3]/12 hover:bg-[#0071e3]/20 text-[#0071e3] text-xs font-semibold inline-flex items-center justify-center gap-1.5 transition">
+          <i class="fa-solid fa-pen-to-square"></i> Editar datos
+        </button>
+        <button type="button" id="sdBtnDelete"
+          class="py-2.5 px-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-600 text-xs font-semibold inline-flex items-center justify-center gap-1.5 transition">
+          <i class="fa-solid fa-trash"></i> Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== MODAL EDITAR SUBGRUPO + VER ALUMNOS ==================== -->
   <div id="editGroupModal" class="hidden fixed inset-0 z-50 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto" onclick="if(event.target===this) closeEditGroupModal()">
     <div class="glass-bento p-6 sm:p-7 max-w-lg w-full bg-white my-auto space-y-5 relative">
@@ -595,7 +633,6 @@
         </div>
       </div>
 
-      <!-- Subida de foto del docente -->
       <div class="p-3.5 rounded-2xl bg-[#f5f5f7] border border-black/[0.06] flex flex-wrap items-center justify-between gap-2">
         <input type="file" id="tpAvatarInput" accept="image/jpeg,image/png,image/webp,image/gif" class="text-xs flex-1 min-w-0">
         <button type="button" onclick="uploadTeacherAvatar()" class="px-3.5 py-1.5 rounded-full bg-[#1d1d1f] text-white text-xs font-semibold shrink-0">
@@ -713,11 +750,11 @@
             <i class="fa-solid fa-rotate-right"></i> Recuperación
           </button>
           <button type="button" onclick="saveCellAction('Regular', 'Tardanza')"
-            class="py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+            class="py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition">
             <i class="fa-regular fa-clock"></i> Tardanza
           </button>
           <button type="button" onclick="saveCellAction('Regular', 'Falta')"
-            class="py-2 px-3 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition">
+            class="py-2.5 px-3 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition">
             <i class="fa-solid fa-xmark"></i> Falta
           </button>
         </div>
@@ -791,7 +828,6 @@
         </div>
       </div>
 
-      <!-- Vista previa de imagen generada para guardar o compartir -->
       <div id="mobileImageSaveBox" class="hidden p-4 rounded-2xl bg-sky-500/10 border border-sky-500/20 space-y-3 text-center">
         <p class="text-xs font-bold text-sky-900">Imagen generada. Puedes guardarla o volver a la vista de reporte:</p>
         <img id="generatedPreviewImg" src="" alt="Reporte PNG" class="max-w-full rounded-xl mx-auto border border-black/10 shadow-sm">
@@ -934,21 +970,19 @@
         <div id="editStuGradeBox" class="hidden">
           <label class="block text-xs font-semibold text-indigo-700 mb-1">Grado / Nivel Académico (Matemáticas) *</label>
           <select id="editStuGrade" class="w-full bg-[#f5f5f7] border border-indigo-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#1d1d1f]">
-            
-<option value="1er Grado Primaria">1er Grado Primaria</option>
-<option value="2do Grado Primaria">2do Grado Primaria</option>
-<option value="3er Grado Primaria">3er Grado Primaria</option>
-<option value="4to Grado Primaria">4to Grado Primaria</option>
-<option value="5to Grado Primaria">5to Grado Primaria</option>
-<option value="6to Grado Primaria">6to Grado Primaria</option>
-<option value="1er Año Secundaria">1er Año Secundaria</option>
-<option value="2do Año Secundaria">2do Año Secundaria</option>
-<option value="3er Año Secundaria">3er Año Secundaria</option>
-<option value="4to Año Secundaria">4to Año Secundaria</option>
-<option value="5to Año Secundaria">5to Año Secundaria</option>
-<option value="Preuniversitario / Academia">Preuniversitario / Academia</option>
-<option value="Universitario">Universitario</option>
-
+            <option value="1er Grado Primaria">1er Grado Primaria</option>
+            <option value="2do Grado Primaria">2do Grado Primaria</option>
+            <option value="3er Grado Primaria">3er Grado Primaria</option>
+            <option value="4to Grado Primaria">4to Grado Primaria</option>
+            <option value="5to Grado Primaria">5to Grado Primaria</option>
+            <option value="6to Grado Primaria">6to Grado Primaria</option>
+            <option value="1er Año Secundaria">1er Año Secundaria</option>
+            <option value="2do Año Secundaria">2do Año Secundaria</option>
+            <option value="3er Año Secundaria">3er Año Secundaria</option>
+            <option value="4to Año Secundaria">4to Año Secundaria</option>
+            <option value="5to Año Secundaria">5to Año Secundaria</option>
+            <option value="Preuniversitario / Academia">Preuniversitario / Academia</option>
+            <option value="Universitario">Universitario</option>
           </select>
         </div>
 
@@ -1091,7 +1125,6 @@
       'Guía de Práctica'
     ];
 
-
     const CLASSROOM_LABEL_OPTIONS = [
       'Actividad / Tarea (PDF)',
       'Hoja de Reforzamiento',
@@ -1111,11 +1144,7 @@
       const grp = groupsCache.find(g => String(g.id) === String(gid));
       const fmtSel = document.getElementById('matFormatSelect');
       if (grp && fmtSel) {
-        if (grp.category === 'Sol Music') {
-          fmtSel.value = 'music';
-        } else {
-          fmtSel.value = 'classroom';
-        }
+        fmtSel.value = grp.category === 'Sol Music' ? 'music' : 'classroom';
         onMatFormatChange();
       }
     }
@@ -1400,7 +1429,6 @@
       container.innerHTML = mobileCardsHtml + html;
     }
 
-
     function appendHoursNote(hoursText) {
       const inp = document.getElementById('modalNoteInput');
       if (!inp) return;
@@ -1517,7 +1545,7 @@
       }
     }
 
-    // ==================== EXPORTACIÓN DIARIA REPARADA (IMAGEN + MÓVIL) ====================
+    // ==================== EXPORTACIÓN DIARIA ====================
     let lastDailySummaryData = { date: '', records: [] };
 
     function openDailyExportModal() {
@@ -1689,15 +1717,12 @@
 
       let offscreenWrap = null;
       try {
-        // Clonar tarjeta en un contenedor limpio fuera de cualquier modal con blur/scroll
         offscreenWrap = document.createElement('div');
         offscreenWrap.style.cssText = 'position:fixed;left:-10000px;top:0;width:720px;background:#ffffff;z-index:-1;';
         const clone = card.cloneNode(true);
         clone.style.width = '720px';
         clone.style.maxWidth = '720px';
         clone.style.margin = '0';
-
-
 
         offscreenWrap.appendChild(clone);
         document.body.appendChild(offscreenWrap);
@@ -1718,7 +1743,6 @@
           if (!blob) throw new Error('No se pudo generar la imagen');
           const blobUrl = URL.createObjectURL(blob);
 
-          // Mostrar vista previa de respaldo para móviles
           const saveBox = document.getElementById('mobileImageSaveBox');
           const prevImg = document.getElementById('generatedPreviewImg');
           const dlLink = document.getElementById('directBlobDownloadLink');
@@ -1790,14 +1814,31 @@
       });
     }
 
-    // ==================== SUBGRUPOS (TARJETAS + EDICIÓN + MÚLTIPLES SUBGRUPOS POR ALUMNO) ====================
+    // ==================== SUBGRUPOS Y ALUMNADO ====================
     let groupsCache = [];
     let teachersCache = [];
     let materialsCache = [];
     let currentCategoryFilter = 'Todos';
+    let selectedStudentGroupCardId = '';
+    let selectedClassroomCardId = null;
+
+    function isMusicStudent(stu) {
+      const gList = stu.groups || [];
+      if (gList.some(g => g.category === 'Sol Music')) return true;
+      if (stu.category === 'Sol Music') return true;
+      return false;
+    }
+
+    function getStudentAreaBadgeHtml(stu) {
+      if (isMusicStudent(stu)) {
+        return `<span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 font-semibold text-[10px]"><i class="fa-solid fa-guitar mr-1"></i>${stu.instrument || 'Música'}</span>`;
+      }
+      return `<span class="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 font-semibold text-[10px]"><i class="fa-solid fa-calculator mr-1"></i>Matemáticas${stu.grade ? ` • ${stu.grade}` : ''}</span>`;
+    }
 
     function setStudentCategoryFilter(cat) {
       currentCategoryFilter = cat;
+      selectedStudentGroupCardId = '';
       ['Todos', 'Particulares', 'Sol Music'].forEach(c => {
         const btn = document.getElementById(`cat-${c}`);
         if (c === cat) {
@@ -1809,6 +1850,59 @@
       loadStudents();
     }
 
+    function selectStudentGroupCard(groupId) {
+      selectedStudentGroupCardId = groupId ? String(groupId) : '';
+      const clearBtn = document.getElementById('btnClearGroupCard');
+      if (clearBtn) {
+        clearBtn.classList.toggle('hidden', !selectedStudentGroupCardId);
+      }
+      renderStudentClassCards();
+      renderStudentsViews();
+    }
+
+    function renderStudentClassCards() {
+      const grid = document.getElementById('studentGroupCardsGrid');
+      if (!grid) return;
+
+      const visibleGroups = groupsCache.filter(g => {
+        if (!isAdmin) return g.category === 'Sol Music';
+        if (currentCategoryFilter && currentCategoryFilter !== 'Todos') {
+          return g.category === currentCategoryFilter;
+        }
+        return true;
+      });
+
+      if (!visibleGroups.length) {
+        grid.innerHTML = '<p class="col-span-full text-xs text-[#6e6e73] py-2">No hay clases creadas en esta vista.</p>';
+        return;
+      }
+
+      grid.innerHTML = visibleGroups.map(g => {
+        const active = String(g.id) === String(selectedStudentGroupCardId);
+        const isSol = g.category === 'Sol Music';
+        return `
+          <button type="button" onclick="selectStudentGroupCard(${g.id})"
+            class="text-left p-3.5 rounded-2xl border transition flex flex-col justify-between gap-1.5 ${
+              active
+                ? 'bg-[#1d1d1f] text-white border-[#1d1d1f] shadow-sm'
+                : 'bg-white/95 hover:bg-white text-[#1d1d1f] border-black/[0.08]'
+            }">
+            <div class="flex items-center justify-between gap-2">
+              <span class="px-2 py-0.5 rounded-full text-[9px] font-bold ${
+                active
+                  ? 'bg-white/15 text-white'
+                  : (isSol ? 'bg-amber-500/15 text-amber-800' : 'bg-indigo-500/10 text-indigo-700')
+              }">${g.category}</span>
+              <span class="text-[10px] font-semibold ${active ? 'text-white/85' : 'text-[#6e6e73]'}">
+                <i class="fa-solid fa-users mr-1"></i>${g.student_count || 0}
+              </span>
+            </div>
+            <p class="text-xs font-bold leading-snug line-clamp-1">${g.name}</p>
+            ${g.schedule ? `<p class="text-[10px] truncate ${active ? 'text-sky-300' : 'text-[#0071e3]'}"><i class="fa-regular fa-clock mr-1"></i>${g.schedule}</p>` : ''}
+          </button>
+        `;
+      }).join('');
+    }
 
     function syncStudentFieldBySelectedGroups(selectedIds, isEdit = false) {
       const selectedGroups = groupsCache.filter(g => selectedIds.includes(Number(g.id)));
@@ -1896,7 +1990,6 @@
       document.getElementById('editGroupCategory').value = grp.category || 'Particulares';
       document.getElementById('editGroupCategoryWrap').classList.toggle('hidden', !isAdmin);
 
-      // Listar alumnos que pertenecen a este subgrupo
       const members = studentsCache.filter(s => (s.group_ids || []).includes(Number(grp.id)) || Number(s.group_id) === Number(grp.id));
       const listEl = document.getElementById('editGroupStudentsPreview');
       if (!members.length) {
@@ -1905,7 +1998,7 @@
         listEl.innerHTML = members.map(m => `
           <div class="flex items-center justify-between bg-[#f5f5f7] px-3 py-1.5 rounded-xl">
             <span class="font-semibold text-[#1d1d1f]">${m.full_name}</span>
-            <span class="text-[10px] font-semibold text-amber-800 bg-amber-500/15 px-2 py-0.5 rounded-full">${m.instrument || 'Guitarra acustica'}</span>
+            <span class="text-[10px] font-semibold text-[#6e6e73]">${isMusicStudent(m) ? (m.instrument || 'Música') : (m.grade || 'Matemáticas')}</span>
           </div>
         `).join('');
       }
@@ -1953,22 +2046,6 @@
         if (prev && groupsCache.some(g => String(g.id) === prev)) el.value = prev;
       });
       onMatGroupSelectChange();
-
-      const classSel = document.getElementById('classroomGroupFilter');
-      if (classSel) {
-        const prevC = classSel.value;
-        classSel.innerHTML = '<option value="">Todas las aulas / subgrupos</option>' +
-          groupsCache.map(g => `<option value="${g.id}">${isAdmin ? `[${g.category}] ` : ''}${g.name}</option>`).join('');
-        if (prevC) classSel.value = prevC;
-      }
-
-      const dirGroupF = document.getElementById('dirGroupFilter');
-      if (dirGroupF) {
-        const prevF = dirGroupF.value;
-        dirGroupF.innerHTML = '<option value="">Visualizar todos los subgrupos</option>' +
-          groupsCache.map(g => `<option value="${g.id}">${isAdmin ? `[${g.category}] ` : ''}${g.name}</option>`).join('');
-        if (prevF) dirGroupF.value = prevF;
-      }
 
       renderGroupChecklists();
       syncStudentFieldBySelectedGroups(Array.from(document.querySelectorAll('input[name="stuGroupCheck"]:checked')).map(cb => Number(cb.value)), false);
@@ -2140,19 +2217,19 @@
       }
     });
 
-    // ==================== ALUMNADO (MÚLTIPLES SUBGRUPOS) ====================
+    // ==================== ALUMNADO: TARJETAS DE CLASE + LISTA LIMPIA + PERFIL ====================
     async function loadStudents() {
       const query = (isAdmin && currentCategoryFilter !== 'Todos') ? `?category=${encodeURIComponent(currentCategoryFilter)}` : '';
       const res = await fetch(`/intranet/api/admin/students${query}`, { headers: authHeaders() });
       studentsCache = await res.json();
+      renderStudentClassCards();
       renderStudentsViews();
     }
 
     function renderStudentsViews() {
       const q = (document.getElementById('dirStudentSearch')?.value || '').trim().toLowerCase();
-      const selectedGroupId = document.getElementById('dirGroupFilter')?.value || '';
+      const selectedGroupId = selectedStudentGroupCardId;
 
-      // Deduplicar estrictamente por ID de estudiante para que cada alumno aparezca una sola vez con todos sus subgrupos
       const uniqueById = [];
       const seenIds = new Set();
       for (const item of (studentsCache || [])) {
@@ -2175,100 +2252,102 @@
         filtered = filtered.filter(s => (s.group_ids || []).includes(Number(selectedGroupId)) || String(s.group_id) === String(selectedGroupId));
       }
 
-      document.getElementById('studentCount').innerText = `${filtered.length} alumno(s)${isAdmin ? ` (${currentCategoryFilter})` : ' en Sol Music'}`;
+      const activeGrpObj = groupsCache.find(g => String(g.id) === String(selectedGroupId));
+      document.getElementById('studentCount').innerText = `${filtered.length} alumno(s)${activeGrpObj ? ` en ${activeGrpObj.name}` : (isAdmin ? ` (${currentCategoryFilter})` : ' en Sol Music')}`;
 
-      document.getElementById('studentsTableBody').innerHTML = filtered.map(s => {
+      const listEl = document.getElementById('studentsCompactList');
+      if (!listEl) return;
+
+      if (!filtered.length) {
+        listEl.innerHTML = '<p class="text-xs text-[#6e6e73] text-center py-8">No hay estudiantes para este filtro.</p>';
+        return;
+      }
+
+      listEl.innerHTML = filtered.map(s => {
         const avatarThumb = s.avatar_file
-          ? `<img src="/intranet/api/avatars/${s.avatar_file}" class="w-8 h-8 rounded-full object-cover border border-black/10 shrink-0">`
-          : `<div class="w-8 h-8 rounded-full bg-[#0071e3]/10 text-[#0071e3] flex items-center justify-center text-xs font-bold shrink-0">${s.full_name.charAt(0)}</div>`;
-
-        const grpBadges = (s.groups || []).map(g =>
-          `<span class="inline-block px-2 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] font-semibold text-[10px]">${g.name}</span>`
-        ).join(' ') || `<span class="px-2 py-0.5 rounded-full bg-black/5 text-[10px]">${s.group_name || 'Sin grupo'}</span>`;
+          ? `<img src="/intranet/api/avatars/${s.avatar_file}" class="w-10 h-10 rounded-full object-cover border border-black/10 shrink-0">`
+          : `<div class="w-10 h-10 rounded-full bg-[#0071e3]/10 text-[#0071e3] flex items-center justify-center text-xs font-bold shrink-0">${s.full_name.charAt(0)}</div>`;
 
         return `
-          <tr class="hover:bg-black/[0.02] transition">
-            <td class="py-3.5 px-3">
-              <div class="flex items-center gap-3">
-                ${avatarThumb}
-                <div class="space-y-0.5">
-                  <p class="font-bold text-[#1d1d1f]">${s.full_name}</p>
-                  <div class="flex flex-wrap items-center gap-1.5">
-                    ${(s.groups || []).some(g => g.category === 'Sol Music')
-  ? `<span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 font-semibold text-[10px]"><i class="fa-solid fa-guitar mr-1"></i>${s.instrument || 'Guitarra acustica'}</span>`
-  : `<span class="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 font-semibold text-[10px]"><i class="fa-solid fa-calculator mr-1"></i>Matemáticas • ${s.grade || 'Sin grado'}</span>`
-}
-                    ${s.schedule ? `<span class="text-[11px] text-[#0071e3] font-medium"><i class="fa-regular fa-clock mr-1"></i>${s.schedule}</span>` : ''}
-                  </div>
+          <button type="button" onclick="openStudentDetailModal(${s.id})"
+            class="w-full px-4 py-3.5 flex items-center justify-between gap-3 text-left hover:bg-black/[0.025] active:bg-black/[0.04] transition">
+            <div class="flex items-center gap-3 min-w-0">
+              ${avatarThumb}
+              <div class="min-w-0">
+                <p class="text-sm font-bold text-[#1d1d1f] truncate">${s.full_name}</p>
+                <div class="flex flex-wrap items-center gap-1.5 mt-0.5">
+                  ${getStudentAreaBadgeHtml(s)}
+                  ${s.schedule ? `<span class="text-[11px] text-[#0071e3] font-medium truncate"><i class="fa-regular fa-clock mr-1"></i>${s.schedule}</span>` : ''}
                 </div>
-              </div>
-            </td>
-            <td class="py-3.5 px-3 font-mono text-xs">
-              <span class="font-bold text-[#1d1d1f]">${s.code}</span>
-            </td>
-            <td class="py-3.5 px-3">
-              <div class="flex flex-wrap gap-1 max-w-[220px]">${grpBadges}</div>
-            </td>
-            <td class="py-3.5 px-3 text-right">
-              <div class="inline-flex items-center gap-1">
-                <button type="button" onclick="openEditStudentModal(${s.id})"
-                  class="px-3 py-1.5 rounded-xl bg-[#0071e3]/10 hover:bg-[#0071e3]/20 text-[#0071e3] text-xs font-semibold transition"
-                  title="Editar datos y subgrupos">
-                  <i class="fa-solid fa-pen-to-square mr-1"></i> Editar
-                </button>
-                <button type="button" onclick="sendCredentialsWhatsApp(${s.id})"
-                  class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold inline-flex items-center gap-1 transition"
-                  title="Enviar por WhatsApp">
-                  <i class="fa-brands fa-whatsapp"></i>
-                </button>
-                <button type="button" onclick="deleteStudent(${s.id})" class="p-2 rounded-xl text-red-500 hover:bg-red-50 text-xs transition" title="Eliminar">
-                  <i class="fa-solid fa-trash"></i>
-                </button>
-              </div>
-            </td>
-          </tr>
-        `;
-      }).join('') || '<tr><td colspan="4" class="py-6 text-center text-[#6e6e73]">No hay estudiantes registrados en esta vista.</td></tr>';
-
-      const mStuContainer = document.getElementById('mobileStudentsCards');
-      if (mStuContainer) {
-        mStuContainer.innerHTML = filtered.map(s => {
-          const avatarThumb = s.avatar_file
-            ? `<img src="/intranet/api/avatars/${s.avatar_file}" class="w-10 h-10 rounded-full object-cover border border-black/10 shrink-0">`
-            : `<div class="w-10 h-10 rounded-full bg-[#0071e3]/10 text-[#0071e3] flex items-center justify-center text-sm font-bold shrink-0">${s.full_name.charAt(0)}</div>`;
-          const grpBadges = (s.groups || []).map(g =>
-            `<span class="px-2.5 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] font-semibold text-[10px]">${g.name}</span>`
-          ).join('');
-          return `
-            <div class="p-4 rounded-2xl bg-white/95 border border-black/[0.07] space-y-3">
-              <div class="flex items-start justify-between gap-2">
-                <div class="flex items-center gap-3">
-                  ${avatarThumb}
-                  <div>
-                    <p class="text-sm font-bold text-[#1d1d1f]">${s.full_name}</p>
-                    <p class="text-[11px] text-[#6e6e73] font-mono">Usuario: <strong class="text-[#1d1d1f]">${s.code}</strong></p>
-                  </div>
-                </div>
-                <button type="button" onclick="deleteStudent(${s.id})" class="text-red-500 p-2 text-xs"><i class="fa-solid fa-trash"></i></button>
-              </div>
-              <div class="flex flex-wrap items-center gap-1.5">
-                ${grpBadges}
-                <span class="px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-800 font-semibold text-[10px]"><i class="fa-solid fa-guitar mr-1"></i>${s.instrument || 'Guitarra acustica'}</span>
-              </div>
-              <div class="grid grid-cols-2 gap-2 pt-1">
-                <button type="button" onclick="openEditStudentModal(${s.id})"
-                  class="py-2 rounded-xl bg-[#0071e3]/15 text-[#0071e3] text-xs font-semibold flex items-center justify-center gap-1 active:scale-95 transition">
-                  <i class="fa-solid fa-pen-to-square"></i> Editar
-                </button>
-                <button type="button" onclick="sendCredentialsWhatsApp(${s.id})"
-                  class="py-2 rounded-xl bg-emerald-600 text-white text-xs font-semibold flex items-center justify-center gap-1 active:scale-95 transition">
-                  <i class="fa-brands fa-whatsapp text-sm"></i> WhatsApp
-                </button>
               </div>
             </div>
-          `;
-        }).join('') || '<p class="text-xs text-[#6e6e73] text-center py-6">No hay estudiantes registrados.</p>';
+            <div class="flex items-center gap-2 shrink-0 text-[#6e6e73]">
+              <span class="hidden sm:inline text-[11px] font-medium">Ver perfil</span>
+              <i class="fa-solid fa-chevron-right text-xs"></i>
+            </div>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function openStudentDetailModal(studentId) {
+      const stu = studentsCache.find(s => Number(s.id) === Number(studentId));
+      if (!stu) return;
+
+      const img = document.getElementById('sdAvatarImg');
+      const fb = document.getElementById('sdAvatarFallback');
+      if (stu.avatar_file) {
+        img.src = `/intranet/api/avatars/${stu.avatar_file}?t=${Date.now()}`;
+        img.classList.remove('hidden');
+        fb.classList.add('hidden');
+      } else {
+        img.classList.add('hidden');
+        fb.innerText = stu.full_name.charAt(0);
+        fb.classList.remove('hidden');
       }
+
+      document.getElementById('sdAreaBadge').outerHTML = `<span id="sdAreaBadge">${getStudentAreaBadgeHtml(stu)}</span>`;
+      document.getElementById('sdName').innerText = stu.full_name;
+      document.getElementById('sdCode').innerText = `Usuario: ${stu.code} • Bloque: ${stu.monthly_quota || 8} clases/mes`;
+
+      const schRow = document.getElementById('sdScheduleRow');
+      if (stu.schedule) {
+        schRow.innerHTML = `<i class="fa-regular fa-clock mr-1"></i>Horario: ${stu.schedule}`;
+        schRow.classList.remove('hidden');
+      } else {
+        schRow.classList.add('hidden');
+      }
+
+      const grpBadges = (stu.groups || []).map(g =>
+        `<span class="px-2 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] font-semibold text-[10px]">${g.name}</span>`
+      ).join('') || `<span class="px-2 py-0.5 rounded-full bg-black/5 text-[10px]">${stu.group_name || 'Sin grupo'}</span>`;
+      document.getElementById('sdGroupsRow').innerHTML = grpBadges;
+
+      const bioEl = document.getElementById('sdBio');
+      if (stu.bio && stu.bio.trim()) {
+        bioEl.innerText = stu.bio;
+        bioEl.className = 'text-[#1d1d1f] mt-0.5 leading-relaxed';
+      } else {
+        bioEl.innerText = 'Sin descripción registrada en su perfil.';
+        bioEl.className = 'text-[#6e6e73] italic mt-0.5 leading-relaxed';
+      }
+
+      document.getElementById('sdBtnWa').onclick = () => sendCredentialsWhatsApp(stu.id);
+      document.getElementById('sdBtnCopy').onclick = () => copyCredentialsText(stu.id);
+      document.getElementById('sdBtnEdit').onclick = () => {
+        closeStudentDetailModal();
+        openEditStudentModal(stu.id);
+      };
+      document.getElementById('sdBtnDelete').onclick = () => {
+        closeStudentDetailModal();
+        deleteStudent(stu.id);
+      };
+
+      document.getElementById('studentDetailModal').classList.remove('hidden');
+    }
+
+    function closeStudentDetailModal() {
+      document.getElementById('studentDetailModal').classList.add('hidden');
     }
 
     function openEditStudentModal(studentId) {
@@ -2346,7 +2425,7 @@
       }
     });
 
-    // ==================== MATERIALES + AULAS ESTILO CLASSROOM ====================
+    // ==================== MATERIALES + TARJETAS DE CLASE ====================
     function cleanDisplayName(str) {
       if (!str) return '';
       try {
@@ -2390,8 +2469,6 @@
         `;
       }
     }
-
-
 
     function openImageModal(imgUrl, title) {
       document.getElementById('imgModalTitle').innerText = title || 'Imagen de resolución';
@@ -2715,32 +2792,85 @@
       `;
     }
 
-    function onClassroomGroupFilterChange() {
-      const gid = document.getElementById('classroomGroupFilter').value;
-      const grp = groupsCache.find(g => String(g.id) === String(gid));
+    function selectClassroomCard(groupId) {
+      selectedClassroomCardId = groupId ? Number(groupId) : null;
+      const cardsGrid = document.getElementById('classroomCardsGrid');
+      const listEl = document.getElementById('materialsList');
+      const backBtn = document.getElementById('btnBackToClassroomCards');
       const titleEl = document.getElementById('classroomHeaderTitle');
       const metaEl = document.getElementById('classroomHeaderMeta');
+      const matGrpSel = document.getElementById('matGroupSelect');
 
-      if (grp) {
-        titleEl.innerText = grp.name;
-        metaEl.innerText = `${grp.category} • ${grp.student_count || 0} alumno(s)${grp.schedule ? ` • Horario: ${grp.schedule}` : ''}`;
+      if (selectedClassroomCardId) {
+        const grp = groupsCache.find(g => Number(g.id) === Number(selectedClassroomCardId));
+        if (matGrpSel && grp) {
+          matGrpSel.value = String(grp.id);
+          onMatGroupSelectChange();
+        }
+        titleEl.innerText = grp ? grp.name : 'Aula seleccionada';
+        metaEl.innerText = grp
+          ? `${grp.category} • ${grp.student_count || 0} alumno(s)${grp.schedule ? ` • ${grp.schedule}` : ''}`
+          : '';
+        if (cardsGrid) cardsGrid.classList.add('hidden');
+        if (listEl) listEl.classList.remove('hidden');
+        if (backBtn) backBtn.classList.remove('hidden');
+        renderMaterialsFiltered();
       } else {
-        titleEl.innerText = 'Todas las aulas';
-        metaEl.innerText = 'Selecciona un aula para ver su horario, alumnos y materiales.';
+        titleEl.innerText = 'Clases y Subgrupos';
+        metaEl.innerText = 'Presiona una tarjeta de clase para ver sus materiales, entregas y consultas.';
+        if (cardsGrid) cardsGrid.classList.remove('hidden');
+        if (listEl) listEl.classList.add('hidden');
+        if (backBtn) backBtn.classList.add('hidden');
+        renderClassroomCards();
       }
-      renderMaterialsFiltered();
+    }
+
+    function renderClassroomCards() {
+      const grid = document.getElementById('classroomCardsGrid');
+      if (!grid) return;
+
+      if (!groupsCache.length) {
+        grid.innerHTML = '<p class="col-span-full text-xs text-[#6e6e73] text-center py-8">Crea primero un grupo o subgrupo en "Subgrupos y Alumnado".</p>';
+        return;
+      }
+
+      grid.innerHTML = groupsCache.map(g => {
+        const countMats = materialsCache.filter(m => Number(m.group_id) === Number(g.id)).length;
+        const isSol = g.category === 'Sol Music';
+        return `
+          <button type="button" onclick="selectClassroomCard(${g.id})"
+            class="text-left p-5 rounded-2xl bg-white/95 hover:bg-white border border-black/[0.07] shadow-sm hover:shadow transition flex flex-col justify-between gap-3">
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between gap-2">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${isSol ? 'bg-amber-500/15 text-amber-800' : 'bg-indigo-500/10 text-indigo-700'}">${g.category}</span>
+                <span class="px-2.5 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[10px] font-bold">${countMats} tema(s)</span>
+              </div>
+              <h3 class="text-sm sm:text-base font-bold text-[#1d1d1f] leading-snug">${g.name}</h3>
+              ${g.schedule ? `<p class="text-xs text-[#0071e3] font-medium"><i class="fa-regular fa-clock mr-1"></i>${g.schedule}</p>` : ''}
+              ${g.description ? `<p class="text-xs text-[#6e6e73] line-clamp-2">${g.description}</p>` : ''}
+            </div>
+            <div class="pt-2 border-t border-black/[0.05] flex items-center justify-between text-xs font-semibold text-[#0071e3]">
+              <span>Abrir materiales de la clase</span>
+              <i class="fa-solid fa-arrow-right text-[11px]"></i>
+            </div>
+          </button>
+        `;
+      }).join('');
     }
 
     async function loadMaterials() {
       const res = await fetch('/intranet/api/admin/materials', { headers: authHeaders() });
       materialsCache = await res.json();
-      renderMaterialsFiltered();
+      renderClassroomCards();
+      if (selectedClassroomCardId) {
+        renderMaterialsFiltered();
+      }
     }
 
     function renderMaterialsFiltered() {
-      const gid = document.getElementById('classroomGroupFilter')?.value || '';
+      const gid = selectedClassroomCardId;
       const filteredMats = gid
-        ? materialsCache.filter(m => String(m.group_id) === String(gid))
+        ? materialsCache.filter(m => Number(m.group_id) === Number(gid))
         : materialsCache;
 
       document.getElementById('materialsList').innerHTML = filteredMats.map(m => {
