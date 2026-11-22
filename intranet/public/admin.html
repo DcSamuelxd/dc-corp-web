@@ -250,7 +250,7 @@
                 </button>
               </div>
 
-              <div id="fileRowsContainer" class="space-y-2.5 max-h-80 overflow-y-auto pr-1"></div>
+              <div id="fileRowsContainer" class="space-y-2.5 max-h-80 overflow-y-auto overflow-x-hidden pr-1"></div>
             </div>
 
             <button type="submit" id="btnUploadMat" class="w-full py-3 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold transition shadow-sm">
@@ -1147,21 +1147,23 @@
     function addFileRow(defaultLabel = '1ra Guitarra') {
       const container = document.getElementById('fileRowsContainer');
       const row = document.createElement('div');
-      row.className = 'file-upload-row bg-white p-2.5 rounded-xl border border-black/10 flex flex-col sm:flex-row sm:items-center gap-2';
+      row.className = 'file-upload-row bg-white p-3 rounded-xl border border-black/10 flex flex-col gap-2 min-w-0 w-full';
 
-      const optionsHtml = INSTRUMENT_OPTIONS.map(opt =>
+      const optionsHtml = getActiveLabelOptions().map(opt =>
         `<option value="${opt}" ${opt === defaultLabel ? 'selected' : ''}>${opt}</option>`
       ).join('');
 
       row.innerHTML = `
-        <select class="file-label-select bg-[#f5f5f7] border border-black/10 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[#1d1d1f] sm:w-48 shrink-0">
-          ${optionsHtml}
-        </select>
+        <div class="flex items-center justify-between gap-2 min-w-0">
+          <select class="file-label-select flex-1 min-w-0 truncate bg-[#f5f5f7] border border-black/10 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-[#1d1d1f]">
+            ${optionsHtml}
+          </select>
+          <button type="button" onclick="this.parentElement.parentElement.remove()" class="text-red-500 hover:text-red-700 px-2 py-1 text-xs shrink-0" title="Quitar fila">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
         <input type="file" multiple accept=".pdf,.mp3,.wav,.ogg,.m4a,.doc,.docx,.zip,.gpx"
-          class="file-input-item flex-1 text-xs text-[#6e6e73] file:mr-2 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[11px] file:font-semibold file:bg-[#0071e3]/10 file:text-[#0071e3]">
-        <button type="button" onclick="this.parentElement.remove()" class="text-red-500 hover:text-red-700 px-2 py-1 text-xs self-end sm:self-center" title="Quitar fila">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
+          class="file-input-item w-full min-w-0 text-xs text-[#6e6e73] file:mr-2 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-[11px] file:font-semibold file:bg-[#0071e3]/10 file:text-[#0071e3]">
       `;
       container.appendChild(row);
     }
