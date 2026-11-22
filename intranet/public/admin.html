@@ -1692,24 +1692,24 @@
 
     function renderGroupChecklists() {
       const createBox = document.getElementById('stuGroupsChecklist');
-      if (createBox) {
-        createBox.addEventListener('change', () => {
-          const vals = Array.from(document.querySelectorAll('input[name="stuGroupCheck"]:checked')).map(cb => Number(cb.value));
-          syncStudentFieldBySelectedGroups(vals, false);
-        });
+      if (!createBox) return;
+
+      if (!groupsCache.length) {
+        createBox.innerHTML = '<p class="text-[#6e6e73]">Crea primero un subgrupo arriba.</p>';
+        return;
       }
-      if (false) {
-        if (!groupsCache.length) {
-          createBox.innerHTML = '<p class="text-[#6e6e73]">Crea primero un subgrupo arriba.</p>';
-        } else {
-          createBox.innerHTML = groupsCache.map((g, idx) => `
-            <label class="flex items-center gap-2 py-1 px-1.5 rounded-lg hover:bg-white cursor-pointer">
-              <input type="checkbox" name="stuGroupCheck" value="${g.id}" ${idx === 0 ? 'checked' : ''} class="rounded text-[#0071e3]">
-              <span class="font-medium text-[#1d1d1f]">${isAdmin ? `[${g.category}] ` : ''}${g.name}</span>
-            </label>
-          `).join('');
-        }
-      }
+
+      createBox.innerHTML = groupsCache.map((g, idx) => `
+        <label class="flex items-center gap-2 py-1 px-1.5 rounded-lg hover:bg-white cursor-pointer">
+          <input type="checkbox" name="stuGroupCheck" value="${g.id}" ${idx === 0 ? 'checked' : ''} class="rounded text-[#0071e3]">
+          <span class="font-medium text-[#1d1d1f]">${isAdmin ? `[${g.category}] ` : ''}${g.name}</span>
+        </label>
+      `).join('');
+
+      createBox.onchange = () => {
+        const vals = Array.from(document.querySelectorAll('input[name="stuGroupCheck"]:checked')).map(cb => Number(cb.value));
+        syncStudentFieldBySelectedGroups(vals, false);
+      };
     }
 
     function renderGroupsCards() {
