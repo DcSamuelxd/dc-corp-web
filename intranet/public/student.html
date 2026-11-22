@@ -975,7 +975,7 @@
           ${currentFileHtml}
           <div class="flex flex-col sm:flex-row sm:items-center gap-2">
             <input type="file" id="resFile-${m.id}" multiple accept=".pdf,.jpg,.jpeg,.png,.webp"
-              class="flex-1 text-xs text-[#6e6e73] file:mr-2 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-[11px] file:font-semibold file:bg-indigo-600/10 file:text-indigo-700">
+              class="w-full sm:flex-1 min-w-0 max-w-full text-xs text-[#6e6e73] file:mr-2 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-[11px] file:font-semibold file:bg-indigo-600/10 file:text-indigo-700">
             <button type="button" onclick="uploadResolution(${m.id})"
               class="px-4 py-2 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shrink-0 transition">
               <i class="fa-solid fa-cloud-arrow-up mr-1"></i> Subir Resolución
@@ -1057,7 +1057,7 @@
                       <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-600">Tema ${materials.length - idx}</span>
                       <span class="text-[10px] text-[#6e6e73]">${new Date(m.created_at).toLocaleDateString('es-PE')}</span>
                     </div>
-                    <h3 class="text-sm sm:text-base font-bold text-[#1d1d1f] truncate mt-0.5">${m.title}</h3>
+                    <h3 class="text-sm sm:text-base font-bold text-[#1d1d1f] break-words leading-snug mt-0.5">${m.title}</h3>
                   </div>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
