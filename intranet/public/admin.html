@@ -301,10 +301,31 @@
                 <div id="stuGroupsChecklist" class="p-3 rounded-xl bg-[#f5f5f7] border border-black/10 max-h-40 overflow-y-auto space-y-1.5 text-xs"></div>
               </div>
 
-              <div>
+              <div id="stuInstrumentBox">
                 <label class="block text-[11px] font-medium text-[#6e6e73] mb-1">Especialidad Musical *</label>
-                <select id="stuInstrument" required class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs font-semibold">
+                <select id="stuInstrument" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs font-semibold">
                   <option value="Guitarra acustica">Guitarra acustica</option><option value="Guitarra electrica">Guitarra electrica</option><option value="Bajo eléctrico">Bajo eléctrico</option><option value="Ukelele">Ukelele</option><option value="Piano">Piano</option><option value="Bateria">Bateria</option><option value="Trompeta">Trompeta</option><option value="Eufonio">Eufonio</option><option value="Trombón">Trombón</option><option value="Saxofon Alto">Saxofon Alto</option><option value="Saxofón Tenor">Saxofón Tenor</option><option value="Flauta traversa">Flauta traversa</option><option value="Flauta dulce">Flauta dulce</option><option value="Clarinete">Clarinete</option><option value="Violín">Violín</option><option value="Viola">Viola</option><option value="Violonchelo">Violonchelo</option><option value="Melódica">Melódica</option><option value="Canto">Canto</option>
+                </select>
+              </div>
+
+              <div id="stuGradeBox" class="hidden">
+                <label class="block text-[11px] font-medium text-indigo-700 mb-1">Grado / Nivel Académico (Matemáticas) *</label>
+                <select id="stuGrade" class="w-full bg-white border border-indigo-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#1d1d1f]">
+                  
+<option value="1er Grado Primaria">1er Grado Primaria</option>
+<option value="2do Grado Primaria">2do Grado Primaria</option>
+<option value="3er Grado Primaria">3er Grado Primaria</option>
+<option value="4to Grado Primaria">4to Grado Primaria</option>
+<option value="5to Grado Primaria">5to Grado Primaria</option>
+<option value="6to Grado Primaria">6to Grado Primaria</option>
+<option value="1er Año Secundaria">1er Año Secundaria</option>
+<option value="2do Año Secundaria">2do Año Secundaria</option>
+<option value="3er Año Secundaria">3er Año Secundaria</option>
+<option value="4to Año Secundaria">4to Año Secundaria</option>
+<option value="5to Año Secundaria">5to Año Secundaria</option>
+<option value="Preuniversitario / Academia">Preuniversitario / Academia</option>
+<option value="Universitario">Universitario</option>
+
                 </select>
               </div>
               
@@ -851,10 +872,31 @@
           <div id="editStuGroupsChecklist" class="p-3 rounded-xl bg-[#f5f5f7] border border-black/10 max-h-40 overflow-y-auto space-y-1.5 text-xs"></div>
         </div>
 
-        <div>
+        <div id="editStuInstrumentBox">
           <label class="block text-xs font-semibold text-[#6e6e73] mb-1">Especialidad Musical *</label>
-          <select id="editStuInstrument" required class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2.5 text-xs font-semibold">
+          <select id="editStuInstrument" class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2.5 text-xs font-semibold">
             <option value="Guitarra acustica">Guitarra acustica</option><option value="Guitarra electrica">Guitarra electrica</option><option value="Bajo eléctrico">Bajo eléctrico</option><option value="Ukelele">Ukelele</option><option value="Piano">Piano</option><option value="Bateria">Bateria</option><option value="Trompeta">Trompeta</option><option value="Eufonio">Eufonio</option><option value="Trombón">Trombón</option><option value="Saxofon Alto">Saxofon Alto</option><option value="Saxofón Tenor">Saxofón Tenor</option><option value="Flauta traversa">Flauta traversa</option><option value="Flauta dulce">Flauta dulce</option><option value="Clarinete">Clarinete</option><option value="Violín">Violín</option><option value="Viola">Viola</option><option value="Violonchelo">Violonchelo</option><option value="Melódica">Melódica</option><option value="Canto">Canto</option>
+          </select>
+        </div>
+
+        <div id="editStuGradeBox" class="hidden">
+          <label class="block text-xs font-semibold text-indigo-700 mb-1">Grado / Nivel Académico (Matemáticas) *</label>
+          <select id="editStuGrade" class="w-full bg-[#f5f5f7] border border-indigo-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#1d1d1f]">
+            
+<option value="1er Grado Primaria">1er Grado Primaria</option>
+<option value="2do Grado Primaria">2do Grado Primaria</option>
+<option value="3er Grado Primaria">3er Grado Primaria</option>
+<option value="4to Grado Primaria">4to Grado Primaria</option>
+<option value="5to Grado Primaria">5to Grado Primaria</option>
+<option value="6to Grado Primaria">6to Grado Primaria</option>
+<option value="1er Año Secundaria">1er Año Secundaria</option>
+<option value="2do Año Secundaria">2do Año Secundaria</option>
+<option value="3er Año Secundaria">3er Año Secundaria</option>
+<option value="4to Año Secundaria">4to Año Secundaria</option>
+<option value="5to Año Secundaria">5to Año Secundaria</option>
+<option value="Preuniversitario / Academia">Preuniversitario / Academia</option>
+<option value="Universitario">Universitario</option>
+
           </select>
         </div>
 
@@ -1633,9 +1675,30 @@
       loadStudents();
     }
 
+
+    function syncStudentFieldBySelectedGroups(selectedIds, isEdit = false) {
+      const selectedGroups = groupsCache.filter(g => selectedIds.includes(Number(g.id)));
+      const hasSolMusic = selectedGroups.some(g => g.category === 'Sol Music');
+      const isMathOnly = selectedGroups.length > 0 && !hasSolMusic;
+
+      if (!isEdit) {
+        document.getElementById('stuInstrumentBox').classList.toggle('hidden', isMathOnly);
+        document.getElementById('stuGradeBox').classList.toggle('hidden', !isMathOnly);
+      } else {
+        document.getElementById('editStuInstrumentBox').classList.toggle('hidden', isMathOnly);
+        document.getElementById('editStuGradeBox').classList.toggle('hidden', !isMathOnly);
+      }
+    }
+
     function renderGroupChecklists() {
       const createBox = document.getElementById('stuGroupsChecklist');
       if (createBox) {
+        createBox.addEventListener('change', () => {
+          const vals = Array.from(document.querySelectorAll('input[name="stuGroupCheck"]:checked')).map(cb => Number(cb.value));
+          syncStudentFieldBySelectedGroups(vals, false);
+        });
+      }
+      if (false) {
         if (!groupsCache.length) {
           createBox.innerHTML = '<p class="text-[#6e6e73]">Crea primero un subgrupo arriba.</p>';
         } else {
@@ -1773,6 +1836,7 @@
       }
 
       renderGroupChecklists();
+      syncStudentFieldBySelectedGroups(Array.from(document.querySelectorAll('input[name="stuGroupCheck"]:checked')).map(cb => Number(cb.value)), false);
 
       if (isAdmin) {
         await loadTeachers();
@@ -1995,7 +2059,10 @@
                 <div class="space-y-0.5">
                   <p class="font-bold text-[#1d1d1f]">${s.full_name}</p>
                   <div class="flex flex-wrap items-center gap-1.5">
-                    <span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 font-semibold text-[10px]"><i class="fa-solid fa-guitar mr-1"></i>${s.instrument || 'Guitarra acustica'}</span>
+                    ${(s.groups || []).some(g => g.category === 'Sol Music')
+  ? `<span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 font-semibold text-[10px]"><i class="fa-solid fa-guitar mr-1"></i>${s.instrument || 'Guitarra acustica'}</span>`
+  : `<span class="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 font-semibold text-[10px]"><i class="fa-solid fa-calculator mr-1"></i>Matemáticas • ${s.grade || 'Sin grado'}</span>`
+}
                     ${s.schedule ? `<span class="text-[11px] text-[#0071e3] font-medium"><i class="fa-regular fa-clock mr-1"></i>${s.schedule}</span>` : ''}
                   </div>
                 </div>
@@ -2079,6 +2146,7 @@
       document.getElementById('editStuSchedule').value = stu.schedule || '';
       document.getElementById('editStuQuota').value = stu.monthly_quota || 8;
       document.getElementById('editStuInstrument').value = stu.instrument || 'Guitarra acustica';
+      document.getElementById('editStuGrade').value = stu.grade || '1er Grado Primaria';
       document.getElementById('editStuPass').value = '';
 
       const currentIds = (stu.group_ids && stu.group_ids.length)
@@ -2096,6 +2164,12 @@
         `;
       }).join('');
 
+      syncStudentFieldBySelectedGroups(currentIds, true);
+      const editBox = document.getElementById('editStuGroupsChecklist');
+      editBox.onchange = () => {
+        const vals = Array.from(document.querySelectorAll('input[name="editStuGroupCheck"]:checked')).map(cb => Number(cb.value));
+        syncStudentFieldBySelectedGroups(vals, true);
+      };
       document.getElementById('editStudentModal').classList.remove('hidden');
     }
 
@@ -2121,6 +2195,7 @@
           group_ids: checkedIds,
           group_id: checkedIds[0],
           instrument: document.getElementById('editStuInstrument').value,
+          grade: document.getElementById('editStuGrade').value,
           schedule: document.getElementById('editStuSchedule').value,
           monthly_quota: document.getElementById('editStuQuota').value,
           new_password: document.getElementById('editStuPass').value
@@ -2178,6 +2253,74 @@
             <a href="${fileUrl}" target="_blank" class="text-[#0071e3] text-xs font-semibold hover:underline shrink-0">Descargar</a>
           </div>
         `;
+      }
+    }
+
+
+    function renderSubmissionsAdmin(mat) {
+      const subs = mat.submissions || [];
+      if (!subs.length) return '';
+
+      return `
+        <div class="pt-3 border-t border-black/[0.07] space-y-2.5">
+          <p class="text-xs font-bold text-indigo-700"><i class="fa-solid fa-file-circle-check mr-1.5"></i>Resoluciones entregadas por alumnos (${subs.length})</p>
+          ${subs.map(sb => {
+            const fileUrl = `/intranet/api/files/${sb.file_name}?token=${token}`;
+            const scoreVal = (sb.grade_score !== null && sb.grade_score !== undefined) ? sb.grade_score : '';
+            return `
+              <div class="p-3 rounded-xl bg-indigo-500/[0.05] border border-indigo-500/15 space-y-2 text-xs">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <span class="font-bold text-[#1d1d1f]">${sb.student_name || 'Estudiante'}</span>
+                    ${sb.student_grade ? `<span class="ml-1.5 px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 text-[10px] font-semibold">${sb.student_grade}</span>` : ''}
+                    <p class="text-[11px] text-[#6e6e73] mt-0.5">${cleanDisplayName(sb.original_name)}</p>
+                  </div>
+                  <a href="${fileUrl}" target="_blank" class="px-3 py-1 rounded-full bg-indigo-600 text-white text-[11px] font-semibold">
+                    <i class="fa-solid fa-eye mr-1"></i> Ver resolución
+                  </a>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-2 pt-1">
+                  <div class="flex items-center gap-1.5 bg-white border border-black/10 rounded-lg px-2.5 py-1">
+                    <span class="text-[11px] font-semibold text-[#6e6e73]">Nota (0-20):</span>
+                    <input type="number" id="gradeScore-${sb.id}" min="0" max="20" step="0.5" value="${scoreVal}" placeholder="0 - 20"
+                      class="w-16 text-xs font-bold text-[#1d1d1f] focus:outline-none">
+                  </div>
+                  <input type="text" id="gradeFeedback-${sb.id}" value="${(sb.feedback || '').replace(/"/g, '&quot;')}"
+                    placeholder="Observación o retroalimentación..."
+                    class="flex-1 bg-white border border-black/10 rounded-lg px-2.5 py-1.5 text-xs">
+                  <button type="button" onclick="saveSubmissionGrade(${sb.id})"
+                    class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold shrink-0">
+                    Guardar Nota
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    async function saveSubmissionGrade(subId) {
+      const scoreEl = document.getElementById(`gradeScore-${subId}`);
+      const fbEl = document.getElementById(`gradeFeedback-${subId}`);
+      const grade_score = parseFloat(scoreEl.value);
+      if (isNaN(grade_score) || grade_score < 0 || grade_score > 20) {
+        alert('Ingresa una nota válida entre 0 y 20');
+        return;
+      }
+
+      const res = await fetch(`/intranet/api/admin/submissions/${subId}/grade`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ grade_score, feedback: fbEl.value })
+      });
+
+      if (res.ok) {
+        alert('Calificación guardada');
+        loadMaterials();
+      } else {
+        const d = await res.json();
+        alert(d.error || 'Error al guardar nota');
       }
     }
 
@@ -2429,6 +2572,7 @@
 
             ${bodyContent}
 
+            ${renderSubmissionsAdmin(m)}
             ${renderConsultasAdmin(m)}
           </div>
         `;
@@ -2584,6 +2728,7 @@
           group_ids: checkedIds,
           group_id: checkedIds[0],
           instrument: document.getElementById('stuInstrument').value,
+          grade: document.getElementById('stuGrade').value,
           schedule: document.getElementById('stuSchedule').value,
           monthly_quota: document.getElementById('stuQuota').value
         })
