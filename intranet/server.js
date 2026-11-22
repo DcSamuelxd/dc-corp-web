@@ -186,8 +186,13 @@ db.serialize(() => {
     file_name TEXT,
     original_name TEXT,
     external_url TEXT,
+    publish_format TEXT NOT NULL DEFAULT 'music',
+    evaluation_enabled INTEGER NOT NULL DEFAULT 1,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
+
+  db.run(`ALTER TABLE materials ADD COLUMN publish_format TEXT NOT NULL DEFAULT 'music'`, () => {});
+  db.run(`ALTER TABLE materials ADD COLUMN evaluation_enabled INTEGER NOT NULL DEFAULT 1`, () => {});
 
   db.run(`CREATE TABLE IF NOT EXISTS material_files (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -974,7 +979,7 @@ app.post('/intranet/api/admin/materials/:id/reply', authMiddleware, staffOnly, (
 });
 
 app.post('/intranet/api/admin/materials', authMiddleware, staffOnly, upload.array('files', 30), (req, res) => {
-  const { group_id, title, description, external_url, labels } = req.body;
+  const { group_id, title, description, external_url, labels, publish_format, evaluation_enabled } = req.body;
   if (!group_id || !title) return res.status(400).json({ error: 'Grupo y título son obligatorios' });
 
   verifyGroupAccess(req.user, group_id, (allowed) => {
@@ -987,9 +992,12 @@ app.post('/intranet/api/admin/materials', authMiddleware, staffOnly, upload.arra
       parsedLabels = [];
     }
 
+    const fmt = publish_format === 'classroom' ? 'classroom' : 'music';
+    const evalFlag = (evaluation_enabled === '1' || evaluation_enabled === 1 || evaluation_enabled === true) ? 1 : 0;
+
     db.run(
-      `INSERT INTO materials (group_id, title, description, external_url) VALUES (?, ?, ?, ?)`,
-      [group_id, title.trim(), description || '', (external_url || '').trim()],
+      `INSERT INTO materials (group_id, title, description, external_url, publish_format, evaluation_enabled) VALUES (?, ?, ?, ?, ?, ?)`,
+      [group_id, title.trim(), description || '', (external_url || '').trim(), fmt, evalFlag],
       function (err) {
         if (err) return res.status(500).json({ error: 'Error al guardar el material' });
         const materialId = this.lastID;
@@ -1018,7 +1026,7 @@ app.post('/intranet/api/admin/materials', authMiddleware, staffOnly, upload.arra
 
 app.put('/intranet/api/admin/materials/:id', authMiddleware, staffOnly, upload.array('files', 30), (req, res) => {
   const materialId = req.params.id;
-  const { title, description, external_url, deleted_file_ids, updated_files_meta, labels } = req.body;
+  const { title, description, external_url, deleted_file_ids, updated_files_meta, labels, publish_format, evaluation_enabled } = req.body;
 
   if (!title || !title.trim()) {
     return res.status(400).json({ error: 'El título es obligatorio' });
@@ -1030,9 +1038,12 @@ app.put('/intranet/api/admin/materials/:id', authMiddleware, staffOnly, upload.a
     verifyGroupAccess(req.user, mat.group_id, (allowed) => {
       if (!allowed) return res.status(403).json({ error: 'Sin permiso sobre este material' });
 
+      const fmt = publish_format === 'classroom' ? 'classroom' : 'music';
+      const evalFlag = (evaluation_enabled === '1' || evaluation_enabled === 1 || evaluation_enabled === true) ? 1 : 0;
+
       db.run(
-        `UPDATE materials SET title = ?, description = ?, external_url = ? WHERE id = ?`,
-        [title.trim(), (description || '').trim(), (external_url || '').trim(), materialId],
+        `UPDATE materials SET title = ?, description = ?, external_url = ?, publish_format = ?, evaluation_enabled = ? WHERE id = ?`,
+        [title.trim(), (description || '').trim(), (external_url || '').trim(), fmt, evalFlag, materialId],
         (errUp) => {
           if (errUp) return res.status(500).json({ error: 'Error actualizando el material' });
 
@@ -1289,7 +1300,7 @@ app.get('/intranet/api/student/dashboard', authMiddleware, (req, res) => {
             [student.id, activeGroupId],
             (err2, attendances) => {
               db.all(
-                `SELECT id, title, description, file_name, original_name, external_url, created_at
+                `SELECT id, title, description, file_name, original_name, external_url, publish_format, evaluation_enabled, created_at
                  FROM materials WHERE group_id = ? ORDER BY created_at DESC`,
                 [activeGroupId],
                 (err3, materials) => {
