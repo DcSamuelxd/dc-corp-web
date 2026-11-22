@@ -918,7 +918,6 @@
     function renderMaterialsSection(materials) {
       document.getElementById('materialsCountBadge').innerText = `${materials.length} tema(s)`;
       const container = document.getElementById('studentMaterials');
-      const isSolMusic = (m.publish_format === 'music') || (!m.publish_format && dashboardData && dashboardData.student && dashboardData.student.category === 'Sol Music');
       const stuInstrument = dashboardData && dashboardData.student ? dashboardData.student.instrument : '';
 
       if (!materials.length) {
@@ -927,6 +926,7 @@
       }
 
       container.innerHTML = materials.map(m => {
+        const isSolMusic = (m.publish_format === 'music') || (!m.publish_format && dashboardData && dashboardData.student && dashboardData.student.category === 'Sol Music');
         const ytEmbed = getYouTubeEmbedUrl(m.external_url);
         const notes = m.notes || [];
         const notesHtml = notes.map(renderSingleNoteBubble).join('');

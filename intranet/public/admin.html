@@ -699,13 +699,22 @@
           </button>
         </div>
 
-        <div class="flex items-center gap-2 pt-1">
-          <input type="text" id="modalNoteInput" placeholder="Observación opcional (ej: Recupera clase del martes)"
-            class="flex-1 bg-white border border-black/10 rounded-xl px-3 py-1.5 text-xs">
-          <button type="button" onclick="clearRegularAndRecup()"
-            class="px-3 py-1.5 rounded-xl bg-black/5 hover:bg-black/10 text-[#6e6e73] text-[11px] font-medium" title="Quitar marca">
-            Limpiar
-          </button>
+        <div class="space-y-2 pt-1">
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span class="text-[10px] font-semibold text-[#6e6e73]">Horas llevadas:</span>
+            <button type="button" onclick="appendHoursNote('1 hora')" class="px-2 py-0.5 rounded-lg bg-white border border-black/10 hover:bg-black/5 text-[10px] font-bold text-[#1d1d1f]">1h</button>
+            <button type="button" onclick="appendHoursNote('1.5 horas')" class="px-2 py-0.5 rounded-lg bg-white border border-black/10 hover:bg-black/5 text-[10px] font-bold text-[#1d1d1f]">1.5h</button>
+            <button type="button" onclick="appendHoursNote('2 horas')" class="px-2 py-0.5 rounded-lg bg-white border border-black/10 hover:bg-black/5 text-[10px] font-bold text-[#1d1d1f]">2h</button>
+            <button type="button" onclick="appendHoursNote('3 horas')" class="px-2 py-0.5 rounded-lg bg-white border border-black/10 hover:bg-black/5 text-[10px] font-bold text-[#1d1d1f]">3h</button>
+          </div>
+          <div class="flex items-center gap-2">
+            <input type="text" id="modalNoteInput" placeholder="Nota / horas del día (ej: 2 horas - Álgebra)"
+              class="flex-1 bg-white border border-black/10 rounded-xl px-3 py-1.5 text-xs">
+            <button type="button" onclick="clearRegularAndRecup()"
+              class="px-3 py-1.5 rounded-xl bg-black/5 hover:bg-black/10 text-[#6e6e73] text-[11px] font-medium" title="Quitar marca">
+              Limpiar
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1350,6 +1359,19 @@
       html += `</tbody></table>`;
       mobileCardsHtml += `</div>`;
       container.innerHTML = mobileCardsHtml + html;
+    }
+
+
+    function appendHoursNote(hoursText) {
+      const inp = document.getElementById('modalNoteInput');
+      if (!inp) return;
+      const cur = inp.value.trim();
+      if (!cur) {
+        inp.value = hoursText;
+      } else if (!cur.toLowerCase().includes(hoursText.toLowerCase())) {
+        inp.value = `${hoursText} — ${cur}`;
+      }
+      inp.focus();
     }
 
     function openCellModal(studentId, dateISO, dateLabel) {
