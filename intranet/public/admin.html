@@ -192,12 +192,28 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label class="block text-xs font-medium text-[#6e6e73] mb-1">Aula / Subgrupo destino *</label>
-                <select id="matGroupSelect" required class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs font-medium"></select>
+                <select id="matGroupSelect" onchange="onMatGroupSelectChange()" required class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs font-medium"></select>
               </div>
               <div>
-                <label class="block text-xs font-medium text-[#6e6e73] mb-1">Título del tema o canción *</label>
-                <input type="text" id="matTitle" required placeholder="Ej: De Música Ligera / Guía 03"
+                <label class="block text-xs font-medium text-[#6e6e73] mb-1">Formato de publicación *</label>
+                <select id="matFormatSelect" onchange="onMatFormatChange()" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#1d1d1f]">
+                  <option value="music">Formato Música (Pistas / Instrumentos)</option>
+                  <option value="classroom">Formato Aula / Classroom (PDF / Reforzamiento)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+              <div class="sm:col-span-7">
+                <label class="block text-xs font-medium text-[#6e6e73] mb-1">Título del tema, canción o actividad *</label>
+                <input type="text" id="matTitle" required placeholder="Ej: Guía de Ecuaciones / De Música Ligera"
                   class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
+              </div>
+              <div id="matEvalToggleBox" class="sm:col-span-5 pt-4 sm:pt-5">
+                <label class="flex items-center gap-2 p-2.5 rounded-xl bg-indigo-500/[0.07] border border-indigo-500/20 cursor-pointer">
+                  <input type="checkbox" id="matEvalEnabled" checked class="rounded text-indigo-600">
+                  <span class="text-[11px] font-bold text-indigo-900 leading-tight">Habilitar evaluación (0 - 20)</span>
+                </label>
               </div>
             </div>
 
@@ -226,7 +242,11 @@
                 <span class="text-[10px] text-[#6e6e73] mr-1">Plantilla rápida:</span>
                 <button type="button" onclick="loadSongPreset()"
                   class="px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 text-[10px] font-semibold transition">
-                  <i class="fa-solid fa-music mr-1"></i> Cargar pistas de banda
+                  <i class="fa-solid fa-music mr-1"></i> Pistas de banda
+                </button>
+                <button type="button" onclick="loadClassroomPreset()"
+                  class="px-2.5 py-1 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-800 text-[10px] font-semibold transition">
+                  <i class="fa-solid fa-file-pdf mr-1"></i> Actividad y Reforzamiento (PDF)
                 </button>
               </div>
 
@@ -1039,6 +1059,59 @@
       'Guía de Práctica'
     ];
 
+
+    const CLASSROOM_LABEL_OPTIONS = [
+      'Actividad / Tarea (PDF)',
+      'Hoja de Reforzamiento',
+      'Guía Teórica / Separata',
+      'Ficha de Práctica'
+    ];
+
+    function getActiveLabelOptions() {
+      const fmt = document.getElementById('matFormatSelect')?.value || 'music';
+      return fmt === 'classroom'
+        ? [...CLASSROOM_LABEL_OPTIONS, ...INSTRUMENT_OPTIONS]
+        : [...INSTRUMENT_OPTIONS, ...CLASSROOM_LABEL_OPTIONS];
+    }
+
+    function onMatGroupSelectChange() {
+      const gid = document.getElementById('matGroupSelect')?.value;
+      const grp = groupsCache.find(g => String(g.id) === String(gid));
+      const fmtSel = document.getElementById('matFormatSelect');
+      if (grp && fmtSel) {
+        if (grp.category === 'Sol Music') {
+          fmtSel.value = 'music';
+        } else {
+          fmtSel.value = 'classroom';
+        }
+        onMatFormatChange();
+      }
+    }
+
+    function onMatFormatChange() {
+      const fmt = document.getElementById('matFormatSelect')?.value || 'music';
+      const evalBox = document.getElementById('matEvalToggleBox');
+      if (evalBox) {
+        evalBox.classList.toggle('hidden', fmt !== 'classroom');
+      }
+      const opts = getActiveLabelOptions();
+      document.querySelectorAll('.file-label-select').forEach(sel => {
+        const cur = sel.value;
+        sel.innerHTML = opts.map(o => `<option value="${o}" ${o === cur ? 'selected' : ''}>${o}</option>`).join('');
+      });
+    }
+
+    function loadClassroomPreset() {
+      const fmtSel = document.getElementById('matFormatSelect');
+      if (fmtSel) {
+        fmtSel.value = 'classroom';
+        onMatFormatChange();
+      }
+      const container = document.getElementById('fileRowsContainer');
+      container.innerHTML = '';
+      ['Actividad / Tarea (PDF)', 'Hoja de Reforzamiento'].forEach(lbl => addFileRow(lbl));
+    }
+
     function addFileRow(defaultLabel = '1ra Guitarra') {
       const container = document.getElementById('fileRowsContainer');
       const row = document.createElement('div');
@@ -1818,6 +1891,7 @@
           : '<option value="">Crea primero un subgrupo</option>';
         if (prev && groupsCache.some(g => String(g.id) === prev)) el.value = prev;
       });
+      onMatGroupSelectChange();
 
       const classSel = document.getElementById('classroomGroupFilter');
       if (classSel) {
@@ -2525,7 +2599,7 @@
         : materialsCache;
 
       document.getElementById('materialsList').innerHTML = filteredMats.map(m => {
-        const isSol = m.category === 'Sol Music';
+        const isSol = (m.publish_format === 'music') || (!m.publish_format && m.category === 'Sol Music');
         const files = m.files || [];
         const defaultLbl = selectedAdminMatInstrument[m.id]
           || (files[0] ? files[0].label : 'General (Canción completa)');
@@ -2780,6 +2854,10 @@
       formData.append('group_id', document.getElementById('matGroupSelect').value);
       formData.append('title', document.getElementById('matTitle').value);
       formData.append('description', document.getElementById('matDesc').value);
+      const pubFmt = document.getElementById('matFormatSelect')?.value || 'music';
+      const evalChecked = pubFmt === 'classroom' && document.getElementById('matEvalEnabled')?.checked;
+      formData.append('publish_format', pubFmt);
+      formData.append('evaluation_enabled', evalChecked ? '1' : '0');
       formData.append('external_url', document.getElementById('matUrl').value);
 
       const labels = [];
