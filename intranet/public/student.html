@@ -375,6 +375,29 @@
     </div>
   </div>
 
+  <!-- ==================== MODAL VISOR DE IMÁGENES ==================== -->
+  <div id="imageViewerModal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6" onclick="if(event.target===this) closeImageModal()">
+    <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+      <div class="px-5 py-3.5 border-b border-black/[0.08] flex items-center justify-between bg-[#f5f5f7]">
+        <div class="flex items-center gap-2.5 truncate">
+          <i class="fa-solid fa-image text-indigo-600 text-base"></i>
+          <h3 id="imgModalTitle" class="text-sm font-bold text-[#1d1d1f] truncate">Visor de Imagen</h3>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <a id="imgDownloadLink" href="#" download class="px-3.5 py-1.5 rounded-full bg-[#0071e3] text-white text-xs font-semibold hover:bg-[#0077ed] transition">
+            <i class="fa-solid fa-download mr-1"></i> Descargar
+          </a>
+          <button onclick="closeImageModal()" class="w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 text-[#1d1d1f] flex items-center justify-center">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+      <div class="flex-1 overflow-auto bg-neutral-900 p-4 flex items-center justify-center">
+        <img id="imgViewerTag" src="" alt="Vista ampliada" class="max-w-full max-h-[75vh] object-contain rounded-xl shadow-lg">
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== MODAL VISOR PDF ==================== -->
   <div id="pdfViewerModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6">
     <div class="bg-white rounded-3xl max-w-5xl w-full h-[88vh] flex flex-col overflow-hidden shadow-2xl">
@@ -843,18 +866,43 @@
     }
 
 
+    function openImageModal(imgUrl, title) {
+      document.getElementById('imgModalTitle').innerText = title || 'Imagen de resolución';
+      document.getElementById('imgViewerTag').src = imgUrl;
+      document.getElementById('imgDownloadLink').href = imgUrl;
+      document.getElementById('imageViewerModal').classList.remove('hidden');
+    }
+
+    function closeImageModal() {
+      document.getElementById('imageViewerModal').classList.add('hidden');
+      document.getElementById('imgViewerTag').src = '';
+    }
+
+    function getStudentGradeInfo(rawScore) {
+      const n = parseFloat(rawScore);
+      if (isNaN(n) || n < 0 || n > 20) return null;
+      if (n >= 18) return { letter: 'AD', label: 'Excelente / Logro destacado', cls: 'bg-emerald-600 text-white', trophy: true };
+      if (n >= 14) return { letter: 'A', label: 'Bueno / Logro esperado', cls: 'bg-emerald-500 text-white', trophy: false };
+      if (n >= 11) return { letter: 'B', label: 'Regular / En proceso', cls: 'bg-amber-400 text-amber-950', trophy: false };
+      return { letter: 'C', label: 'Deficiente / En inicio', cls: 'bg-red-600 text-white', trophy: false };
+    }
+
     async function uploadResolution(materialId) {
       const inp = document.getElementById(`resFile-${materialId}`);
       const statusEl = document.getElementById(`resStatus-${materialId}`);
-      if (!inp || !inp.files || !inp.files[0]) {
-        alert('Selecciona primero tu archivo de resolución');
+      if (!inp || !inp.files || !inp.files.length) {
+        alert('Selecciona al menos un archivo o imagen (máximo 8)');
+        return;
+      }
+      if (inp.files.length > 8) {
+        alert('Puedes subir un máximo de 8 archivos por entrega');
         return;
       }
 
       const fd = new FormData();
-      fd.append('resolution', inp.files[0]);
+      Array.from(inp.files).forEach(file => fd.append('resolutions', file));
 
-      if (statusEl) statusEl.innerText = 'Subiendo resolución...';
+      if (statusEl) statusEl.innerText = 'Subiendo archivos...';
       const res = await fetch(`/intranet/api/student/materials/${materialId}/submission`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
@@ -877,32 +925,56 @@
       if (!isClassroomEval || !evalActive) return '';
 
       const sub = m.submission;
-      const gradeHtml = (sub && sub.grade_score !== null && sub.grade_score !== undefined)
-        ? `<div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs space-y-1">
-             <div class="flex items-center justify-between">
-               <span class="font-bold text-emerald-800"><i class="fa-solid fa-award mr-1"></i>Calificación obtenida</span>
-               <span class="px-2.5 py-0.5 rounded-full bg-emerald-600 text-white font-bold text-xs">${sub.grade_score} / 20</span>
+      const gInfo = (sub && sub.grade_score !== null && sub.grade_score !== undefined) ? getStudentGradeInfo(sub.grade_score) : null;
+
+      const gradeHtml = gInfo
+        ? `<div class="p-3 rounded-xl bg-white border border-black/[0.08] text-xs space-y-1.5">
+             <div class="flex flex-wrap items-center justify-between gap-2">
+               <span class="font-bold text-[#1d1d1f]"><i class="fa-solid fa-award mr-1 text-indigo-600"></i>Calificación obtenida</span>
+               <div class="flex items-center gap-1.5">
+                 <span class="px-2.5 py-0.5 rounded-full bg-[#1d1d1f] text-white font-bold text-xs">${sub.grade_score} / 20</span>
+                 <span class="px-2.5 py-0.5 rounded-full font-bold text-xs inline-flex items-center gap-1 ${gInfo.cls}">
+                   ${gInfo.trophy ? '<i class="fa-solid fa-trophy"></i>' : ''}<span>${gInfo.letter} • ${gInfo.label}</span>
+                 </span>
+               </div>
              </div>
              ${sub.feedback ? `<p class="text-[#1d1d1f] leading-relaxed">${sub.feedback}</p>` : ''}
            </div>`
         : '';
 
-      const currentFileHtml = sub
-        ? `<p class="text-[11px] text-emerald-700 font-semibold">
-             <i class="fa-solid fa-file-check mr-1"></i>Entregado: ${cleanStudentFileName(sub.original_name)}
-             ${(sub.grade_score === null || sub.grade_score === undefined) ? ' (Pendiente de calificación)' : ''}
-           </p>`
-        : '<p class="text-[11px] text-[#6e6e73]">Aún no has subido tu resolución para esta actividad.</p>';
+      const sFiles = sub
+        ? ((sub.files && sub.files.length)
+            ? sub.files
+            : (sub.file_name ? [{ id: sub.id, file_name: sub.file_name, original_name: sub.original_name, file_type: (sub.original_name || '').toLowerCase().endsWith('.pdf') ? 'pdf' : 'image' }] : []))
+        : [];
+
+      const currentFileHtml = sFiles.length
+        ? `<div class="space-y-1.5">
+             <p class="text-[11px] text-emerald-700 font-semibold">
+               <i class="fa-solid fa-file-check mr-1"></i>Entregado (${sFiles.length} archivo(s))${!gInfo ? ' • Pendiente de calificación' : ''}
+             </p>
+             <div class="flex flex-wrap gap-1.5">
+               ${sFiles.map((sf, idx) => {
+                 const fUrl = `/intranet/api/files/${sf.file_name}?token=${token}`;
+                 const cName = cleanStudentFileName(sf.original_name || `Archivo ${idx + 1}`).replace(/'/g, '');
+                 if (sf.file_type === 'pdf') {
+                   return `<button type="button" onclick="openPdfModal('${fUrl}', '${cName}')" class="px-2.5 py-1 rounded-lg bg-white border border-black/10 text-[11px] font-semibold text-red-700"><i class="fa-solid fa-file-pdf mr-1"></i>${cName}</button>`;
+                 }
+                 return `<button type="button" onclick="openImageModal('${fUrl}', '${cName}')" class="px-2.5 py-1 rounded-lg bg-white border border-black/10 text-[11px] font-semibold text-indigo-700"><i class="fa-solid fa-image mr-1"></i>${cName}</button>`;
+               }).join('')}
+             </div>
+           </div>`
+        : '<p class="text-[11px] text-[#6e6e73]">Aún no has subido tu resolución para esta actividad (hasta 8 archivos: PDF o imágenes).</p>';
 
       return `
         <div class="p-4 rounded-2xl bg-indigo-500/[0.05] border border-indigo-500/15 space-y-3">
           <div class="flex flex-wrap items-center justify-between gap-2">
-            <span class="text-xs font-bold text-indigo-900"><i class="fa-solid fa-file-pen mr-1.5"></i>Entrega de Trabajo / Fotos de Resolución (PDF o Imagen)</span>
-            <span class="text-[10px] font-semibold text-indigo-700">Evaluación vigesimal (0 - 20)</span>
+            <span class="text-xs font-bold text-indigo-900"><i class="fa-solid fa-file-pen mr-1.5"></i>Entrega de Trabajo / Fotos de Resolución (Hasta 8 archivos)</span>
+            <span class="text-[10px] font-semibold text-indigo-700">PDF o Imagen • Nota 0 - 20</span>
           </div>
           ${currentFileHtml}
           <div class="flex flex-col sm:flex-row sm:items-center gap-2">
-            <input type="file" id="resFile-${m.id}" accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx"
+            <input type="file" id="resFile-${m.id}" multiple accept=".pdf,.jpg,.jpeg,.png,.webp"
               class="flex-1 text-xs text-[#6e6e73] file:mr-2 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-[11px] file:font-semibold file:bg-indigo-600/10 file:text-indigo-700">
             <button type="button" onclick="uploadResolution(${m.id})"
               class="px-4 py-2 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shrink-0 transition">

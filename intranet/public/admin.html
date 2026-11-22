@@ -639,6 +639,29 @@
     </div>
   </div>
 
+  <!-- ==================== MODAL VISOR DE IMÁGENES ==================== -->
+  <div id="imageViewerModal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6" onclick="if(event.target===this) closeImageModal()">
+    <div class="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+      <div class="px-5 py-3.5 border-b border-black/[0.08] flex items-center justify-between bg-[#f5f5f7]">
+        <div class="flex items-center gap-2.5 truncate">
+          <i class="fa-solid fa-image text-indigo-600 text-base"></i>
+          <h3 id="imgModalTitle" class="text-sm font-bold text-[#1d1d1f] truncate">Visor de Imagen</h3>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <a id="imgDownloadLink" href="#" download class="px-3.5 py-1.5 rounded-full bg-[#0071e3] text-white text-xs font-semibold hover:bg-[#0077ed] transition">
+            <i class="fa-solid fa-download mr-1"></i> Descargar
+          </a>
+          <button onclick="closeImageModal()" class="w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 text-[#1d1d1f] flex items-center justify-center">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+      <div class="flex-1 overflow-auto bg-neutral-900 p-4 flex items-center justify-center">
+        <img id="imgViewerTag" src="" alt="Vista ampliada" class="max-w-full max-h-[75vh] object-contain rounded-xl shadow-lg">
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== MODAL VISOR PDF INTEGRADO ==================== -->
   <div id="pdfViewerModal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6">
     <div class="bg-white rounded-3xl max-w-5xl w-full h-[88vh] flex flex-col overflow-hidden shadow-2xl">
@@ -2353,6 +2376,75 @@
     }
 
 
+
+    function openImageModal(imgUrl, title) {
+      document.getElementById('imgModalTitle').innerText = title || 'Imagen de resolución';
+      document.getElementById('imgViewerTag').src = imgUrl;
+      document.getElementById('imgDownloadLink').href = imgUrl;
+      document.getElementById('imageViewerModal').classList.remove('hidden');
+    }
+
+    function closeImageModal() {
+      document.getElementById('imageViewerModal').classList.add('hidden');
+      document.getElementById('imgViewerTag').src = '';
+    }
+
+    function getGradeEquivalence(rawScore) {
+      const n = parseFloat(rawScore);
+      if (isNaN(n) || n < 0 || n > 20) {
+        return {
+          valid: false,
+          letter: '—',
+          label: 'Ingresa 0 – 20',
+          badgeClass: 'bg-black/5 text-[#6e6e73] border-black/10',
+          trophy: false
+        };
+      }
+      if (n >= 18) {
+        return {
+          valid: true,
+          letter: 'AD',
+          label: 'Excelente / Logro destacado',
+          badgeClass: 'bg-emerald-600 text-white border-emerald-700',
+          trophy: true
+        };
+      }
+      if (n >= 14) {
+        return {
+          valid: true,
+          letter: 'A',
+          label: 'Bueno / Logro esperado',
+          badgeClass: 'bg-emerald-500 text-white border-emerald-600',
+          trophy: false
+        };
+      }
+      if (n >= 11) {
+        return {
+          valid: true,
+          letter: 'B',
+          label: 'Regular / En proceso',
+          badgeClass: 'bg-amber-400 text-amber-950 border-amber-500',
+          trophy: false
+        };
+      }
+      return {
+        valid: true,
+        letter: 'C',
+        label: 'Deficiente / En inicio',
+        badgeClass: 'bg-red-600 text-white border-red-700',
+        trophy: false
+      };
+    }
+
+    function updateGradePreviewBadge(subId) {
+      const inp = document.getElementById(`gradeScore-${subId}`);
+      const badge = document.getElementById(`gradeEquivBadge-${subId}`);
+      if (!inp || !badge) return;
+      const eq = getGradeEquivalence(inp.value);
+      badge.className = `px-3 py-1.5 rounded-xl border text-[11px] font-bold inline-flex items-center gap-1.5 transition ${eq.badgeClass}`;
+      badge.innerHTML = `${eq.trophy ? '<i class="fa-solid fa-trophy"></i>' : ''}<span>${eq.letter} • ${eq.label}</span>`;
+    }
+
     function renderSubmissionsAdmin(mat) {
       const subs = mat.submissions || [];
       if (!subs.length) return '';
@@ -2361,29 +2453,44 @@
         <div class="pt-3 border-t border-black/[0.07] space-y-2.5">
           <p class="text-xs font-bold text-indigo-700"><i class="fa-solid fa-file-circle-check mr-1.5"></i>Resoluciones entregadas por alumnos (${subs.length})</p>
           ${subs.map(sb => {
-            const fileUrl = `/intranet/api/files/${sb.file_name}?token=${token}`;
+            const sFiles = (sb.files && sb.files.length)
+              ? sb.files
+              : (sb.file_name ? [{ id: sb.id, file_name: sb.file_name, original_name: sb.original_name, file_type: (sb.original_name || '').toLowerCase().endsWith('.pdf') ? 'pdf' : 'image' }] : []);
             const scoreVal = (sb.grade_score !== null && sb.grade_score !== undefined) ? sb.grade_score : '';
+            const eq = getGradeEquivalence(scoreVal);
+
+            const filesButtonsHtml = sFiles.map((sf, idx) => {
+              const fUrl = `/intranet/api/files/${sf.file_name}?token=${token}`;
+              const cleanN = cleanDisplayName(sf.original_name || `Archivo ${idx + 1}`).replace(/'/g, '');
+              if (sf.file_type === 'pdf') {
+                return `<button type="button" onclick="openPdfModal('${fUrl}', '${cleanN}')" class="px-2.5 py-1 rounded-full bg-red-600 text-white text-[10px] font-semibold inline-flex items-center gap-1"><i class="fa-solid fa-file-pdf"></i> PDF ${idx + 1}</button>`;
+              }
+              return `<button type="button" onclick="openImageModal('${fUrl}', '${cleanN}')" class="px-2.5 py-1 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-semibold inline-flex items-center gap-1"><i class="fa-solid fa-image"></i> Ver Imagen ${idx + 1}</button>`;
+            }).join('');
+
             return `
-              <div class="p-3 rounded-xl bg-indigo-500/[0.05] border border-indigo-500/15 space-y-2 text-xs">
+              <div class="p-3 rounded-xl bg-indigo-500/[0.05] border border-indigo-500/15 space-y-2.5 text-xs">
                 <div class="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <span class="font-bold text-[#1d1d1f]">${sb.student_name || 'Estudiante'}</span>
                     ${sb.student_grade ? `<span class="ml-1.5 px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 text-[10px] font-semibold">${sb.student_grade}</span>` : ''}
-                    <p class="text-[11px] text-[#6e6e73] mt-0.5">${cleanDisplayName(sb.original_name)}</p>
+                    <p class="text-[11px] text-[#6e6e73] mt-0.5">${sFiles.length} archivo(s) adjunto(s)</p>
                   </div>
-                  <a href="${fileUrl}" target="_blank" class="px-3 py-1 rounded-full bg-indigo-600 text-white text-[11px] font-semibold">
-                    <i class="fa-solid fa-eye mr-1"></i> Ver resolución
-                  </a>
+                  <div class="flex flex-wrap items-center gap-1.5">${filesButtonsHtml}</div>
                 </div>
-                <div class="flex flex-col sm:flex-row gap-2 pt-1">
+                <div class="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 pt-1">
                   <div class="flex items-center gap-1.5 bg-white border border-black/10 rounded-lg px-2.5 py-1">
                     <span class="text-[11px] font-semibold text-[#6e6e73]">Nota (0-20):</span>
                     <input type="number" id="gradeScore-${sb.id}" min="0" max="20" step="0.5" value="${scoreVal}" placeholder="0 - 20"
+                      oninput="updateGradePreviewBadge(${sb.id})"
                       class="w-16 text-xs font-bold text-[#1d1d1f] focus:outline-none">
                   </div>
+                  <span id="gradeEquivBadge-${sb.id}" class="px-3 py-1.5 rounded-xl border text-[11px] font-bold inline-flex items-center gap-1.5 ${eq.badgeClass}">
+                    ${eq.trophy ? '<i class="fa-solid fa-trophy"></i>' : ''}<span>${eq.letter} • ${eq.label}</span>
+                  </span>
                   <input type="text" id="gradeFeedback-${sb.id}" value="${(sb.feedback || '').replace(/"/g, '&quot;')}"
                     placeholder="Observación o retroalimentación..."
-                    class="flex-1 bg-white border border-black/10 rounded-lg px-2.5 py-1.5 text-xs">
+                    class="flex-1 min-w-[160px] bg-white border border-black/10 rounded-lg px-2.5 py-1.5 text-xs">
                   <button type="button" onclick="saveSubmissionGrade(${sb.id})"
                     class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold shrink-0">
                     Guardar Nota
