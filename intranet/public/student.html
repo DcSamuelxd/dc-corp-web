@@ -151,13 +151,13 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 mb-6 border-b border-black/[0.06]">
           <div>
             <h2 class="text-xl font-bold tracking-tight">Material de Estudio y Ensayo</h2>
-            <p class="text-xs text-[#6e6e73] mt-0.5">
-              Partituras en PDF, pistas MP3 con control de velocidad y bucle A-B, metrónomo de práctica y chat directo en tiempo real.
+            <p id="materialsSectionSubtitle" class="text-xs text-[#6e6e73] mt-0.5">
+              Guías y actividades en PDF, entrega de trabajos y resoluciones, evaluación vigesimal y consultas en vivo.
             </p>
           </div>
           <div class="flex items-center gap-2">
-            <button type="button" onclick="toggleMetronomeDrawer()"
-              class="px-3.5 py-1.5 rounded-full bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 text-xs font-semibold inline-flex items-center gap-1.5 transition">
+            <button type="button" id="btnMetronomeDrawer" onclick="toggleMetronomeDrawer()"
+              class="hidden px-3.5 py-1.5 rounded-full bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 text-xs font-semibold inline-flex items-center gap-1.5 transition">
               <i class="fa-solid fa-drum"></i> Metrónomo / Diapasón
             </button>
             <span id="materialsCountBadge" class="px-3 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-xs font-semibold">0 temas</span>
@@ -987,59 +987,152 @@
       `;
     }
 
+    const expandedClassroomTopics = {};
+
+    function toggleClassroomTopic(matId) {
+      expandedClassroomTopics[matId] = !expandedClassroomTopics[matId];
+      const bodyEl = document.getElementById(`classroomTopicBody-${matId}`);
+      const chevEl = document.getElementById(`classroomTopicChev-${matId}`);
+      if (bodyEl) bodyEl.classList.toggle('hidden', !expandedClassroomTopics[matId]);
+      if (chevEl) chevEl.classList.toggle('rotate-180', Boolean(expandedClassroomTopics[matId]));
+    }
+
     function renderMaterialsSection(materials) {
       document.getElementById('materialsCountBadge').innerText = `${materials.length} tema(s)`;
       const container = document.getElementById('studentMaterials');
       const stuInstrument = dashboardData && dashboardData.student ? dashboardData.student.instrument : '';
+      const stuCategory = dashboardData && dashboardData.student ? (dashboardData.student.category || 'Particulares') : 'Particulares';
+
+      const subEl = document.getElementById('materialsSectionSubtitle');
+      const metroBtn = document.getElementById('btnMetronomeDrawer');
+      const isMusicArea = stuCategory === 'Sol Music' || materials.some(x => x.publish_format === 'music');
+
+      if (subEl) {
+        subEl.innerText = isMusicArea
+          ? 'Partituras en PDF, pistas MP3 con control de velocidad y bucle A-B, metrónomo de práctica y chat directo en tiempo real.'
+          : 'Temario, fichas y guías en PDF, entrega de trabajos y resoluciones, evaluación con letra y porcentaje, y consultas en vivo.';
+      }
+      if (metroBtn) {
+        metroBtn.classList.toggle('hidden', stuCategory !== 'Sol Music');
+      }
 
       if (!materials.length) {
         container.innerHTML = '<p class="text-xs text-[#6e6e73] text-center py-10">Tu docente aún no ha subido materiales para este grupo.</p>';
         return;
       }
 
-      container.innerHTML = materials.map(m => {
-        const isSolMusic = (m.publish_format === 'music') || (!m.publish_format && dashboardData && dashboardData.student && dashboardData.student.category === 'Sol Music');
+      container.innerHTML = materials.map((m, idx) => {
+        const isSolMusic = (m.publish_format === 'music') || (!m.publish_format && stuCategory === 'Sol Music');
         const ytEmbed = getYouTubeEmbedUrl(m.external_url);
         const notes = m.notes || [];
         const notesHtml = notes.map(renderSingleNoteBubble).join('');
 
-        let contentBlock = '';
-        if (isSolMusic) {
-          const files = m.files || [];
-          const labels = Array.from(new Set(files.map(f => f.label || 'General (Canción completa)')));
-          if (!labels.length) labels.push('General (Canción completa)');
-          const activeLbl = selectedStudentSongLabel[m.id] || normalizeInstrumentMatch(stuInstrument, labels);
-          selectedStudentSongLabel[m.id] = activeLbl;
+        if (!isSolMusic) {
+          if (expandedClassroomTopics[m.id] === undefined && idx === 0) {
+            expandedClassroomTopics[m.id] = false;
+          }
+          const isOpen = Boolean(expandedClassroomTopics[m.id]);
+          const sub = m.submission;
+          const hasGrade = sub && sub.grade_score !== null && sub.grade_score !== undefined;
+          const gInfo = hasGrade ? getStudentGradeInfo(sub.grade_score) : null;
+          const pctVal = hasGrade ? Math.round((parseFloat(sub.grade_score) / 20) * 100) : null;
 
-          contentBlock = `
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 pt-1">
-              <div class="lg:col-span-8" id="stuSolStage-${m.id}">
-                ${renderStudentSolStage(m, activeLbl)}
-              </div>
-              <div class="lg:col-span-4" id="stuSolSidebar-${m.id}">
-                ${renderStudentSolSidebar(m, activeLbl)}
+          const circleHtml = gInfo
+            ? `<div class="w-12 h-12 rounded-full ${gInfo.cls} flex flex-col items-center justify-center shrink-0 shadow-sm" title="${gInfo.letter} • ${gInfo.label}">
+                 <span class="text-xs font-extrabold leading-none">${pctVal}%</span>
+                 <span class="text-[9px] font-bold leading-none mt-0.5">${gInfo.letter}</span>
+               </div>`
+            : `<div class="w-12 h-12 rounded-full bg-[#f5f5f7] border border-black/10 text-[#6e6e73] flex flex-col items-center justify-center shrink-0" title="Sin calificación aún">
+                 <span class="text-[10px] font-bold leading-none">${sub ? 'Env.' : '—'}</span>
+               </div>`;
+
+          return `
+            <div class="rounded-2xl bg-white/95 border border-black/[0.07] overflow-hidden shadow-sm">
+              <button type="button" onclick="toggleClassroomTopic(${m.id})"
+                class="w-full p-4 sm:p-5 flex items-center justify-between gap-3 text-left hover:bg-black/[0.015] transition">
+                <div class="flex items-center gap-3.5 min-w-0">
+                  ${circleHtml}
+                  <div class="min-w-0">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-600">Tema ${materials.length - idx}</span>
+                      <span class="text-[10px] text-[#6e6e73]">${new Date(m.created_at).toLocaleDateString('es-PE')}</span>
+                    </div>
+                    <h3 class="text-sm sm:text-base font-bold text-[#1d1d1f] truncate mt-0.5">${m.title}</h3>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                  ${gInfo ? `<span class="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold ${gInfo.cls}">${gInfo.trophy ? '<i class="fa-solid fa-trophy"></i>' : ''}${sub.grade_score}/20 (${gInfo.letter})</span>` : ''}
+                  <i id="classroomTopicChev-${m.id}" class="fa-solid fa-chevron-down text-xs text-[#6e6e73] transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}"></i>
+                </div>
+              </button>
+
+              <div id="classroomTopicBody-${m.id}" class="${isOpen ? '' : 'hidden'} px-4 sm:px-6 pb-5 pt-2 border-t border-black/[0.06] space-y-4">
+                ${m.description ? `
+                  <div class="p-3.5 rounded-2xl bg-[#f5f5f7] space-y-1">
+                    <span class="block text-[10px] font-bold uppercase tracking-wider text-[#6e6e73]">Indicaciones del tema</span>
+                    <p class="text-xs text-[#1d1d1f] leading-relaxed">${m.description}</p>
+                  </div>` : ''}
+
+                ${ytEmbed ? `
+                  <div class="aspect-video w-full rounded-2xl overflow-hidden bg-black">
+                    <iframe src="${ytEmbed}" class="w-full h-full border-0" allowfullscreen></iframe>
+                  </div>` : (m.external_url ? `
+                  <div>
+                    <a href="${m.external_url}" target="_blank"
+                      class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-black/5 hover:bg-black/10 text-[#1d1d1f] text-xs font-medium transition">
+                      <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir enlace de referencia
+                    </a>
+                  </div>` : '')}
+
+                ${m.files && m.files.length ? `
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    ${m.files.map(renderStudentFile).join('')}
+                  </div>` : ''}
+
+                ${renderStudentSubmissionBox(m)}
+
+                <div class="pt-3 border-t border-black/[0.06] space-y-3">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-[#1d1d1f]"><i class="fa-regular fa-comments mr-1.5 text-[#0071e3]"></i>Mis notas y consultas en vivo con el docente</span>
+                  </div>
+
+                  <div id="notesList-${m.id}" class="space-y-2">${notesHtml}</div>
+
+                  <div class="flex flex-col sm:flex-row gap-2">
+                    <select id="noteType-${m.id}" class="bg-[#f5f5f7] border border-black/10 rounded-xl px-3 py-2 text-xs font-semibold sm:w-44">
+                      <option value="consulta">Consulta al profesor</option>
+                      <option value="personal">Nota personal (privada)</option>
+                    </select>
+                    <input type="text" id="noteInput-${m.id}" onkeydown="if(event.key==='Enter'){event.preventDefault();sendMaterialNote(${m.id});}"
+                      placeholder="Escribe tu duda sobre este tema o un apunte..."
+                      class="flex-1 bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:border-[#0071e3]">
+                    <button type="button" onclick="sendMaterialNote(${m.id})"
+                      class="px-4 py-2 rounded-xl bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold shrink-0 transition">
+                      Enviar
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           `;
-        } else {
-          contentBlock = `
-            ${ytEmbed ? `
-              <div class="aspect-video w-full rounded-2xl overflow-hidden bg-black">
-                <iframe src="${ytEmbed}" class="w-full h-full border-0" allowfullscreen></iframe>
-              </div>` : (m.external_url ? `
-              <div>
-                <a href="${m.external_url}" target="_blank"
-                  class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-black/5 hover:bg-black/10 text-[#1d1d1f] text-xs font-medium transition">
-                  <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir enlace de referencia
-                </a>
-              </div>` : '')}
-
-            ${m.files && m.files.length ? `
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-                ${m.files.map(renderStudentFile).join('')}
-              </div>` : ''}
-          `;
         }
+
+        const files = m.files || [];
+        const labels = Array.from(new Set(files.map(f => f.label || 'General (Canción completa)')));
+        if (!labels.length) labels.push('General (Canción completa)');
+        const activeLbl = selectedStudentSongLabel[m.id] || normalizeInstrumentMatch(stuInstrument, labels);
+        selectedStudentSongLabel[m.id] = activeLbl;
+
+        const contentBlock = `
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 pt-1">
+            <div class="lg:col-span-8" id="stuSolStage-${m.id}">
+              ${renderStudentSolStage(m, activeLbl)}
+            </div>
+            <div class="lg:col-span-4" id="stuSolSidebar-${m.id}">
+              ${renderStudentSolSidebar(m, activeLbl)}
+            </div>
+          </div>
+        `;
 
         return `
           <div class="p-5 sm:p-6 rounded-2xl bg-white/95 border border-black/[0.06] space-y-4">
