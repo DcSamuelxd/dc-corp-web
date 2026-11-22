@@ -106,6 +106,14 @@ db.serialize(() => {
     UNIQUE(material_id, student_id)
   )`);
 
+  db.run(`CREATE TABLE IF NOT EXISTS submission_files (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    submission_id INTEGER NOT NULL,
+    file_name TEXT NOT NULL,
+    original_name TEXT NOT NULL,
+    file_type TEXT NOT NULL DEFAULT 'image'
+  )`);
+
   db.run(`CREATE TABLE IF NOT EXISTS groups (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT UNIQUE NOT NULL,
@@ -924,16 +932,18 @@ app.get('/intranet/api/admin/materials', authMiddleware, staffOnly, (req, res) =
              ORDER BY sb.submitted_at DESC`,
             ids,
             (err3, allSubs) => {
-              const subsByMat = {};
-              (allSubs || []).forEach(s => {
-                if (!subsByMat[s.material_id]) subsByMat[s.material_id] = [];
-                subsByMat[s.material_id].push(s);
+              attachFilesToSubmissions(allSubs || [], (enrichedSubs) => {
+                const subsByMat = {};
+                enrichedSubs.forEach(s => {
+                  if (!subsByMat[s.material_id]) subsByMat[s.material_id] = [];
+                  subsByMat[s.material_id].push(s);
+                });
+                res.json(enriched.map(m => ({
+                  ...m,
+                  consultas: byMat[m.id] || [],
+                  submissions: subsByMat[m.id] || []
+                })));
               });
-              res.json(enriched.map(m => ({
-                ...m,
-                consultas: byMat[m.id] || [],
-                submissions: subsByMat[m.id] || []
-              })));
             }
           );
         }
@@ -1187,15 +1197,79 @@ app.get('/intranet/api/admin/backup', authMiddleware, adminOnly, (req, res) => {
 
 
 // ================= ENTREGAS DE RESOLUCIONES (ALUMNO) Y CALIFICACIÓN 0-20 (DOCENTE/ADMIN) =================
-app.post('/intranet/api/student/materials/:id/submission', authMiddleware, upload.single('resolution'), (req, res) => {
+
+function attachFilesToSubmissions(subs, cb) {
+  if (!subs || !subs.length) return cb([]);
+  const subIds = subs.map(s => s.id);
+  const placeholders = subIds.map(() => '?').join(',');
+  db.all(
+    `SELECT * FROM submission_files WHERE submission_id IN (${placeholders}) ORDER BY id ASC`,
+    subIds,
+    (err, fRows) => {
+      const bySub = {};
+      (fRows || []).forEach(fr => {
+        if (!bySub[fr.submission_id]) bySub[fr.submission_id] = [];
+        bySub[fr.submission_id].push(fr);
+      });
+      cb(subs.map(s => {
+        let fl = bySub[s.id] || [];
+        if (!fl.length && s.file_name) {
+          const ext = path.extname(s.original_name || '').toLowerCase();
+          const ft = ext === '.pdf' ? 'pdf' : 'image';
+          fl = [{ id: s.id, submission_id: s.id, file_name: s.file_name, original_name: s.original_name, file_type: ft }];
+        }
+        return { ...s, files: fl };
+      }));
+    }
+  );
+}
+
+app.post('/intranet/api/student/materials/:id/submission', authMiddleware, upload.array('resolutions', 8), (req, res) => {
   const matId = Number(req.params.id);
-  if (!req.file) return res.status(400).json({ error: 'Adjunta tu archivo de resolución (PDF o imagen)' });
+  const uploaded = req.files || [];
+  if (!uploaded.length) return res.status(400).json({ error: 'Adjunta al menos un archivo o imagen (máximo 8)' });
+  if (uploaded.length > 8) return res.status(400).json({ error: 'Máximo 8 archivos por entrega' });
+
+  const firstFile = uploaded[0];
 
   db.get(`SELECT id, file_name FROM submissions WHERE material_id = ? AND student_id = ?`, [matId, req.user.id], (err, existing) => {
-    if (existing && existing.file_name) {
-      const oldP = path.join(uploadsDir, existing.file_name);
-      if (fs.existsSync(oldP)) fs.unlinkSync(oldP);
-    }
+    const saveFilesForSubmission = (subId) => {
+      if (existing && existing.file_name) {
+        const oldMain = path.join(uploadsDir, existing.file_name);
+        if (fs.existsSync(oldMain)) fs.unlinkSync(oldMain);
+      }
+      db.all(`SELECT file_name FROM submission_files WHERE submission_id = ?`, [subId], (eOld, oldList) => {
+        (oldList || []).forEach(of => {
+          const p = path.join(uploadsDir, of.file_name);
+          if (fs.existsSync(p)) fs.unlinkSync(p);
+        });
+        db.run(`DELETE FROM submission_files WHERE submission_id = ?`, [subId], () => {
+          const stmt = db.prepare(`INSERT INTO submission_files (submission_id, file_name, original_name, file_type) VALUES (?, ?, ?, ?)`);
+          const filesPayload = uploaded.map((f, idx) => {
+            const ext = path.extname(f.originalname || '').toLowerCase();
+            const fType = ext === '.pdf' ? 'pdf' : 'image';
+            stmt.run(subId, f.filename, f.originalname, fType);
+            return { id: idx + 1, submission_id: subId, file_name: f.filename, original_name: f.originalname, file_type: fType };
+          });
+          stmt.finalize(() => {
+            res.json({
+              ok: true,
+              submission: {
+                id: subId,
+                material_id: matId,
+                student_id: req.user.id,
+                file_name: firstFile.filename,
+                original_name: firstFile.originalname,
+                files: filesPayload,
+                grade_score: null,
+                feedback: '',
+                submitted_at: new Date().toISOString()
+              }
+            });
+          });
+        });
+      });
+    };
 
     db.run(
       `INSERT INTO submissions (material_id, student_id, file_name, original_name, grade_score, feedback, submitted_at)
@@ -1204,22 +1278,11 @@ app.post('/intranet/api/student/materials/:id/submission', authMiddleware, uploa
          file_name = excluded.file_name,
          original_name = excluded.original_name,
          submitted_at = CURRENT_TIMESTAMP`,
-      [matId, req.user.id, req.file.filename, req.file.originalname],
+      [matId, req.user.id, firstFile.filename, firstFile.originalname],
       function (err2) {
         if (err2) return res.status(500).json({ error: 'Error guardando la resolución' });
-        res.json({
-          ok: true,
-          submission: {
-            id: existing ? existing.id : this.lastID,
-            material_id: matId,
-            student_id: req.user.id,
-            file_name: req.file.filename,
-            original_name: req.file.originalname,
-            grade_score: null,
-            feedback: '',
-            submitted_at: new Date().toISOString()
-          }
-        });
+        const targetSubId = existing ? existing.id : this.lastID;
+        saveFilesForSubmission(targetSubId);
       }
     );
   });
@@ -1352,13 +1415,15 @@ app.get('/intranet/api/student/dashboard', authMiddleware, (req, res) => {
                           `SELECT * FROM submissions WHERE material_id IN (${placeholders}) AND student_id = ?`,
                           [...ids, student.id],
                           (errSub, subs) => {
-                            const subByMat = {};
-                            (subs || []).forEach(sb => { subByMat[sb.material_id] = sb; });
-                            finishPayload(enrichedMats.map(m => ({
-                              ...m,
-                              notes: byMat[m.id] || [],
-                              submission: subByMat[m.id] || null
-                            })));
+                            attachFilesToSubmissions(subs || [], (enrichedSubs) => {
+                              const subByMat = {};
+                              enrichedSubs.forEach(sb => { subByMat[sb.material_id] = sb; });
+                              finishPayload(enrichedMats.map(m => ({
+                                ...m,
+                                notes: byMat[m.id] || [],
+                                submission: subByMat[m.id] || null
+                              })));
+                            });
                           }
                         );
                       }
