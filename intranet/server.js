@@ -92,6 +92,19 @@ db.serialize(() => {
   db.run(`ALTER TABLE users ADD COLUMN whatsapp TEXT DEFAULT ''`, () => {});
   db.run(`ALTER TABLE users ADD COLUMN specialty TEXT DEFAULT ''`, () => {});
   db.run(`ALTER TABLE users ADD COLUMN is_faculty INTEGER DEFAULT 0`, () => {});
+  db.run(`ALTER TABLE users ADD COLUMN grade TEXT DEFAULT ''`, () => {});
+
+  db.run(`CREATE TABLE IF NOT EXISTS submissions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    material_id INTEGER NOT NULL,
+    student_id INTEGER NOT NULL,
+    file_name TEXT NOT NULL,
+    original_name TEXT NOT NULL,
+    grade_score REAL,
+    feedback TEXT DEFAULT '',
+    submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(material_id, student_id)
+  )`);
 
   db.run(`CREATE TABLE IF NOT EXISTS groups (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -575,7 +588,7 @@ app.get('/intranet/api/admin/students', authMiddleware, staffOnly, (req, res) =>
   const { group_id, category } = req.query;
 
   let sql = `SELECT DISTINCT u.id, u.code, u.full_name, u.group_id, u.schedule, u.monthly_quota,
-                    u.bio, u.avatar_file, u.plain_hint, u.instrument,
+                    u.bio, u.avatar_file, u.plain_hint, u.instrument, u.grade,
                     gMain.name AS group_name, gMain.category
              FROM users u
              LEFT JOIN groups gMain ON gMain.id = u.group_id
@@ -604,7 +617,7 @@ app.get('/intranet/api/admin/students', authMiddleware, staffOnly, (req, res) =>
 });
 
 app.post('/intranet/api/admin/students', authMiddleware, staffOnly, (req, res) => {
-  const { code, full_name, password, group_id, group_ids, schedule, monthly_quota, instrument } = req.body;
+  const { code, full_name, password, group_id, group_ids, schedule, monthly_quota, instrument, grade } = req.body;
   const selectedIds = Array.isArray(group_ids) && group_ids.length
     ? group_ids.map(Number)
     : (group_id ? [Number(group_id)] : []);
@@ -621,9 +634,9 @@ app.post('/intranet/api/admin/students', authMiddleware, staffOnly, (req, res) =
       const hash = bcrypt.hashSync(password, 10);
       const primaryGid = selectedIds[0];
       db.run(
-        `INSERT INTO users (code, full_name, password_hash, role, group_id, schedule, monthly_quota, plain_hint, instrument)
-         VALUES (?, ?, ?, 'student', ?, ?, ?, ?, ?)`,
-        [code.trim(), full_name.trim(), hash, primaryGid, (schedule || '').trim(), quota, password.trim(), inst],
+        `INSERT INTO users (code, full_name, password_hash, role, group_id, schedule, monthly_quota, plain_hint, instrument, grade)
+         VALUES (?, ?, ?, 'student', ?, ?, ?, ?, ?, ?)`,
+        [code.trim(), full_name.trim(), hash, primaryGid, (schedule || '').trim(), quota, password.trim(), inst, (grade || '').trim()],
         function (err) {
           if (err) return res.status(400).json({ error: 'Ese código/usuario ya está registrado' });
           const newStudentId = this.lastID;
@@ -646,7 +659,7 @@ app.post('/intranet/api/admin/students', authMiddleware, staffOnly, (req, res) =
 
 app.put('/intranet/api/admin/students/:id', authMiddleware, staffOnly, (req, res) => {
   const studentId = req.params.id;
-  const { code, full_name, group_id, group_ids, schedule, monthly_quota, instrument, new_password } = req.body;
+  const { code, full_name, group_id, group_ids, schedule, monthly_quota, instrument, grade, new_password } = req.body;
   const selectedIds = Array.isArray(group_ids) && group_ids.length
     ? group_ids.map(Number)
     : (group_id ? [Number(group_id)] : []);
@@ -676,14 +689,14 @@ app.put('/intranet/api/admin/students/:id', authMiddleware, staffOnly, (req, res
           if (new_password && new_password.trim().length >= 6) {
             const hash = bcrypt.hashSync(new_password.trim(), 10);
             db.run(
-              `UPDATE users SET code = ?, full_name = ?, group_id = ?, schedule = ?, monthly_quota = ?, instrument = ?, password_hash = ?, plain_hint = ? WHERE id = ?`,
-              [newCode, full_name.trim(), primaryGid, (schedule || '').trim(), quota, inst, hash, new_password.trim(), studentId],
+              `UPDATE users SET code = ?, full_name = ?, group_id = ?, schedule = ?, monthly_quota = ?, instrument = ?, grade = ?, password_hash = ?, plain_hint = ? WHERE id = ?`,
+              [newCode, full_name.trim(), primaryGid, (schedule || '').trim(), quota, inst, (grade || '').trim(), hash, new_password.trim(), studentId],
               doneUpdate
             );
           } else {
             db.run(
-              `UPDATE users SET code = ?, full_name = ?, group_id = ?, schedule = ?, monthly_quota = ?, instrument = ? WHERE id = ?`,
-              [newCode, full_name.trim(), primaryGid, (schedule || '').trim(), quota, inst, studentId],
+              `UPDATE users SET code = ?, full_name = ?, group_id = ?, schedule = ?, monthly_quota = ?, instrument = ?, grade = ? WHERE id = ?`,
+              [newCode, full_name.trim(), primaryGid, (schedule || '').trim(), quota, inst, (grade || '').trim(), studentId],
               doneUpdate
             );
           }
@@ -898,7 +911,26 @@ app.get('/intranet/api/admin/materials', authMiddleware, staffOnly, (req, res) =
             if (!byMat[n.material_id]) byMat[n.material_id] = [];
             byMat[n.material_id].push(n);
           });
-          res.json(enriched.map(m => ({ ...m, consultas: byMat[m.id] || [] })));
+          db.all(
+            `SELECT sb.*, u.full_name AS student_name, u.grade AS student_grade
+             FROM submissions sb
+             LEFT JOIN users u ON sb.student_id = u.id
+             WHERE sb.material_id IN (${placeholders})
+             ORDER BY sb.submitted_at DESC`,
+            ids,
+            (err3, allSubs) => {
+              const subsByMat = {};
+              (allSubs || []).forEach(s => {
+                if (!subsByMat[s.material_id]) subsByMat[s.material_id] = [];
+                subsByMat[s.material_id].push(s);
+              });
+              res.json(enriched.map(m => ({
+                ...m,
+                consultas: byMat[m.id] || [],
+                submissions: subsByMat[m.id] || []
+              })));
+            }
+          );
         }
       );
     });
@@ -1142,12 +1174,70 @@ app.get('/intranet/api/admin/backup', authMiddleware, adminOnly, (req, res) => {
   res.download(dbPath, `intranet_dccorp_backup_${stamp}.db`);
 });
 
+
+// ================= ENTREGAS DE RESOLUCIONES (ALUMNO) Y CALIFICACIÓN 0-20 (DOCENTE/ADMIN) =================
+app.post('/intranet/api/student/materials/:id/submission', authMiddleware, upload.single('resolution'), (req, res) => {
+  const matId = Number(req.params.id);
+  if (!req.file) return res.status(400).json({ error: 'Adjunta tu archivo de resolución (PDF o imagen)' });
+
+  db.get(`SELECT id, file_name FROM submissions WHERE material_id = ? AND student_id = ?`, [matId, req.user.id], (err, existing) => {
+    if (existing && existing.file_name) {
+      const oldP = path.join(uploadsDir, existing.file_name);
+      if (fs.existsSync(oldP)) fs.unlinkSync(oldP);
+    }
+
+    db.run(
+      `INSERT INTO submissions (material_id, student_id, file_name, original_name, grade_score, feedback, submitted_at)
+       VALUES (?, ?, ?, ?, NULL, '', CURRENT_TIMESTAMP)
+       ON CONFLICT(material_id, student_id) DO UPDATE SET
+         file_name = excluded.file_name,
+         original_name = excluded.original_name,
+         submitted_at = CURRENT_TIMESTAMP`,
+      [matId, req.user.id, req.file.filename, req.file.originalname],
+      function (err2) {
+        if (err2) return res.status(500).json({ error: 'Error guardando la resolución' });
+        res.json({
+          ok: true,
+          submission: {
+            id: existing ? existing.id : this.lastID,
+            material_id: matId,
+            student_id: req.user.id,
+            file_name: req.file.filename,
+            original_name: req.file.originalname,
+            grade_score: null,
+            feedback: '',
+            submitted_at: new Date().toISOString()
+          }
+        });
+      }
+    );
+  });
+});
+
+app.post('/intranet/api/admin/submissions/:subId/grade', authMiddleware, staffOnly, (req, res) => {
+  const subId = Number(req.params.subId);
+  const { grade_score, feedback } = req.body;
+  const numScore = parseFloat(grade_score);
+  if (isNaN(numScore) || numScore < 0 || numScore > 20) {
+    return res.status(400).json({ error: 'La nota debe estar entre 0 y 20' });
+  }
+
+  db.run(
+    `UPDATE submissions SET grade_score = ?, feedback = ? WHERE id = ?`,
+    [numScore, (feedback || '').trim(), subId],
+    function (err) {
+      if (err) return res.status(500).json({ error: 'Error guardando calificación' });
+      res.json({ ok: true, grade_score: numScore, feedback: (feedback || '').trim() });
+    }
+  );
+});
+
 // ================= PORTAL DEL ESTUDIANTE (SOPORTE MÚLTIPLES SUBGRUPOS) =================
 app.get('/intranet/api/student/dashboard', authMiddleware, (req, res) => {
   const requestedGroupId = req.query.group_id ? Number(req.query.group_id) : null;
 
   db.get(
-    `SELECT u.id, u.code, u.full_name, u.group_id, u.schedule, u.monthly_quota, u.bio, u.avatar_file, u.instrument,
+    `SELECT u.id, u.code, u.full_name, u.group_id, u.schedule, u.monthly_quota, u.bio, u.avatar_file, u.instrument, u.grade,
             g.name AS group_name, g.category, g.description AS group_desc, g.schedule AS group_schedule
      FROM users u LEFT JOIN groups g ON u.group_id = g.id WHERE u.id = ?`,
     [req.user.id],
@@ -1247,7 +1337,19 @@ app.get('/intranet/api/student/dashboard', authMiddleware, (req, res) => {
                           if (!byMat[n.material_id]) byMat[n.material_id] = [];
                           byMat[n.material_id].push(n);
                         });
-                        finishPayload(enrichedMats.map(m => ({ ...m, notes: byMat[m.id] || [] })));
+                        db.all(
+                          `SELECT * FROM submissions WHERE material_id IN (${placeholders}) AND student_id = ?`,
+                          [...ids, student.id],
+                          (errSub, subs) => {
+                            const subByMat = {};
+                            (subs || []).forEach(sb => { subByMat[sb.material_id] = sb; });
+                            finishPayload(enrichedMats.map(m => ({
+                              ...m,
+                              notes: byMat[m.id] || [],
+                              submission: subByMat[m.id] || null
+                            })));
+                          }
+                        );
                       }
                     );
                   });
