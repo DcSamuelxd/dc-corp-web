@@ -1447,6 +1447,8 @@ async function loadAllData() {
   onMatGroupSelectChange();
 
   renderGroupChecklists();
+  renderGroupsCards();
+  renderAttendanceGroupCards();
   syncStudentFieldBySelectedGroups(Array.from(document.querySelectorAll('input[name="stuGroupCheck"]:checked')).map(cb => Number(cb.value)), false);
 
   if (isAdmin) {
@@ -1454,8 +1456,6 @@ async function loadAllData() {
   }
 
   await loadStudents();
-  renderGroupsCards();
-  renderAttendanceGroupCards();
   if (selectedAttGroupId) {
     await loadWeeklyGrid();
   }
