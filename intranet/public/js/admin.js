@@ -2490,6 +2490,30 @@ document.getElementById('editMaterialForm').addEventListener('submit', async (e)
   }
 });
 
+function openCreateGroupModal() {
+  document.getElementById('createGroupModal').classList.remove('hidden');
+}
+
+function closeCreateGroupModal() {
+  document.getElementById('createGroupModal').classList.add('hidden');
+}
+
+function openCreateStudentModal() {
+  document.getElementById('createStudentModal').classList.remove('hidden');
+}
+
+function closeCreateStudentModal() {
+  document.getElementById('createStudentModal').classList.add('hidden');
+}
+
+function openCreateTeacherModal() {
+  document.getElementById('createTeacherModal').classList.remove('hidden');
+}
+
+function closeCreateTeacherModal() {
+  document.getElementById('createTeacherModal').classList.add('hidden');
+}
+
 document.getElementById('groupForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const res = await fetch('/intranet/api/admin/groups', {
@@ -2504,6 +2528,7 @@ document.getElementById('groupForm').addEventListener('submit', async (e) => {
   });
   if (res.ok) {
     document.getElementById('groupForm').reset();
+    closeCreateGroupModal();
     loadAllData();
   } else {
     const d = await res.json();
@@ -2538,6 +2563,7 @@ document.getElementById('studentForm').addEventListener('submit', async (e) => {
     const created = await res.json();
     document.getElementById('studentForm').reset();
     document.getElementById('stuQuota').value = 8;
+    closeCreateStudentModal();
     await loadAllData();
     if (confirm('Estudiante registrado. ¿Deseas abrir WhatsApp para enviarle su usuario y contraseña ahora mismo?')) {
       sendCredentialsWhatsApp(created.id);
@@ -2564,6 +2590,7 @@ document.getElementById('teacherForm').addEventListener('submit', async (e) => {
   });
   if (res.ok) {
     document.getElementById('teacherForm').reset();
+    closeCreateTeacherModal();
     loadTeachers();
   } else {
     const d = await res.json();
