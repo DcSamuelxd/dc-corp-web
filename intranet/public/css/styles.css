@@ -1,36 +1,46 @@
 /* ==========================================================================
-   Estilos Base y Componentes Compartidos — Intranet DC CORP
+   Estilos Base, Fondos Difuminados y Animaciones GPU — Intranet DC CORP
    ========================================================================== */
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', sans-serif;
-  background-color: #f5f5f7;
+  background-color: #eef2f9;
   color: #1d1d1f;
   padding-top: env(safe-area-inset-top);
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Variantes de página (fondos radiales y espaciado inferior) */
+/* Variantes de página con difuminados de color suaves (sin recargar) */
 body.page-login {
+  background-color: #eef2f9;
   background-image:
-    radial-gradient(at 15% 15%, rgba(0, 113, 227, 0.10) 0px, transparent 55%),
-    radial-gradient(at 85% 85%, rgba(124, 58, 237, 0.08) 0px, transparent 55%);
+    radial-gradient(circle at 12% 14%, rgba(0, 113, 227, 0.16) 0%, transparent 48%),
+    radial-gradient(circle at 88% 18%, rgba(79, 70, 229, 0.12) 0%, transparent 45%),
+    radial-gradient(circle at 82% 88%, rgba(124, 58, 237, 0.14) 0%, transparent 50%),
+    radial-gradient(circle at 18% 85%, rgba(16, 185, 129, 0.08) 0%, transparent 45%);
   min-height: 100dvh;
   padding-bottom: env(safe-area-inset-bottom);
 }
 
 body.page-admin {
+  background-color: #eef2f9;
   background-image:
-    radial-gradient(at 10% 10%, rgba(0, 113, 227, 0.08) 0px, transparent 50%),
-    radial-gradient(at 90% 85%, rgba(124, 58, 237, 0.07) 0px, transparent 50%);
+    radial-gradient(circle at 8% 8%, rgba(0, 113, 227, 0.14) 0%, transparent 45%),
+    radial-gradient(circle at 92% 12%, rgba(79, 70, 229, 0.11) 0%, transparent 42%),
+    radial-gradient(circle at 85% 88%, rgba(124, 58, 237, 0.12) 0%, transparent 48%),
+    radial-gradient(circle at 15% 86%, rgba(16, 185, 129, 0.08) 0%, transparent 45%);
+  background-attachment: fixed;
   overflow-x: hidden;
   padding-bottom: calc(84px + env(safe-area-inset-bottom));
 }
 
 body.page-student {
+  background-color: #eef3f8;
   background-image:
-    radial-gradient(at 15% 15%, rgba(0, 113, 227, 0.08) 0px, transparent 50%),
-    radial-gradient(at 85% 85%, rgba(16, 185, 129, 0.07) 0px, transparent 50%);
+    radial-gradient(circle at 10% 10%, rgba(0, 113, 227, 0.14) 0%, transparent 46%),
+    radial-gradient(circle at 90% 14%, rgba(16, 185, 129, 0.12) 0%, transparent 44%),
+    radial-gradient(circle at 85% 88%, rgba(79, 70, 229, 0.10) 0%, transparent 48%);
+  background-attachment: fixed;
   overflow-x: hidden;
   padding-bottom: calc(84px + env(safe-area-inset-bottom));
 }
@@ -47,7 +57,7 @@ body.page-student {
 
 /* Barra superior sticky */
 .apple-nav {
-  background: rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.76);
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
   border-bottom: 1px solid rgba(0, 0, 0, 0.07);
@@ -55,7 +65,7 @@ body.page-student {
 
 /* Dock de navegación inferior móvil */
 .bottom-dock {
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.90);
   backdrop-filter: saturate(180%) blur(24px);
   -webkit-backdrop-filter: saturate(180%) blur(24px);
   border-top: 1px solid rgba(0, 0, 0, 0.08);
@@ -64,19 +74,86 @@ body.page-student {
 
 /* Tarjetas glassmorphism */
 .glass-bento {
-  background: rgba(255, 255, 255, 0.80);
-  backdrop-filter: saturate(180%) blur(24px);
-  -webkit-backdrop-filter: saturate(180%) blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.92);
-  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.045);
+  background: rgba(255, 255, 255, 0.84);
+  backdrop-filter: saturate(180%) blur(22px);
+  -webkit-backdrop-filter: saturate(180%) blur(22px);
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 10px 35px rgba(15, 23, 42, 0.055);
   border-radius: 24px;
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.88);
   backdrop-filter: saturate(180%) blur(24px);
   -webkit-backdrop-filter: saturate(180%) blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.95);
-  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.96);
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.07);
   border-radius: 28px;
+}
+
+/* ==========================================================================
+   Micro-interacciones y Animaciones Optimizadas (GPU: transform + opacity)
+   ========================================================================== */
+
+.btn-interactive {
+  transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.18s ease, box-shadow 0.18s ease;
+  will-change: transform;
+}
+
+.btn-interactive:hover {
+  transform: translateY(-1px) scale(1.02);
+}
+
+.btn-interactive:active {
+  transform: scale(0.96);
+}
+
+.btn-plus-icon {
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+.btn-interactive:hover .btn-plus-icon {
+  transform: rotate(90deg);
+}
+
+.card-interactive {
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+  will-change: transform;
+}
+
+.card-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+}
+
+.card-interactive:active {
+  transform: scale(0.985);
+}
+
+@keyframes modalPopIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-panel-anim {
+  animation: modalPopIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-interactive,
+  .btn-plus-icon,
+  .card-interactive,
+  .modal-panel-anim {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+  }
 }

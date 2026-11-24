@@ -207,95 +207,14 @@
 
     <!-- ==================== SECCIÓN 3: SUBGRUPOS Y ALUMNADO ==================== -->
     <section id="panel-alumnos" class="hidden space-y-6">
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-        <div class="lg:col-span-5 space-y-6">
-          <div class="glass-bento p-6">
-            <h3 id="groupCardTitle" class="text-base font-bold mb-1">1. Crear Grupo o Subgrupo</h3>
-            <p id="groupCardSubtitle" class="text-xs text-[#6e6e73] mb-4">Define modalidad, nombre, horario y descripción.</p>
-            <form id="groupForm" class="space-y-3">
-              <div id="groupCategoryWrapper">
-                <label class="block text-[11px] font-medium text-[#6e6e73] mb-1">Modalidad / División *</label>
-                <select id="groupCategory" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs font-semibold">
-                  <option value="Particulares">Particulares (Matemáticas, Estadística, Música)</option>
-                  <option value="Sol Music">Sol Music (Academia)</option>
-                </select>
-              </div>
-              <input type="text" id="groupName" required placeholder="Ej: SOL MUSIC - HUERTOS - BASICO" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
-              <input type="text" id="groupSchedule" placeholder="Horario del subgrupo (Ej: Sábados 10am - 12pm)" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
-              <input type="text" id="groupDesc" placeholder="Descripción breve (opcional)" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
-              <button type="submit" id="btnCreateGroup" class="w-full py-2.5 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition">
-                + Agregar Subgrupo
-              </button>
-            </form>
-
-            <div id="groupsCardsGrid" class="space-y-2.5 mt-5 pt-4 border-t border-black/[0.06]"></div>
+      <div class="glass-bento p-5 sm:p-7 space-y-5">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-black/[0.06]">
+          <div>
+            <h3 class="text-lg font-bold" id="directoryTitle">Subgrupos y Directorio de Alumnado</h3>
+            <p class="text-xs text-[#6e6e73]" id="studentCount">0 alumnos</p>
           </div>
 
-          <div class="glass-bento p-6">
-            <h3 class="text-base font-bold mb-1">2. Registrar Estudiante</h3>
-            <p class="text-xs text-[#6e6e73] mb-4">Puedes marcar uno o varios subgrupos a la vez (ej: Básicos e Intermedios).</p>
-            <form id="studentForm" class="space-y-3">
-              <input type="text" id="stuName" required placeholder="Nombre completo del estudiante" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
-              <input type="text" id="stuCode" required placeholder="Usuario o DNI de acceso (ej: 74859612)" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
-              <input type="text" id="stuPass" required placeholder="Contraseña inicial (ej: Alumno2026)" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
-
-              <div>
-                <label class="block text-[11px] font-medium text-[#6e6e73] mb-1.5">Subgrupos asignados (selecciona uno o más) *</label>
-                <div id="stuGroupsChecklist" class="p-3 rounded-xl bg-[#f5f5f7] border border-black/10 max-h-40 overflow-y-auto space-y-1.5 text-xs"></div>
-              </div>
-
-              <div id="stuInstrumentBox">
-                <label class="block text-[11px] font-medium text-[#6e6e73] mb-1">Especialidad Musical *</label>
-                <select id="stuInstrument" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs font-semibold">
-                  <option value="Guitarra acustica">Guitarra acustica</option><option value="Guitarra electrica">Guitarra electrica</option><option value="Bajo eléctrico">Bajo eléctrico</option><option value="Ukelele">Ukelele</option><option value="Piano">Piano</option><option value="Bateria">Bateria</option><option value="Trompeta">Trompeta</option><option value="Eufonio">Eufonio</option><option value="Trombón">Trombón</option><option value="Saxofon Alto">Saxofon Alto</option><option value="Saxofón Tenor">Saxofón Tenor</option><option value="Flauta traversa">Flauta traversa</option><option value="Flauta dulce">Flauta dulce</option><option value="Clarinete">Clarinete</option><option value="Violín">Violín</option><option value="Viola">Viola</option><option value="Violonchelo">Violonchelo</option><option value="Melódica">Melódica</option><option value="Canto">Canto</option>
-                </select>
-              </div>
-
-              <div id="stuGradeBox" class="hidden">
-                <label class="block text-[11px] font-medium text-indigo-700 mb-1">Grado / Nivel Académico (Matemáticas) *</label>
-                <select id="stuGrade" class="w-full bg-white border border-indigo-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#1d1d1f]">
-                  <option value="1er Grado Primaria">1er Grado Primaria</option>
-                  <option value="2do Grado Primaria">2do Grado Primaria</option>
-                  <option value="3er Grado Primaria">3er Grado Primaria</option>
-                  <option value="4to Grado Primaria">4to Grado Primaria</option>
-                  <option value="5to Grado Primaria">5to Grado Primaria</option>
-                  <option value="6to Grado Primaria">6to Grado Primaria</option>
-                  <option value="1er Año Secundaria">1er Año Secundaria</option>
-                  <option value="2do Año Secundaria">2do Año Secundaria</option>
-                  <option value="3er Año Secundaria">3er Año Secundaria</option>
-                  <option value="4to Año Secundaria">4to Año Secundaria</option>
-                  <option value="5to Año Secundaria">5to Año Secundaria</option>
-                  <option value="Preuniversitario / Academia">Preuniversitario / Academia</option>
-                  <option value="Universitario">Universitario</option>
-                </select>
-              </div>
-
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                <div class="sm:col-span-2">
-                  <label class="block text-[10px] font-medium text-[#6e6e73] mb-1">Horario fijo del alumno</label>
-                  <input type="text" id="stuSchedule" placeholder="Ej: Martes y Jueves 9am - 10am" class="w-full bg-white border border-black/10 rounded-xl px-3 py-2 text-xs">
-                </div>
-                <div>
-                  <label class="block text-[10px] font-medium text-[#6e6e73] mb-1">Clases / mes</label>
-                  <input type="number" id="stuQuota" value="8" min="1" max="31" class="w-full bg-white border border-black/10 rounded-xl px-3 py-2 text-xs font-semibold text-center">
-                </div>
-              </div>
-
-              <button type="submit" class="w-full py-2.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold transition">
-                + Registrar Estudiante
-              </button>
-            </form>
-          </div>
-        </div>
-
-        <div class="lg:col-span-7 glass-bento p-6 sm:p-8 space-y-5">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h3 class="text-lg font-bold" id="directoryTitle">Directorio de Alumnado</h3>
-              <p class="text-xs text-[#6e6e73]" id="studentCount">0 alumnos</p>
-            </div>
-
+          <div class="flex flex-wrap items-center gap-2.5">
             <div id="adminCategoryFilter" class="inline-flex p-1 rounded-xl bg-black/[0.05] text-xs font-semibold w-fit">
               <button onclick="setStudentCategoryFilter('Todos')" id="cat-Todos" class="cat-btn px-3.5 py-1.5 rounded-lg bg-white text-[#1d1d1f] shadow-sm transition">
                 Todos
@@ -307,78 +226,76 @@
                 Sol Music
               </button>
             </div>
-          </div>
 
-          <!-- Tarjetas de clases para filtrar alumnos -->
-          <div class="space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="text-[11px] font-bold uppercase tracking-wider text-[#6e6e73]">Filtrar por tarjeta de clase</span>
-              <button type="button" id="btnClearGroupCard" onclick="selectStudentGroupCard('')"
-                class="hidden text-[11px] font-semibold text-[#0071e3] hover:underline">
-                Ver todos los grupos
-              </button>
-            </div>
-            <div id="studentGroupCardsGrid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2.5"></div>
-          </div>
+            <button type="button" id="btnOpenCreateGroupModal" onclick="openCreateGroupModal()"
+              class="btn-interactive px-4 py-2 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-md shadow-indigo-600/20 inline-flex items-center gap-2">
+              <span class="btn-plus-icon w-4 h-4 rounded-full bg-white/20 flex items-center justify-center"><i class="fa-solid fa-plus text-[10px]"></i></span>
+              <span>Nuevo Subgrupo</span>
+            </button>
 
-          <div class="relative">
-            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-[#6e6e73] text-xs">
-              <i class="fa-solid fa-magnifying-glass"></i>
-            </span>
-            <input type="search" id="dirStudentSearch" oninput="renderStudentsViews()"
-              placeholder="Buscar alumno por nombre o DNI..."
-              class="w-full bg-white border border-black/10 rounded-xl pl-9 pr-3.5 py-2.5 text-xs focus:outline-none focus:border-[#0071e3]">
+            <button type="button" onclick="openCreateStudentModal()"
+              class="btn-interactive px-4 py-2 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold shadow-md shadow-[#0071e3]/20 inline-flex items-center gap-2">
+              <span class="btn-plus-icon w-4 h-4 rounded-full bg-white/20 flex items-center justify-center"><i class="fa-solid fa-plus text-[10px]"></i></span>
+              <span>Registrar Estudiante</span>
+            </button>
           </div>
-
-          <!-- Lista limpia: al presionar se abre el detalle/perfil/edición -->
-          <div id="studentsCompactList" class="divide-y divide-black/[0.06] rounded-2xl bg-white/95 border border-black/[0.07] overflow-hidden"></div>
         </div>
 
+        <!-- Tarjetas de gestión rápida de subgrupos -->
+        <div class="space-y-2">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-[#6e6e73]">Administrar subgrupos</span>
+          <div id="groupsCardsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5"></div>
+        </div>
+
+        <!-- Tarjetas de clases para filtrar alumnos -->
+        <div class="space-y-2 pt-2 border-t border-black/[0.06]">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-[#6e6e73]">Filtrar directorio por tarjeta de clase</span>
+            <button type="button" id="btnClearGroupCard" onclick="selectStudentGroupCard('')"
+              class="hidden text-[11px] font-semibold text-[#0071e3] hover:underline">
+              Ver todos los grupos
+            </button>
+          </div>
+          <div id="studentGroupCardsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5"></div>
+        </div>
+
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-[#6e6e73] text-xs">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </span>
+          <input type="search" id="dirStudentSearch" oninput="renderStudentsViews()"
+            placeholder="Buscar alumno por nombre o DNI..."
+            class="w-full bg-white border border-black/10 rounded-xl pl-9 pr-3.5 py-2.5 text-xs focus:outline-none focus:border-[#0071e3]">
+        </div>
+
+        <!-- Lista limpia: al presionar se abre el detalle/perfil/edición -->
+        <div id="studentsCompactList" class="divide-y divide-black/[0.06] rounded-2xl bg-white/95 border border-black/[0.07] overflow-hidden"></div>
       </div>
     </section>
 
     <!-- ==================== SECCIÓN 4: PLANA DOCENTE INTERACTIVA ==================== -->
     <section id="panel-profesores" class="hidden space-y-6">
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-        <div class="lg:col-span-5 space-y-6">
-          <div class="glass-bento p-6 sm:p-7 h-fit space-y-4">
-            <div>
-              <h3 class="text-base font-bold">Registrar Docente</h3>
-              <p class="text-xs text-[#6e6e73] mt-0.5">Crea cuentas para profesores con especialidad, descripción y WhatsApp.</p>
-            </div>
-            <form id="teacherForm" class="space-y-3">
-              <input type="text" id="teaName" required placeholder="Nombre completo del profesor" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
-              <input type="text" id="teaSpecialty" placeholder="Especialidad o cargo (Ej: Guitarra y Percusión)" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
-              <input type="text" id="teaWhatsapp" placeholder="WhatsApp con código de país (Ej: 51987654321)" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
-              <input type="text" id="teaCode" required placeholder="Usuario de acceso (ej: diosdi)" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
-              <input type="text" id="teaPass" required placeholder="Contraseña inicial" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
-              <textarea id="teaBio" rows="2" placeholder="Descripción o trayectoria docente..." class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2 text-xs resize-none"></textarea>
-              <button type="submit" class="w-full py-2.5 rounded-full bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold transition">
-                + Crear Cuenta de Profesor
-              </button>
-            </form>
+      <div class="glass-bento p-6 sm:p-8 space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-black/[0.06]">
+          <div>
+            <h3 class="text-lg font-bold">Plana Docente Interactiva</h3>
+            <p class="text-xs text-[#6e6e73]">Toca cualquier tarjeta para ver su perfil completo, editarlo o contactar por WhatsApp.</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <span id="teacherCount" class="text-xs font-semibold text-amber-700 bg-amber-500/15 px-3 py-1.5 rounded-full">0 docentes</span>
+            <button type="button" onclick="openAdminAsFacultyModal()"
+              class="btn-interactive px-3.5 py-2 rounded-full bg-[#0071e3]/10 hover:bg-[#0071e3]/20 text-[#0071e3] text-xs font-semibold">
+              <i class="fa-solid fa-user-pen mr-1"></i> Mi Perfil Docente
+            </button>
+            <button type="button" onclick="openCreateTeacherModal()"
+              class="btn-interactive px-4 py-2 rounded-full bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold shadow-md shadow-amber-600/20 inline-flex items-center gap-2">
+              <span class="btn-plus-icon w-4 h-4 rounded-full bg-white/20 flex items-center justify-center"><i class="fa-solid fa-plus text-[10px]"></i></span>
+              <span>Registrar Docente</span>
+            </button>
           </div>
         </div>
 
-        <div class="lg:col-span-7 glass-bento p-6 sm:p-8 space-y-4">
-          <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-black/[0.06]">
-            <div>
-              <h3 class="text-lg font-bold">Plana Docente Interactiva</h3>
-              <p class="text-xs text-[#6e6e73]">Toca cualquier tarjeta para ver su perfil completo, editarlo o contactar por WhatsApp.</p>
-            </div>
-            <div class="flex items-center gap-2">
-              <button type="button" onclick="openAdminAsFacultyModal()"
-                class="px-3.5 py-1.5 rounded-full bg-[#0071e3]/10 hover:bg-[#0071e3]/20 text-[#0071e3] text-xs font-semibold transition">
-                <i class="fa-solid fa-user-plus mr-1"></i> Mi Perfil Docente
-              </button>
-              <span id="teacherCount" class="text-xs font-semibold text-amber-700 bg-amber-500/15 px-3 py-1 rounded-full">0 docentes</span>
-            </div>
-          </div>
-
-          <div id="teachersList" class="grid grid-cols-1 md:grid-cols-2 gap-3.5"></div>
-        </div>
-
+        <div id="teachersList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5"></div>
       </div>
     </section>
 
@@ -441,6 +358,144 @@
     </section>
 
   </main>
+
+  <!-- ==================== MODAL CREAR SUBGRUPO ==================== -->
+  <div id="createGroupModal" class="hidden fixed inset-0 z-50 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto" onclick="if(event.target===this) closeCreateGroupModal()">
+    <div class="modal-panel-anim glass-bento p-6 sm:p-7 max-w-md w-full bg-white my-auto space-y-4 relative">
+      <button type="button" onclick="closeCreateGroupModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 text-[#1d1d1f] flex items-center justify-center">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div>
+        <span class="px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 text-[11px] font-semibold">Nuevo Subgrupo</span>
+        <h3 id="groupCardTitle" class="text-lg font-bold text-[#1d1d1f] mt-1">Crear Grupo o Subgrupo</h3>
+        <p id="groupCardSubtitle" class="text-xs text-[#6e6e73]">Define modalidad, nombre, horario y descripción.</p>
+      </div>
+
+      <form id="groupForm" class="space-y-3">
+        <div id="groupCategoryWrapper">
+          <label class="block text-[11px] font-medium text-[#6e6e73] mb-1">Modalidad / División *</label>
+          <select id="groupCategory" class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2.5 text-xs font-semibold">
+            <option value="Particulares">Particulares (Matemáticas, Estadística, Música)</option>
+            <option value="Sol Music">Sol Music (Academia)</option>
+          </select>
+        </div>
+        <input type="text" id="groupName" required placeholder="Ej: SOL MUSIC - HUERTOS - BASICO" class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
+        <input type="text" id="groupSchedule" placeholder="Horario del subgrupo (Ej: Sábados 10am - 12pm)" class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
+        <input type="text" id="groupDesc" placeholder="Descripción breve (opcional)" class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeCreateGroupModal()" class="px-4 py-2 rounded-full text-xs font-medium text-[#6e6e73]">Cancelar</button>
+          <button type="submit" id="btnCreateGroup" class="btn-interactive px-5 py-2.5 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold">
+            + Agregar Subgrupo
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL REGISTRAR ESTUDIANTE ==================== -->
+  <div id="createStudentModal" class="hidden fixed inset-0 z-50 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto" onclick="if(event.target===this) closeCreateStudentModal()">
+    <div class="modal-panel-anim glass-bento p-6 sm:p-7 max-w-lg w-full bg-white my-auto space-y-4 relative">
+      <button type="button" onclick="closeCreateStudentModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 text-[#1d1d1f] flex items-center justify-center">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div>
+        <span class="px-2.5 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[11px] font-semibold">Matrícula</span>
+        <h3 class="text-lg font-bold text-[#1d1d1f] mt-1">Registrar Estudiante</h3>
+        <p class="text-xs text-[#6e6e73]">Puedes marcar uno o varios subgrupos a la vez (ej: Básicos e Intermedios).</p>
+      </div>
+
+      <form id="studentForm" class="space-y-3">
+        <input type="text" id="stuName" required placeholder="Nombre completo del estudiante" class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <input type="text" id="stuCode" required placeholder="Usuario o DNI (ej: 74859612)" class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
+          <input type="text" id="stuPass" required placeholder="Contraseña (ej: Alumno2026)" class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-medium text-[#6e6e73] mb-1.5">Subgrupos asignados (selecciona uno o más) *</label>
+          <div id="stuGroupsChecklist" class="p-3 rounded-xl bg-[#f5f5f7] border border-black/10 max-h-36 overflow-y-auto space-y-1.5 text-xs"></div>
+        </div>
+
+        <div id="stuInstrumentBox">
+          <label class="block text-[11px] font-medium text-[#6e6e73] mb-1">Especialidad Musical *</label>
+          <select id="stuInstrument" class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2.5 text-xs font-semibold">
+            <option value="Guitarra acustica">Guitarra acustica</option><option value="Guitarra electrica">Guitarra electrica</option><option value="Bajo eléctrico">Bajo eléctrico</option><option value="Ukelele">Ukelele</option><option value="Piano">Piano</option><option value="Bateria">Bateria</option><option value="Trompeta">Trompeta</option><option value="Eufonio">Eufonio</option><option value="Trombón">Trombón</option><option value="Saxofon Alto">Saxofon Alto</option><option value="Saxofón Tenor">Saxofón Tenor</option><option value="Flauta traversa">Flauta traversa</option><option value="Flauta dulce">Flauta dulce</option><option value="Clarinete">Clarinete</option><option value="Violín">Violín</option><option value="Viola">Viola</option><option value="Violonchelo">Violonchelo</option><option value="Melódica">Melódica</option><option value="Canto">Canto</option>
+          </select>
+        </div>
+
+        <div id="stuGradeBox" class="hidden">
+          <label class="block text-[11px] font-medium text-indigo-700 mb-1">Grado / Nivel Académico (Matemáticas) *</label>
+          <select id="stuGrade" class="w-full bg-[#f5f5f7] border border-indigo-200 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#1d1d1f]">
+            <option value="1er Grado Primaria">1er Grado Primaria</option>
+            <option value="2do Grado Primaria">2do Grado Primaria</option>
+            <option value="3er Grado Primaria">3er Grado Primaria</option>
+            <option value="4to Grado Primaria">4to Grado Primaria</option>
+            <option value="5to Grado Primaria">5to Grado Primaria</option>
+            <option value="6to Grado Primaria">6to Grado Primaria</option>
+            <option value="1er Año Secundaria">1er Año Secundaria</option>
+            <option value="2do Año Secundaria">2do Año Secundaria</option>
+            <option value="3er Año Secundaria">3er Año Secundaria</option>
+            <option value="4to Año Secundaria">4to Año Secundaria</option>
+            <option value="5to Año Secundaria">5to Año Secundaria</option>
+            <option value="Preuniversitario / Academia">Preuniversitario / Academia</option>
+            <option value="Universitario">Universitario</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <div class="sm:col-span-2">
+            <label class="block text-[10px] font-medium text-[#6e6e73] mb-1">Horario fijo del alumno</label>
+            <input type="text" id="stuSchedule" placeholder="Ej: Martes y Jueves 9am - 10am" class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3 py-2 text-xs">
+          </div>
+          <div>
+            <label class="block text-[10px] font-medium text-[#6e6e73] mb-1">Clases / mes</label>
+            <input type="number" id="stuQuota" value="8" min="1" max="31" class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3 py-2 text-xs font-semibold text-center">
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeCreateStudentModal()" class="px-4 py-2 rounded-full text-xs font-medium text-[#6e6e73]">Cancelar</button>
+          <button type="submit" class="btn-interactive px-5 py-2.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold">
+            + Registrar Estudiante
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL REGISTRAR DOCENTE ==================== -->
+  <div id="createTeacherModal" class="hidden fixed inset-0 z-50 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto" onclick="if(event.target===this) closeCreateTeacherModal()">
+    <div class="modal-panel-anim glass-bento p-6 sm:p-7 max-w-md w-full bg-white my-auto space-y-4 relative">
+      <button type="button" onclick="closeCreateTeacherModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 text-[#1d1d1f] flex items-center justify-center">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div>
+        <span class="px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-800 text-[11px] font-semibold">Plana Docente</span>
+        <h3 class="text-lg font-bold text-[#1d1d1f] mt-1">Registrar Docente</h3>
+        <p class="text-xs text-[#6e6e73]">Crea una cuenta para profesor con especialidad y WhatsApp.</p>
+      </div>
+
+      <form id="teacherForm" class="space-y-3">
+        <input type="text" id="teaName" required placeholder="Nombre completo del profesor" class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
+        <input type="text" id="teaSpecialty" placeholder="Especialidad o cargo (Ej: Guitarra y Percusión)" class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
+        <input type="text" id="teaWhatsapp" placeholder="WhatsApp con código de país (Ej: 51987654321)" class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <input type="text" id="teaCode" required placeholder="Usuario (ej: diosdi)" class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
+          <input type="text" id="teaPass" required placeholder="Contraseña inicial" class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
+        </div>
+        <textarea id="teaBio" rows="2" placeholder="Descripción o trayectoria docente..." class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2 text-xs resize-none"></textarea>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeCreateTeacherModal()" class="px-4 py-2 rounded-full text-xs font-medium text-[#6e6e73]">Cancelar</button>
+          <button type="submit" class="btn-interactive px-5 py-2.5 rounded-full bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold">
+            + Crear Cuenta
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- ==================== MODALES ==================== -->
   <!-- ==================== MODAL PERFIL Y ACCIONES DE ESTUDIANTE ==================== -->
