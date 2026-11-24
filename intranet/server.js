@@ -995,7 +995,7 @@ app.post('/intranet/api/admin/materials/:id/reply', authMiddleware, staffOnly, (
 });
 
 app.post('/intranet/api/admin/materials', authMiddleware, staffOnly, upload.array('files', 30), (req, res) => {
-  const { group_id, title, description, external_url, labels, publish_format, evaluation_enabled } = req.body;
+  const { group_id, title, description, external_url, labels, publish_format, evaluation_enabled, target_grade } = req.body;
   if (!group_id || !title) return res.status(400).json({ error: 'Grupo y título son obligatorios' });
 
   verifyGroupAccess(req.user, group_id, (allowed) => {
@@ -1010,10 +1010,11 @@ app.post('/intranet/api/admin/materials', authMiddleware, staffOnly, upload.arra
 
     const fmt = publish_format === 'classroom' ? 'classroom' : 'music';
     const evalFlag = (evaluation_enabled === '1' || evaluation_enabled === 1 || evaluation_enabled === true) ? 1 : 0;
+    const tGrade = (target_grade && target_grade !== 'Todos') ? String(target_grade).trim() : '';
 
     db.run(
-      `INSERT INTO materials (group_id, title, description, external_url, publish_format, evaluation_enabled) VALUES (?, ?, ?, ?, ?, ?)`,
-      [group_id, title.trim(), description || '', (external_url || '').trim(), fmt, evalFlag],
+      `INSERT INTO materials (group_id, title, description, external_url, publish_format, evaluation_enabled, target_grade) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [group_id, title.trim(), description || '', (external_url || '').trim(), fmt, evalFlag, tGrade],
       function (err) {
         if (err) return res.status(500).json({ error: 'Error al guardar el material' });
         const materialId = this.lastID;
@@ -1042,7 +1043,7 @@ app.post('/intranet/api/admin/materials', authMiddleware, staffOnly, upload.arra
 
 app.put('/intranet/api/admin/materials/:id', authMiddleware, staffOnly, upload.array('files', 30), (req, res) => {
   const materialId = req.params.id;
-  const { title, description, external_url, deleted_file_ids, updated_files_meta, labels, publish_format, evaluation_enabled } = req.body;
+  const { title, description, external_url, deleted_file_ids, updated_files_meta, labels, publish_format, evaluation_enabled, target_grade } = req.body;
 
   if (!title || !title.trim()) {
     return res.status(400).json({ error: 'El título es obligatorio' });
@@ -1056,10 +1057,11 @@ app.put('/intranet/api/admin/materials/:id', authMiddleware, staffOnly, upload.a
 
       const fmt = publish_format === 'classroom' ? 'classroom' : 'music';
       const evalFlag = (evaluation_enabled === '1' || evaluation_enabled === 1 || evaluation_enabled === true) ? 1 : 0;
+      const tGrade = (target_grade && target_grade !== 'Todos') ? String(target_grade).trim() : '';
 
       db.run(
-        `UPDATE materials SET title = ?, description = ?, external_url = ?, publish_format = ?, evaluation_enabled = ? WHERE id = ?`,
-        [title.trim(), (description || '').trim(), (external_url || '').trim(), fmt, evalFlag, materialId],
+        `UPDATE materials SET title = ?, description = ?, external_url = ?, publish_format = ?, evaluation_enabled = ?, target_grade = ? WHERE id = ?`,
+        [title.trim(), (description || '').trim(), (external_url || '').trim(), fmt, evalFlag, tGrade, materialId],
         (errUp) => {
           if (errUp) return res.status(500).json({ error: 'Error actualizando el material' });
 
@@ -1369,12 +1371,18 @@ app.get('/intranet/api/student/dashboard', authMiddleware, (req, res) => {
             [student.id, activeGroupId],
             (err2, attendances) => {
               db.all(
-                `SELECT id, title, description, file_name, original_name, external_url, publish_format, evaluation_enabled, created_at
+                `SELECT id, title, description, file_name, original_name, external_url, publish_format, evaluation_enabled, target_grade, created_at
                  FROM materials WHERE group_id = ? ORDER BY created_at DESC`,
                 [activeGroupId],
                 (err3, materials) => {
-                  attachFilesToMaterials(materials || [], (enrichedMats) => {
-                    const stuCat = activeStudentView.category || 'Particulares';
+                  const stuCat = activeStudentView.category || 'Particulares';
+                  const stuGrade = (student.grade || '').trim();
+                  const visibleMaterials = (materials || []).filter(m => {
+                    if (stuCat !== 'Particulares' || !stuGrade) return true;
+                    const tg = (m.target_grade || '').trim();
+                    return !tg || tg === 'Todos' || tg === stuGrade;
+                  });
+                  attachFilesToMaterials(visibleMaterials, (enrichedMats) => {
                     const finishPayload = (matsWithNotes) => {
                       db.all(
                         `SELECT * FROM announcements WHERE target_category IN ('Todos', ?) ORDER BY created_at DESC LIMIT 5`,
