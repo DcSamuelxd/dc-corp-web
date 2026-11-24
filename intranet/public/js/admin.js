@@ -361,7 +361,8 @@ async function loadWeeklyGrid() {
               <span class="inline-flex items-center justify-center w-6 h-6 rounded-full mt-0.5 ${d.iso === todayISO ? 'bg-[#0071e3] text-white' : 'text-[#1d1d1f]'}">${d.dayNum}</span>
             </th>
           `).join('')}
-          <th class="py-3 px-3 text-right font-semibold w-32">Bloque Mes</th>
+          <th class="py-3 px-3 text-right font-semibold w-28">Bloque Mes</th>
+          <th class="py-3 px-2.5 text-center font-semibold w-28">Reforzamientos</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-black/[0.05] text-xs">
@@ -372,6 +373,7 @@ async function loadWeeklyGrid() {
   weeklyDataCache.students.forEach(stu => {
     const quota = stu.monthly_quota || 8;
     const used = stu.used_this_month || 0;
+    const refCount = stu.ref_this_month || 0;
     const pct = Math.min(100, Math.round((used / quota) * 100));
     const barColor = used >= quota ? 'bg-red-500' : (used >= quota - 1 ? 'bg-amber-500' : 'bg-emerald-500');
 
@@ -399,11 +401,16 @@ async function loadWeeklyGrid() {
             <p class="text-sm font-bold text-[#1d1d1f]">${stu.full_name}</p>
             ${stu.schedule ? `<p class="text-[11px] text-[#0071e3] font-medium mt-0.5"><i class="fa-regular fa-clock mr-1"></i>${stu.schedule}</p>` : ''}
           </div>
-          <div class="text-right shrink-0">
-            <span class="text-xs font-bold ${used >= quota ? 'text-red-600' : 'text-[#1d1d1f]'}">${used}/${quota}</span>
-            <div class="w-16 h-1.5 bg-black/10 rounded-full overflow-hidden mt-1">
-              <div class="h-full ${barColor}" style="width: ${pct}%"></div>
+          <div class="flex items-center gap-2.5 shrink-0">
+            <div class="text-right">
+              <span class="text-xs font-bold ${used >= quota ? 'text-red-600' : 'text-[#1d1d1f]'}">${used}/${quota}</span>
+              <div class="w-16 h-1.5 bg-black/10 rounded-full overflow-hidden mt-1">
+                <div class="h-full ${barColor}" style="width: ${pct}%"></div>
+              </div>
             </div>
+            <span class="px-2 py-1 rounded-lg bg-purple-500/10 text-purple-700 text-[10px] font-bold" title="Reforzamientos del mes">
+              <i class="fa-solid fa-bolt mr-0.5"></i>${refCount} ref.
+            </span>
           </div>
         </div>
         <div class="grid grid-cols-7 gap-1 pt-1">
@@ -470,6 +477,11 @@ async function loadWeeklyGrid() {
           <div class="w-20 h-1.5 bg-black/10 rounded-full overflow-hidden ml-auto mt-1">
             <div class="h-full ${barColor}" style="width: ${pct}%"></div>
           </div>
+        </td>
+        <td class="py-3.5 px-2.5 text-center">
+          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full ${refCount > 0 ? 'bg-purple-500/15 text-purple-800 border border-purple-500/20' : 'bg-black/[0.04] text-[#6e6e73]'} text-[11px] font-bold">
+            <i class="fa-solid fa-bolt text-[10px]"></i> ${refCount} / mes
+          </span>
         </td>
       </tr>
     `;
