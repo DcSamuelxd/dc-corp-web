@@ -2396,6 +2396,8 @@ function openEditMaterialModal(matId) {
   document.getElementById('editMatTitle').value = mat.title || '';
   document.getElementById('editMatUrl').value = mat.external_url || '';
   document.getElementById('editMatDesc').value = mat.description || '';
+  const editGradeSel = document.getElementById('editMatTargetGrade');
+  if (editGradeSel) editGradeSel.value = mat.target_grade || 'Todos';
   document.getElementById('editNewFileRows').innerHTML = '';
 
   const listEl = document.getElementById('editExistingFilesList');
@@ -2438,9 +2440,15 @@ document.getElementById('editMaterialForm').addEventListener('submit', async (e)
   btn.innerText = 'Guardando...';
 
   const formData = new FormData();
+  const origMat = materialsCache.find(item => Number(item.id) === Number(matId));
   formData.append('title', document.getElementById('editMatTitle').value);
   formData.append('external_url', document.getElementById('editMatUrl').value);
   formData.append('description', document.getElementById('editMatDesc').value);
+  formData.append('target_grade', document.getElementById('editMatTargetGrade')?.value || 'Todos');
+  if (origMat) {
+    formData.append('publish_format', origMat.publish_format || (origMat.category === 'Sol Music' ? 'music' : 'classroom'));
+    formData.append('evaluation_enabled', origMat.evaluation_enabled ? '1' : '0');
+  }
   formData.append('deleted_file_ids', JSON.stringify(editDeletedFileIds));
 
   const updatedMeta = [];
@@ -2577,6 +2585,7 @@ document.getElementById('materialForm').addEventListener('submit', async (e) => 
   const evalChecked = pubFmt === 'classroom' && document.getElementById('matEvalEnabled')?.checked;
   formData.append('publish_format', pubFmt);
   formData.append('evaluation_enabled', evalChecked ? '1' : '0');
+  formData.append('target_grade', document.getElementById('matTargetGrade')?.value || 'Todos');
   formData.append('external_url', document.getElementById('matUrl').value);
 
   const labels = [];
@@ -2604,6 +2613,7 @@ document.getElementById('materialForm').addEventListener('submit', async (e) => 
     document.getElementById('fileRowsContainer').innerHTML = '';
     addFileRow('General (Canción completa)');
     addFileRow('1ra Guitarra');
+    closePublishMaterialModal();
     loadMaterials();
   } else {
     alert('Error al publicar el material');
