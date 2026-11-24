@@ -279,7 +279,7 @@ function renderAttendanceGroupCards() {
     const isSol = g.category === 'Sol Music';
     return `
       <button type="button" onclick="selectAttendanceGroupCard(${g.id})"
-        class="text-left p-5 rounded-2xl bg-white/95 hover:bg-white border border-black/[0.07] shadow-sm hover:shadow transition flex flex-col justify-between gap-3">
+        class="card-interactive text-left p-5 rounded-2xl bg-white/95 hover:bg-white border border-black/[0.07] shadow-sm flex flex-col justify-between gap-3">
         <div class="space-y-1.5">
           <div class="flex items-center justify-between gap-2">
             <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${isSol ? 'bg-amber-500/15 text-amber-800' : 'bg-indigo-500/10 text-indigo-700'}">${g.category || 'Particulares'}</span>
@@ -2268,7 +2268,7 @@ function renderClassroomCards() {
     const isSol = g.category === 'Sol Music';
     return `
       <button type="button" onclick="selectClassroomCard(${g.id})"
-        class="text-left p-5 rounded-2xl bg-white/95 hover:bg-white border border-black/[0.07] shadow-sm hover:shadow transition flex flex-col justify-between gap-3">
+        class="card-interactive text-left p-5 rounded-2xl bg-white/95 hover:bg-white border border-black/[0.07] shadow-sm flex flex-col justify-between gap-3">
         <div class="space-y-1.5">
           <div class="flex items-center justify-between gap-2">
             <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${isSol ? 'bg-amber-500/15 text-amber-800' : 'bg-indigo-500/10 text-indigo-700'}">${g.category}</span>
