@@ -18,6 +18,7 @@ if (isAdmin) {
   const annCatWrap = document.getElementById('annCategoryWrapper'); if (annCatWrap) annCatWrap.classList.add('hidden');
   document.getElementById('groupCategoryWrapper').classList.add('hidden');
   document.getElementById('adminCategoryFilter').classList.add('hidden');
+  const attCatFilter = document.getElementById('attCategoryFilter'); if (attCatFilter) attCatFilter.classList.add('hidden');
   document.getElementById('groupCardTitle').innerText = '1. Crear Subgrupo en Sol Music';
   document.getElementById('groupCardSubtitle').innerText = 'Define nombre, horario y descripción de tu aula.';
   document.getElementById('btnCreateGroup').innerText = '+ Crear Subgrupo Sol Music';
@@ -247,6 +248,82 @@ function resetToCurrentWeek() {
 
 let weeklyDataCache = { students: [], records: [] };
 let activeCellContext = null;
+let attCategoryFilter = 'Todos';
+let selectedAttGroupId = null;
+
+function setAttCategoryFilter(cat) {
+  attCategoryFilter = cat;
+  document.querySelectorAll('.att-cat-btn').forEach(b => {
+    b.className = 'att-cat-btn px-3.5 py-1.5 rounded-lg text-[#6e6e73] hover:text-[#1d1d1f] transition';
+  });
+  const active = document.getElementById(`att-cat-${cat}`);
+  if (active) active.className = 'att-cat-btn px-3.5 py-1.5 rounded-lg bg-white text-[#1d1d1f] shadow-sm transition';
+  renderAttendanceGroupCards();
+}
+
+function renderAttendanceGroupCards() {
+  const grid = document.getElementById('attClassroomCardsGrid');
+  if (!grid) return;
+
+  const visibleGroups = groupsCache.filter(g => {
+    if (!isAdmin) return g.category === 'Sol Music';
+    return attCategoryFilter === 'Todos' || g.category === attCategoryFilter;
+  });
+
+  if (!visibleGroups.length) {
+    grid.innerHTML = '<p class="col-span-full text-xs text-[#6e6e73] text-center py-8">No hay subgrupos disponibles en esta modalidad.</p>';
+    return;
+  }
+
+  grid.innerHTML = visibleGroups.map(g => {
+    const isSol = g.category === 'Sol Music';
+    return `
+      <button type="button" onclick="selectAttendanceGroupCard(${g.id})"
+        class="text-left p-5 rounded-2xl bg-white/95 hover:bg-white border border-black/[0.07] shadow-sm hover:shadow transition flex flex-col justify-between gap-3">
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between gap-2">
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${isSol ? 'bg-amber-500/15 text-amber-800' : 'bg-indigo-500/10 text-indigo-700'}">${g.category || 'Particulares'}</span>
+            <span class="px-2.5 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[10px] font-bold">${g.student_count || 0} alumno(s)</span>
+          </div>
+          <h4 class="text-sm sm:text-base font-bold text-[#1d1d1f] leading-snug">${g.name}</h4>
+          ${g.schedule ? `<p class="text-xs text-[#0071e3] font-medium"><i class="fa-regular fa-clock mr-1"></i>${g.schedule}</p>` : ''}
+          ${g.description ? `<p class="text-xs text-[#6e6e73] line-clamp-2">${g.description}</p>` : ''}
+        </div>
+        <div class="pt-2 border-t border-black/[0.05] flex items-center justify-between text-xs font-semibold text-[#0071e3]">
+          <span>Tomar asistencia</span>
+          <i class="fa-solid fa-arrow-right text-[11px]"></i>
+        </div>
+      </button>
+    `;
+  }).join('');
+}
+
+function selectAttendanceGroupCard(groupId) {
+  selectedAttGroupId = groupId ? Number(groupId) : null;
+  const cardsView = document.getElementById('attCardsView');
+  const workspace = document.getElementById('attGridWorkspace');
+  const sel = document.getElementById('attGroupSelect');
+  const searchInput = document.getElementById('attStudentSearch');
+  if (searchInput) searchInput.value = '';
+
+  if (selectedAttGroupId) {
+    const grp = groupsCache.find(g => Number(g.id) === Number(selectedAttGroupId) && (isAdmin || g.category === 'Sol Music'));
+    if (!grp) {
+      selectedAttGroupId = null;
+      return selectAttendanceGroupCard(null);
+    }
+    if (sel) sel.value = String(grp.id);
+    document.getElementById('attSelectedGroupTitle').innerText = grp.name;
+    document.getElementById('attSelectedGroupMeta').innerText = `${grp.category} • ${grp.student_count || 0} alumno(s)${grp.schedule ? ` • ${grp.schedule}` : ''}`;
+    if (cardsView) cardsView.classList.add('hidden');
+    if (workspace) workspace.classList.remove('hidden');
+    loadWeeklyGrid();
+  } else {
+    if (cardsView) cardsView.classList.remove('hidden');
+    if (workspace) workspace.classList.add('hidden');
+    renderAttendanceGroupCards();
+  }
+}
 
 async function loadWeeklyGrid() {
   const groupId = document.getElementById('attGroupSelect').value;
@@ -1361,10 +1438,11 @@ async function loadAllData() {
   ['attGroupSelect', 'matGroupSelect'].forEach(id => {
     const el = document.getElementById(id);
     const prev = el.value;
-    el.innerHTML = groupsCache.length
-      ? groupsCache.map(g => `<option value="${g.id}">${isAdmin ? `[${g.category || 'Particulares'}] ` : ''}${g.name}</option>`).join('')
+    const allowedGroups = isAdmin ? groupsCache : groupsCache.filter(g => g.category === 'Sol Music');
+    el.innerHTML = allowedGroups.length
+      ? allowedGroups.map(g => `<option value="${g.id}">${isAdmin ? `[${g.category || 'Particulares'}] ` : ''}${g.name}</option>`).join('')
       : '<option value="">Crea primero un subgrupo</option>';
-    if (prev && groupsCache.some(g => String(g.id) === prev)) el.value = prev;
+    if (prev && allowedGroups.some(g => String(g.id) === prev)) el.value = prev;
   });
   onMatGroupSelectChange();
 
@@ -1377,7 +1455,10 @@ async function loadAllData() {
 
   await loadStudents();
   renderGroupsCards();
-  await loadWeeklyGrid();
+  renderAttendanceGroupCards();
+  if (selectedAttGroupId) {
+    await loadWeeklyGrid();
+  }
   await loadMaterials();
   await loadAnnouncementsAdmin();
 }
