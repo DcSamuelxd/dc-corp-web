@@ -1620,15 +1620,6 @@
         grouped[key].push(r);
       });
 
-      const badgeColors = {
-        'Presente': 'bg-emerald-100 text-emerald-800 border-emerald-200',
-        'Recuperacion': 'bg-sky-100 text-sky-800 border-sky-200',
-        'Tardanza': 'bg-amber-100 text-amber-800 border-amber-200',
-        'Falta': 'bg-red-100 text-red-800 border-red-200',
-        'Justificado': 'bg-sky-100 text-sky-800 border-sky-200',
-        'Reforzamiento': 'bg-purple-100 text-purple-800 border-purple-200'
-      };
-
       container.innerHTML = Object.entries(grouped).map(([groupTitle, items]) => `
         <div style="border-radius: 16px; border: 1px solid rgba(0,0,0,0.08); overflow: hidden;">
           <div style="background-color: #f5f5f7; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(0,0,0,0.06);">
