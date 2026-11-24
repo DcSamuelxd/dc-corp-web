@@ -11,49 +11,11 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', sans-serif;
-      background-color: #f5f5f7;
-      background-image:
-        radial-gradient(at 15% 15%, rgba(0, 113, 227, 0.08) 0px, transparent 50%),
-        radial-gradient(at 85% 85%, rgba(16, 185, 129, 0.07) 0px, transparent 50%);
-      color: #1d1d1f;
-      overflow-x: hidden;
-      padding-top: env(safe-area-inset-top);
-      padding-bottom: calc(84px + env(safe-area-inset-bottom));
-      -webkit-tap-highlight-color: transparent;
-    }
-    @media (min-width: 768px) {
-      body { padding-bottom: 5rem; }
-    }
-    @media (max-width: 640px) {
-      input, select, textarea { font-size: 16px !important; }
-    }
-    .bottom-dock {
-      background: rgba(255, 255, 255, 0.92);
-      backdrop-filter: saturate(180%) blur(24px);
-      -webkit-backdrop-filter: saturate(180%) blur(24px);
-      border-top: 1px solid rgba(0, 0, 0, 0.08);
-      padding-bottom: env(safe-area-inset-bottom);
-    }
-    .apple-nav {
-      background: rgba(255, 255, 255, 0.78);
-      backdrop-filter: saturate(180%) blur(20px);
-      border-bottom: 1px solid rgba(0, 0, 0, 0.07);
-    }
-    .glass-bento {
-      background: rgba(255, 255, 255, 0.82);
-      backdrop-filter: saturate(180%) blur(24px);
-      border: 1px solid rgba(255, 255, 255, 0.92);
-      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.045);
-      border-radius: 24px;
-    }
-  </style>
+  <link rel="stylesheet" href="/intranet/css/styles.css">
 </head>
-<body class="min-h-screen pb-20">
+<body class="page-student min-h-screen pb-20">
 
-  <!-- Barra de Navegación Superior -->
+  <!-- ==================== HEADER ==================== -->
   <header class="sticky top-0 z-40 apple-nav">
     <div class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between gap-3">
       <div class="flex items-center gap-3">
