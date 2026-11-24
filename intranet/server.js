@@ -196,11 +196,13 @@ db.serialize(() => {
     external_url TEXT,
     publish_format TEXT NOT NULL DEFAULT 'music',
     evaluation_enabled INTEGER NOT NULL DEFAULT 1,
+    target_grade TEXT DEFAULT '',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
 
   db.run(`ALTER TABLE materials ADD COLUMN publish_format TEXT NOT NULL DEFAULT 'music'`, () => {});
   db.run(`ALTER TABLE materials ADD COLUMN evaluation_enabled INTEGER NOT NULL DEFAULT 1`, () => {});
+  db.run(`ALTER TABLE materials ADD COLUMN target_grade TEXT DEFAULT ''`, () => {});
 
   db.run(`CREATE TABLE IF NOT EXISTS material_files (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -758,12 +760,16 @@ app.get('/intranet/api/admin/weekly-attendance', authMiddleware, staffOnly, (req
                WHERE a2.student_id = u.id
                  AND a2.session_type IN ('Regular', 'Recuperacion')
                  AND substr(a2.date, 1, 7) = ?
-                 AND a2.status IN ('Presente', 'Tardanza', 'Justificado')) AS used_this_month
+                 AND a2.status IN ('Presente', 'Tardanza', 'Justificado')) AS used_this_month,
+              (SELECT COUNT(*) FROM attendance a3
+               WHERE a3.student_id = u.id
+                 AND a3.session_type = 'Reforzamiento'
+                 AND substr(a3.date, 1, 7) = ?) AS ref_this_month
        FROM users u
        LEFT JOIN student_groups sg ON sg.student_id = u.id
        WHERE u.role = 'student' AND (sg.group_id = ? OR u.group_id = ?)
        ORDER BY u.full_name ASC`,
-      [monthPrefix, group_id, group_id],
+      [monthPrefix, monthPrefix, group_id, group_id],
       (err, students) => {
         if (!students || !students.length) return res.json({ students: [], records: [] });
 
