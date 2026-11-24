@@ -497,6 +497,43 @@ async function uploadResolution(materialId) {
   }
 }
 
+function onResolutionFilesSelected(materialId) {
+  const inp = document.getElementById(`resFile-${materialId}`);
+  const previewEl = document.getElementById(`resSelectedPreview-${materialId}`);
+  const btn = document.getElementById(`resSubmitBtn-${materialId}`);
+  if (!inp || !previewEl) return;
+
+  const files = Array.from(inp.files || []);
+  if (!files.length) {
+    previewEl.classList.add('hidden');
+    previewEl.innerHTML = '';
+    return;
+  }
+  if (files.length > 8) {
+    alert('Puedes adjuntar un máximo de 8 archivos por entrega');
+    inp.value = '';
+    previewEl.classList.add('hidden');
+    previewEl.innerHTML = '';
+    return;
+  }
+
+  previewEl.innerHTML = files.map(f => {
+    const isPdf = (f.name || '').toLowerCase().endsWith('.pdf');
+    const sizeKb = f.size ? `${Math.max(1, Math.round(f.size / 1024))} KB` : '';
+    return `
+      <div class="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-white border border-[#0071e3]/20 text-xs">
+        <div class="flex items-center gap-2 min-w-0">
+          <i class="fa-solid ${isPdf ? 'fa-file-pdf text-red-600' : 'fa-image text-[#0071e3]'} shrink-0"></i>
+          <span class="truncate font-medium text-[#1d1d1f]">${f.name}</span>
+        </div>
+        <span class="text-[10px] text-[#6e6e73] shrink-0">${sizeKb}</span>
+      </div>
+    `;
+  }).join('');
+  previewEl.classList.remove('hidden');
+  if (btn) btn.classList.add('ring-2', 'ring-[#0071e3]/30');
+}
+
 function renderStudentSubmissionBox(m) {
   const isClassroomEval = (m.publish_format === 'classroom' || (dashboardData && dashboardData.student && dashboardData.student.category !== 'Sol Music'));
   const evalActive = (m.evaluation_enabled === undefined || m.evaluation_enabled === null) ? true : Boolean(Number(m.evaluation_enabled));
@@ -505,10 +542,16 @@ function renderStudentSubmissionBox(m) {
   const sub = m.submission;
   const gInfo = (sub && sub.grade_score !== null && sub.grade_score !== undefined) ? getStudentGradeInfo(sub.grade_score) : null;
 
+  const statusBadge = gInfo
+    ? `<span class="px-2.5 py-0.5 rounded-full bg-indigo-500/15 text-indigo-700 text-[10px] font-bold">Calificada • ${sub.grade_score}/20</span>`
+    : (sub
+        ? `<span class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 text-[10px] font-bold">Entregada</span>`
+        : `<span class="px-2.5 py-0.5 rounded-full bg-black/[0.06] text-[#6e6e73] text-[10px] font-bold">Asignada</span>`);
+
   const gradeHtml = gInfo
-    ? `<div class="p-3 rounded-xl bg-white border border-black/[0.08] text-xs space-y-1.5">
+    ? `<div class="p-3.5 rounded-2xl bg-white border border-indigo-500/20 text-xs space-y-1.5 shadow-sm">
          <div class="flex flex-wrap items-center justify-between gap-2">
-           <span class="font-bold text-[#1d1d1f]"><i class="fa-solid fa-award mr-1 text-indigo-600"></i>Calificación obtenida</span>
+           <span class="font-bold text-[#1d1d1f]"><i class="fa-solid fa-award mr-1.5 text-indigo-600"></i>Calificación del docente</span>
            <div class="flex items-center gap-1.5">
              <span class="px-2.5 py-0.5 rounded-full bg-[#1d1d1f] text-white font-bold text-xs">${sub.grade_score} / 20</span>
              <span class="px-2.5 py-0.5 rounded-full font-bold text-xs inline-flex items-center gap-1 ${gInfo.cls}">
@@ -516,7 +559,7 @@ function renderStudentSubmissionBox(m) {
              </span>
            </div>
          </div>
-         ${sub.feedback ? `<p class="text-[#1d1d1f] leading-relaxed">${sub.feedback}</p>` : ''}
+         ${sub.feedback ? `<p class="text-[#424245] leading-relaxed bg-[#f5f5f7] p-2.5 rounded-xl mt-1">${sub.feedback}</p>` : ''}
        </div>`
     : '';
 
@@ -529,37 +572,64 @@ function renderStudentSubmissionBox(m) {
   const currentFileHtml = sFiles.length
     ? `<div class="space-y-1.5">
          <p class="text-[11px] text-emerald-700 font-semibold">
-           <i class="fa-solid fa-file-check mr-1"></i>Entregado (${sFiles.length} archivo(s))${!gInfo ? ' • Pendiente de calificación' : ''}
+           <i class="fa-solid fa-circle-check mr-1"></i>Archivos entregados (${sFiles.length})
          </p>
-         <div class="flex flex-wrap gap-1.5">
+         <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
            ${sFiles.map((sf, idx) => {
              const fUrl = `/intranet/api/files/${sf.file_name}?token=${token}`;
              const cName = cleanStudentFileName(sf.original_name || `Archivo ${idx + 1}`).replace(/'/g, '');
-             if (sf.file_type === 'pdf') {
-               return `<button type="button" onclick="openPdfModal('${fUrl}', '${cName}')" class="px-2.5 py-1 rounded-lg bg-white border border-black/10 text-[11px] font-semibold text-red-700"><i class="fa-solid fa-file-pdf mr-1"></i>${cName}</button>`;
-             }
-             return `<button type="button" onclick="openImageModal('${fUrl}', '${cName}')" class="px-2.5 py-1 rounded-lg bg-white border border-black/10 text-[11px] font-semibold text-indigo-700"><i class="fa-solid fa-image mr-1"></i>${cName}</button>`;
+             const isPdf = sf.file_type === 'pdf';
+             const fn = isPdf ? `openPdfModal('${fUrl}', '${cName}')` : `openImageModal('${fUrl}', '${cName}')`;
+             return `
+               <button type="button" onclick="${fn}"
+                 class="flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-white hover:bg-[#f5f5f7] border border-black/10 text-left text-xs transition">
+                 <span class="flex items-center gap-2 min-w-0">
+                   <i class="fa-solid ${isPdf ? 'fa-file-pdf text-red-600' : 'fa-image text-indigo-600'} shrink-0"></i>
+                   <span class="truncate font-semibold text-[#1d1d1f]">${cName}</span>
+                 </span>
+                 <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-[#6e6e73] shrink-0"></i>
+               </button>
+             `;
            }).join('')}
          </div>
        </div>`
-    : '<p class="text-[11px] text-[#6e6e73]">Aún no has subido tu resolución para esta actividad (hasta 8 archivos: PDF o imágenes).</p>';
+    : `<p class="text-[11px] text-[#6e6e73]">Adjunta fotos nítidas de tu cuaderno o un PDF con tu resolución (máximo 8 archivos).</p>`;
 
   return `
-    <div class="p-4 rounded-2xl bg-indigo-500/[0.05] border border-indigo-500/15 space-y-3">
-      <div class="flex flex-wrap items-center justify-between gap-2">
-        <span class="text-xs font-bold text-indigo-900"><i class="fa-solid fa-file-pen mr-1.5"></i>Entrega de Trabajo / Fotos de Resolución (Hasta 8 archivos)</span>
-        <span class="text-[10px] font-semibold text-indigo-700">PDF o Imagen • Nota 0 - 20</span>
+    <div class="p-4 sm:p-5 rounded-2xl bg-white border border-black/[0.08] shadow-sm space-y-3.5">
+      <div class="flex items-center justify-between gap-2 pb-2.5 border-b border-black/[0.06]">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-xl bg-[#0071e3]/10 text-[#0071e3] flex items-center justify-center text-xs">
+            <i class="fa-solid fa-folder-open"></i>
+          </div>
+          <span class="text-sm font-bold text-[#1d1d1f]">Tu trabajo</span>
+        </div>
+        ${statusBadge}
       </div>
+
       ${currentFileHtml}
-      <div class="flex flex-col sm:flex-row sm:items-center gap-2">
-        <input type="file" id="resFile-${m.id}" multiple accept=".pdf,.jpg,.jpeg,.png,.webp"
-          class="w-full sm:flex-1 min-w-0 max-w-full text-xs text-[#6e6e73] file:mr-2 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-[11px] file:font-semibold file:bg-indigo-600/10 file:text-indigo-700">
-        <button type="button" onclick="uploadResolution(${m.id})"
-          class="px-4 py-2 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shrink-0 transition">
-          <i class="fa-solid fa-cloud-arrow-up mr-1"></i> Subir Resolución
+
+      <div class="space-y-2.5 pt-1">
+        <label for="resFile-${m.id}"
+          class="flex flex-col items-center justify-center gap-1.5 p-4 rounded-2xl border-2 border-dashed border-[#0071e3]/30 bg-[#f5f5f7]/70 hover:bg-[#0071e3]/[0.04] hover:border-[#0071e3]/60 cursor-pointer transition text-center">
+          <span class="w-8 h-8 rounded-full bg-white shadow-sm flex items-center justify-center text-[#0071e3] text-sm">
+            <i class="fa-solid fa-plus"></i>
+          </span>
+          <span class="text-xs font-semibold text-[#1d1d1f]">Agregar archivo o foto de resolución</span>
+          <span class="text-[10px] text-[#6e6e73]">PDF, JPG, PNG o WEBP (hasta 8 archivos)</span>
+          <input type="file" id="resFile-${m.id}" multiple accept=".pdf,.jpg,.jpeg,.png,.webp" onchange="onResolutionFilesSelected(${m.id})" class="hidden">
+        </label>
+
+        <div id="resSelectedPreview-${m.id}" class="hidden space-y-1.5"></div>
+
+        <button type="button" id="resSubmitBtn-${m.id}" onclick="uploadResolution(${m.id})"
+          class="w-full py-2.5 px-4 rounded-full bg-[#0071e3] hover:bg-[#0077ed] active:scale-[0.99] text-white text-xs font-semibold shadow-sm transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-paper-plane"></i>
+          <span>${sub ? 'Volver a entregar tarea' : 'Entregar tarea'}</span>
         </button>
       </div>
-      <span id="resStatus-${m.id}" class="block text-[11px] font-semibold text-indigo-700"></span>
+
+      <span id="resStatus-${m.id}" class="block text-center text-[11px] font-semibold text-[#0071e3]"></span>
       ${gradeHtml}
     </div>
   `;
@@ -633,6 +703,7 @@ function renderMaterialsSection(materials) {
               <div class="min-w-0">
                 <div class="flex flex-wrap items-center gap-2">
                   <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-600">Tema ${materials.length - idx}</span>
+                  ${m.target_grade ? `<span class="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-800 text-[10px] font-bold">${m.target_grade}</span>` : ''}
                   <span class="text-[10px] text-[#6e6e73]">${new Date(m.created_at).toLocaleDateString('es-PE')}</span>
                 </div>
                 <h3 class="text-sm sm:text-base font-bold text-[#1d1d1f] break-words leading-snug mt-0.5">${m.title}</h3>
