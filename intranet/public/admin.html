@@ -844,14 +844,13 @@
       <div id="capturePreviewWrapper" class="overflow-x-auto bg-[#e9e9ed] p-3 sm:p-5 rounded-2xl">
         <div id="captureCard" style="width: 720px; background-color: #ffffff; color: #1d1d1f; padding: 28px; border-radius: 16px; border: 1px solid #e5e7eb; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', sans-serif;">
           <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px; border-bottom: 1px solid #e5e7eb; padding-bottom: 16px; margin-bottom: 18px;">
-            <div style="display: flex; align-items: center; gap: 14px;">
+            <div style="display: flex; align-items: center; gap: 16px;">
               <img src="/logo.svg" alt="DC CORP" crossorigin="anonymous" style="height: 46px; width: auto; flex-shrink: 0;">
-              <div style="display: flex; flex-direction: column; gap: 4px;">
-                <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                  <span style="font-size: 15px; font-weight: 800; color: #1d1d1f; letter-spacing: -0.2px; line-height: 1.2;">DC CORP</span>
-                  <span id="capScopeBadge" style="display: inline-block; background-color: #e0f2fe; color: #0369a1; font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 6px; line-height: 1.2;">REPORTE GENERAL</span>
+              <div style="display: flex; flex-direction: column; gap: 5px;">
+                <div style="font-size: 16px; font-weight: 800; color: #1d1d1f; letter-spacing: -0.2px; line-height: 1.2;">Reporte Diario de Asistencias</div>
+                <div>
+                  <span id="capScopeBadge" style="display: inline-block; background-color: #e0f2fe; color: #0369a1; font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 6px; line-height: 1.3;">REPORTE GENERAL</span>
                 </div>
-                <div style="font-size: 15px; font-weight: 700; color: #1d1d1f; line-height: 1.25;">Reporte Diario de Asistencias</div>
               </div>
             </div>
             <div style="text-align: right; flex-shrink: 0;">
@@ -1706,56 +1705,384 @@
       window.open(`https://wa.me/?text=${encodeURIComponent(lines.join('\n'))}`, '_blank');
     }
 
+    function roundRectPath(ctx, x, y, w, h, r) {
+      const radius = Math.min(r, w / 2, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + w - radius, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + radius);
+      ctx.lineTo(x + w, y + h - radius);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
+      ctx.lineTo(x + radius, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+    }
+
+    function wrapCanvasLines(ctx, text, maxWidth) {
+      if (!text) return [];
+      const words = String(text).split(' ');
+      const lines = [];
+      let current = '';
+      for (const word of words) {
+        const test = current ? `${current} ${word}` : word;
+        if (ctx.measureText(test).width <= maxWidth) {
+          current = test;
+        } else {
+          if (current) lines.push(current);
+          current = word;
+        }
+      }
+      if (current) lines.push(current);
+      return lines;
+    }
+
+    async function loadLogoImageForCanvas(targetHeight) {
+      try {
+        const resp = await fetch('/logo.svg');
+        const svgText = await resp.text();
+        const svgBlob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
+        const svgUrl = URL.createObjectURL(svgBlob);
+        const img = new Image();
+        await new Promise((ok, fail) => { img.onload = ok; img.onerror = fail; img.src = svgUrl; });
+        const aspect = (img.naturalWidth && img.naturalHeight) ? (img.naturalWidth / img.naturalHeight) : 4.04;
+        const w = Math.round(targetHeight * aspect);
+        // Rasterize at 2x so the logo stays crisp on Retina canvas
+        const tmp = document.createElement('canvas');
+        tmp.width = w * 2;
+        tmp.height = targetHeight * 2;
+        tmp.getContext('2d').drawImage(img, 0, 0, tmp.width, tmp.height);
+        URL.revokeObjectURL(svgUrl);
+        return { canvas: tmp, width: w, height: targetHeight };
+      } catch (e) {
+        console.warn('No se pudo cargar /logo.svg para canvas:', e);
+        return null;
+      }
+    }
+
+    async function renderDailyReportCanvas(dateStr) {
+      const W = 720;
+      const PAD = 28;
+      const INNER_W = W - PAD * 2; // 664
+      const SCALE = 2;
+      const FONT = "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', 'Segoe UI', Roboto, sans-serif";
+
+      const [yNum, mNum, dNum] = dateStr.split('-').map(Number);
+      const localDate = new Date(yNum, mNum - 1, dNum);
+      const rawFormatted = localDate.toLocaleDateString('es-PE', {
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+      });
+      const formattedDate = rawFormatted.replace(/\b\w/g, c => c.toUpperCase());
+      const issuedBy = `Emitido por: ${currentUserName}`;
+      const scopeLabel = isAdmin ? 'DC CORP • Particulares y Sol Music' : 'Sol Music • Academia';
+      const generatedAt = `Generado: ${new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}`;
+
+      const recs = lastDailySummaryData.records || [];
+      const totalPresentes = recs.filter(r => r.session_type !== 'Reforzamiento' && r.status === 'Presente').length;
+      const totalRecup = recs.filter(r => r.session_type === 'Recuperacion').length;
+      const totalFaltasTard = recs.filter(r => r.session_type !== 'Reforzamiento' && (r.status === 'Falta' || r.status === 'Tardanza')).length;
+      const totalRef = recs.filter(r => r.session_type === 'Reforzamiento').length;
+
+      const grouped = {};
+      recs.forEach(r => {
+        const key = `${r.category || 'Particulares'} — ${r.group_name || 'Sin grupo'}`;
+        if (!grouped[key]) grouped[key] = [];
+        grouped[key].push(r);
+      });
+      const groupEntries = Object.entries(grouped);
+
+      const badgePalette = {
+        'Presente': { bg: '#d1fae5', text: '#065f46', border: '#a7f3d0' },
+        'Recuperacion': { bg: '#e0f2fe', text: '#075985', border: '#bae6fd' },
+        'Tardanza': { bg: '#fef3c7', text: '#92400e', border: '#fde68a' },
+        'Falta': { bg: '#fee2e2', text: '#991b1b', border: '#fecaca' },
+        'Justificado': { bg: '#e0f2fe', text: '#075985', border: '#bae6fd' },
+        'Reforzamiento': { bg: '#f3e8ff', text: '#6b21a8', border: '#e9d5ff' }
+      };
+
+      // Pre-measure layout using a scratch context
+      const measureCvs = document.createElement('canvas');
+      const mCtx = measureCvs.getContext('2d');
+
+      const headerH = 66;
+      const statsH = 62;
+      const statsGapTop = 18;
+      const recordsGapTop = 20;
+
+      const groupLayouts = groupEntries.map(([groupTitle, items]) => {
+        const rowLayouts = items.map(item => {
+          const isRef = item.session_type === 'Reforzamiento';
+          const isRec = item.session_type === 'Recuperacion';
+          const statusText = isRef
+            ? `Reforzamiento${item.arrival_time ? ` (${item.arrival_time})` : ''}`
+            : (isRec ? 'Recuperación' : item.status);
+          const styleKey = isRef ? 'Reforzamiento' : (isRec ? 'Recuperacion' : item.status);
+
+          mCtx.font = `700 11px ${FONT}`;
+          const badgeW = Math.ceil(mCtx.measureText(statusText).width) + 22;
+          const textMaxW = INNER_W - 32 - badgeW - 14;
+
+          const metaParts = [
+            `Bloque mes: ${item.used_this_month || 0}/${item.monthly_quota || 8}`,
+            item.recorded_by_name ? `Marcado por: ${item.recorded_by_name}` : null,
+            item.note ? `"${item.note}"` : null
+          ].filter(Boolean).join(' • ');
+
+          mCtx.font = `400 10.5px ${FONT}`;
+          const metaLines = wrapCanvasLines(mCtx, metaParts, textMaxW);
+          const rowH = Math.max(54, 12 + 17 + metaLines.length * 14 + 12);
+
+          return { item, statusText, styleKey, badgeW, metaLines, rowH };
+        });
+
+        const groupHeaderH = 38;
+        const bodyH = rowLayouts.reduce((acc, r) => acc + r.rowH, 0);
+        return { groupTitle, rowLayouts, groupHeaderH, totalH: groupHeaderH + bodyH };
+      });
+
+      const recordsBlockH = groupLayouts.length
+        ? groupLayouts.reduce((acc, g, idx) => acc + g.totalH + (idx > 0 ? 14 : 0), 0)
+        : 84;
+
+      const footerGapTop = 20;
+      const footerH = 28;
+      const totalH = PAD + headerH + statsGapTop + statsH + recordsGapTop + recordsBlockH + footerGapTop + footerH + PAD;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = W * SCALE;
+      canvas.height = totalH * SCALE;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(SCALE, SCALE);
+
+      // Solid white background
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, W, totalH);
+
+      // Subtle outer card border
+      ctx.strokeStyle = '#e5e7eb';
+      ctx.lineWidth = 1;
+      roundRectPath(ctx, 0.5, 0.5, W - 1, totalH - 1, 14);
+      ctx.stroke();
+
+      // 1. HEADER
+      let y = PAD;
+      const logo = await loadLogoImageForCanvas(44);
+      let titleX = PAD;
+      if (logo) {
+        ctx.drawImage(logo.canvas, PAD, y + (48 - logo.height) / 2, logo.width, logo.height);
+        titleX = PAD + logo.width + 16;
+      }
+
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#1d1d1f';
+      ctx.font = `800 15px ${FONT}`;
+      ctx.fillText('Reporte Diario de Asistencias', titleX, y + 14);
+
+      // Scope pill
+      ctx.font = `700 10px ${FONT}`;
+      const scopeW = Math.ceil(ctx.measureText(scopeLabel).width) + 18;
+      const scopeX = titleX;
+      const scopeY = y + 27;
+      const scopeH = 20;
+      ctx.fillStyle = '#e0f2fe';
+      roundRectPath(ctx, scopeX, scopeY, scopeW, scopeH, 6);
+      ctx.fill();
+      ctx.fillStyle = '#0369a1';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(scopeLabel, scopeX + 9, scopeY + scopeH / 2 + 0.5);
+
+      // Right date & issuer
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#1d1d1f';
+      ctx.font = `700 12px ${FONT}`;
+      ctx.fillText(formattedDate, W - PAD, y + 15);
+      ctx.fillStyle = '#6e6e73';
+      ctx.font = `400 11px ${FONT}`;
+      ctx.fillText(issuedBy, W - PAD, y + 34);
+
+      // Header divider
+      y += headerH;
+      ctx.strokeStyle = '#e5e7eb';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(PAD, y - 4);
+      ctx.lineTo(W - PAD, y - 4);
+      ctx.stroke();
+
+      // 2. STATS ROW (4 cards)
+      y += statsGapTop - 4;
+      const statCards = [
+        { val: totalPresentes, label: 'Presentes', bg: '#ecfdf5', border: '#a7f3d0', numColor: '#047857', lblColor: '#065f46' },
+        { val: totalRecup, label: 'Recuperaciones', bg: '#f0f9ff', border: '#bae6fd', numColor: '#0369a1', lblColor: '#075985' },
+        { val: totalRef, label: 'Reforzamientos', bg: '#faf5ff', border: '#e9d5ff', numColor: '#7e22ce', lblColor: '#6b21a8' },
+        { val: totalFaltasTard, label: 'Faltas / Tard.', bg: '#fef2f2', border: '#fecaca', numColor: '#b91c1c', lblColor: '#991b1b' }
+      ];
+      const gap = 10;
+      const cardW = (INNER_W - gap * 3) / 4;
+      statCards.forEach((sc, i) => {
+        const cx = PAD + i * (cardW + gap);
+        ctx.fillStyle = sc.bg;
+        roundRectPath(ctx, cx, y, cardW, statsH, 12);
+        ctx.fill();
+        ctx.strokeStyle = sc.border;
+        ctx.lineWidth = 1;
+        roundRectPath(ctx, cx + 0.5, y + 0.5, cardW - 1, statsH - 1, 12);
+        ctx.stroke();
+
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = sc.numColor;
+        ctx.font = `700 19px ${FONT}`;
+        ctx.fillText(String(sc.val), cx + cardW / 2, y + 23);
+        ctx.fillStyle = sc.lblColor;
+        ctx.font = `600 10px ${FONT}`;
+        ctx.fillText(sc.label, cx + cardW / 2, y + 44);
+      });
+
+      // 3. RECORDS LIST
+      y += statsH + recordsGapTop;
+      if (!groupLayouts.length) {
+        ctx.fillStyle = '#f5f5f7';
+        roundRectPath(ctx, PAD, y, INNER_W, 84, 16);
+        ctx.fill();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#6e6e73';
+        ctx.font = `500 12px ${FONT}`;
+        ctx.fillText('No hay asistencias registradas para esta fecha.', W / 2, y + 42);
+        y += 84;
+      } else {
+        groupLayouts.forEach((grp, gIdx) => {
+          if (gIdx > 0) y += 14;
+          const gx = PAD;
+          const gy = y;
+
+          // Group card background + clipped header
+          ctx.save();
+          roundRectPath(ctx, gx, gy, INNER_W, grp.totalH, 16);
+          ctx.clip();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(gx, gy, INNER_W, grp.totalH);
+
+          // Group header background
+          ctx.fillStyle = '#f5f5f7';
+          ctx.fillRect(gx, gy, INNER_W, grp.groupHeaderH);
+
+          // Group header bottom border
+          ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(gx, gy + grp.groupHeaderH);
+          ctx.lineTo(gx + INNER_W, gy + grp.groupHeaderH);
+          ctx.stroke();
+
+          // Group header text
+          ctx.textAlign = 'left';
+          ctx.textBaseline = 'middle';
+          ctx.fillStyle = '#1d1d1f';
+          ctx.font = `700 12px ${FONT}`;
+          ctx.fillText(grp.groupTitle, gx + 16, gy + grp.groupHeaderH / 2);
+
+          ctx.textAlign = 'right';
+          ctx.fillStyle = '#6e6e73';
+          ctx.font = `600 10px ${FONT}`;
+          ctx.fillText(`${grp.rowLayouts.length} registro(s)`, gx + INNER_W - 16, gy + grp.groupHeaderH / 2);
+
+          // Rows
+          let ry = gy + grp.groupHeaderH;
+          grp.rowLayouts.forEach((row, rIdx) => {
+            if (rIdx > 0) {
+              ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              ctx.moveTo(gx, ry);
+              ctx.lineTo(gx + INNER_W, ry);
+              ctx.stroke();
+            }
+
+            // Student name
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#1d1d1f';
+            ctx.font = `600 12px ${FONT}`;
+            ctx.fillText(row.item.student_name || '', gx + 16, ry + 20);
+
+            // Meta lines
+            ctx.fillStyle = '#6e6e73';
+            ctx.font = `400 10.5px ${FONT}`;
+            row.metaLines.forEach((line, lIdx) => {
+              ctx.fillText(line, gx + 16, ry + 36 + lIdx * 14);
+            });
+
+            // Status badge on the right
+            const pal = badgePalette[row.styleKey] || { bg: '#f3f4f6', text: '#1f2937', border: '#e5e7eb' };
+            const badgeH = 24;
+            const bx = gx + INNER_W - 16 - row.badgeW;
+            const by = ry + (row.rowH - badgeH) / 2;
+
+            ctx.fillStyle = pal.bg;
+            roundRectPath(ctx, bx, by, row.badgeW, badgeH, 8);
+            ctx.fill();
+            ctx.strokeStyle = pal.border;
+            ctx.lineWidth = 1;
+            roundRectPath(ctx, bx + 0.5, by + 0.5, row.badgeW - 1, badgeH - 1, 8);
+            ctx.stroke();
+
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = pal.text;
+            ctx.font = `700 11px ${FONT}`;
+            ctx.fillText(row.statusText, bx + row.badgeW / 2, by + badgeH / 2 + 0.5);
+
+            ry += row.rowH;
+          });
+
+          ctx.restore();
+
+          // Group card border
+          ctx.strokeStyle = 'rgba(0,0,0,0.09)';
+          ctx.lineWidth = 1;
+          roundRectPath(ctx, gx + 0.5, gy + 0.5, INNER_W - 1, grp.totalH - 1, 16);
+          ctx.stroke();
+
+          y += grp.totalH;
+        });
+      }
+
+      // 4. FOOTER
+      y += footerGapTop;
+      ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(PAD, y);
+      ctx.lineTo(W - PAD, y);
+      ctx.stroke();
+
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#6e6e73';
+      ctx.font = `400 10px ${FONT}`;
+      ctx.textAlign = 'left';
+      ctx.fillText('DC CORP • Plataforma Académica (dccorp.lat/intranet)', PAD, y + 18);
+      ctx.textAlign = 'right';
+      ctx.fillText(generatedAt, W - PAD, y + 18);
+
+      return canvas;
+    }
+
     async function downloadDailyPng() {
       const btn = document.getElementById('btnDownloadPng');
-      const card = document.getElementById('captureCard');
       const dateStr = document.getElementById('exportDatePicker').value || formatISO(new Date());
       const fileName = `Asistencias_DCCORP_${dateStr}.png`;
 
       btn.disabled = true;
       btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generando...';
 
-      // Convert SVG logo to PNG data URI (html2canvas can't render SVGs correctly)
-      const logoImg = card.querySelector('img[src*="logo"]');
-      const originalLogoSrc = logoImg ? logoImg.src : null;
-
       try {
-        if (logoImg) {
-          try {
-            const resp = await fetch('/logo.svg');
-            const svgText = await resp.text();
-            const svgBlob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
-            const svgUrl = URL.createObjectURL(svgBlob);
-            const tempImg = new Image();
-            await new Promise((ok, fail) => { tempImg.onload = ok; tempImg.onerror = fail; tempImg.src = svgUrl; });
-            const cvs = document.createElement('canvas');
-            cvs.width = tempImg.naturalWidth || 200;
-            cvs.height = tempImg.naturalHeight || 60;
-            cvs.getContext('2d').drawImage(tempImg, 0, 0, cvs.width, cvs.height);
-            logoImg.src = cvs.toDataURL('image/png');
-            URL.revokeObjectURL(svgUrl);
-          } catch (e) { console.warn('Logo conversion skipped:', e); }
-        }
-
-        // Wait one frame so the browser processes the logo src swap
-        await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-
-        // Capture the VISIBLE card directly — matches the preview pixel-for-pixel
-        const canvas = await html2canvas(card, {
-          scale: 2,
-          backgroundColor: '#ffffff',
-          useCORS: true,
-          logging: false,
-          width: 720,
-          height: card.scrollHeight,
-          scrollX: 0,
-          scrollY: 0,
-          x: 0,
-          y: 0
-        });
-
-        // Restore original SVG logo immediately
-        if (logoImg && originalLogoSrc) logoImg.src = originalLogoSrc;
+        const canvas = await renderDailyReportCanvas(dateStr);
 
         canvas.toBlob(async (blob) => {
           if (!blob) throw new Error('No se pudo generar la imagen');
@@ -1791,8 +2118,7 @@
           document.body.removeChild(link);
         }, 'image/png');
       } catch (err) {
-        // Restore logo on error too
-        if (logoImg && originalLogoSrc) logoImg.src = originalLogoSrc;
+        console.error(err);
         alert('Error al generar la imagen');
       } finally {
         btn.disabled = false;
