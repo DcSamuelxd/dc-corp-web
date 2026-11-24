@@ -845,9 +845,7 @@
         <div id="captureCard" style="width: 720px; background-color: #ffffff; color: #1d1d1f; padding: 28px; border-radius: 16px; border: 1px solid #e5e7eb; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', sans-serif;">
           <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px; border-bottom: 1px solid #e5e7eb; padding-bottom: 16px; margin-bottom: 18px;">
             <div style="display: flex; align-items: center; gap: 14px;">
-              <div style="width: 46px; height: 46px; border-radius: 12px; background-color: #0071e3; color: #ffffff; font-weight: 800; font-size: 16px; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                DC
-              </div>
+              <img src="/logo.svg" alt="DC CORP" crossorigin="anonymous" style="height: 46px; width: auto; flex-shrink: 0;">
               <div style="display: flex; flex-direction: column; gap: 4px;">
                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                   <span style="font-size: 15px; font-weight: 800; color: #1d1d1f; letter-spacing: -0.2px; line-height: 1.2;">DC CORP</span>
@@ -862,10 +860,10 @@
             </div>
           </div>
 
-          <div id="capStatsRow" class="grid grid-cols-4 gap-2.5 mb-5 text-center"></div>
-          <div id="capRecordsContainer" class="space-y-3.5"></div>
+          <div id="capStatsRow" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; text-align: center;"></div>
+          <div id="capRecordsContainer" style="display: flex; flex-direction: column; gap: 14px;"></div>
 
-          <div class="mt-5 pt-3 border-t border-black/[0.06] flex items-center justify-between text-[10px] text-[#6e6e73]">
+          <div style="margin-top: 20px; padding-top: 12px; border-top: 1px solid rgba(0,0,0,0.06); display: flex; align-items: center; justify-content: space-between; font-size: 10px; color: #6e6e73;">
             <span>DC CORP • Plataforma Académica (dccorp.lat/intranet)</span>
             <span id="capTimestamp"></span>
           </div>
@@ -1591,21 +1589,21 @@
       const totalRef = recs.filter(r => r.session_type === 'Reforzamiento').length;
 
       document.getElementById('capStatsRow').innerHTML = `
-        <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
-          <span class="block text-lg font-bold text-emerald-700 leading-tight">${totalPresentes}</span>
-          <span class="block text-[10px] font-semibold text-emerald-800 mt-0.5 leading-tight">Presentes</span>
+        <div style="padding: 12px; border-radius: 12px; background-color: #ecfdf5; border: 1px solid #a7f3d0;">
+          <span style="display: block; font-size: 18px; font-weight: 700; color: #047857; line-height: 1.2;">${totalPresentes}</span>
+          <span style="display: block; font-size: 10px; font-weight: 600; color: #065f46; margin-top: 2px; line-height: 1.2;">Presentes</span>
         </div>
-        <div class="p-3 rounded-xl bg-sky-50 border border-sky-200">
-          <span class="block text-lg font-bold text-sky-700 leading-tight">${totalRecup}</span>
-          <span class="block text-[10px] font-semibold text-sky-800 mt-0.5 leading-tight">Recuperaciones</span>
+        <div style="padding: 12px; border-radius: 12px; background-color: #f0f9ff; border: 1px solid #bae6fd;">
+          <span style="display: block; font-size: 18px; font-weight: 700; color: #0369a1; line-height: 1.2;">${totalRecup}</span>
+          <span style="display: block; font-size: 10px; font-weight: 600; color: #075985; margin-top: 2px; line-height: 1.2;">Recuperaciones</span>
         </div>
-        <div class="p-3 rounded-xl bg-purple-50 border border-purple-200">
-          <span class="block text-lg font-bold text-purple-700 leading-tight">${totalRef}</span>
-          <span class="block text-[10px] font-semibold text-purple-800 mt-0.5 leading-tight">Reforzamientos</span>
+        <div style="padding: 12px; border-radius: 12px; background-color: #faf5ff; border: 1px solid #e9d5ff;">
+          <span style="display: block; font-size: 18px; font-weight: 700; color: #7e22ce; line-height: 1.2;">${totalRef}</span>
+          <span style="display: block; font-size: 10px; font-weight: 600; color: #6b21a8; margin-top: 2px; line-height: 1.2;">Reforzamientos</span>
         </div>
-        <div class="p-3 rounded-xl bg-red-50 border border-red-200">
-          <span class="block text-lg font-bold text-red-700 leading-tight">${totalFaltasTard}</span>
-          <span class="block text-[10px] font-semibold text-red-800 mt-0.5 leading-tight">Faltas / Tard.</span>
+        <div style="padding: 12px; border-radius: 12px; background-color: #fef2f2; border: 1px solid #fecaca;">
+          <span style="display: block; font-size: 18px; font-weight: 700; color: #b91c1c; line-height: 1.2;">${totalFaltasTard}</span>
+          <span style="display: block; font-size: 10px; font-weight: 600; color: #991b1b; margin-top: 2px; line-height: 1.2;">Faltas / Tard.</span>
         </div>
       `;
 
