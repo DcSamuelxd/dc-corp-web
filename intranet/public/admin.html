@@ -1715,53 +1715,47 @@
       btn.disabled = true;
       btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generando...';
 
-      let offscreenWrap = null;
-      try {
-        offscreenWrap = document.createElement('div');
-        offscreenWrap.style.cssText = 'position:fixed;left:-10000px;top:0;width:720px;background:#ffffff;z-index:-1;';
-        const clone = card.cloneNode(true);
-        clone.style.width = '720px';
-        clone.style.maxWidth = '720px';
-        clone.style.margin = '0';
+      // Convert SVG logo to PNG data URI (html2canvas can't render SVGs correctly)
+      const logoImg = card.querySelector('img[src*="logo"]');
+      const originalLogoSrc = logoImg ? logoImg.src : null;
 
-        // Convert SVG logo to PNG data URI for html2canvas compatibility
-        const logoImg = clone.querySelector('img[src*="logo"]');
+      try {
         if (logoImg) {
           try {
-            const resp = await fetch(logoImg.src);
+            const resp = await fetch('/logo.svg');
             const svgText = await resp.text();
             const svgBlob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
             const svgUrl = URL.createObjectURL(svgBlob);
             const tempImg = new Image();
-            await new Promise((resolve, reject) => {
-              tempImg.onload = resolve;
-              tempImg.onerror = reject;
-              tempImg.src = svgUrl;
-            });
-            const c = document.createElement('canvas');
-            c.width = tempImg.naturalWidth || 200;
-            c.height = tempImg.naturalHeight || 60;
-            const ctx2d = c.getContext('2d');
-            ctx2d.drawImage(tempImg, 0, 0, c.width, c.height);
-            logoImg.src = c.toDataURL('image/png');
+            await new Promise((ok, fail) => { tempImg.onload = ok; tempImg.onerror = fail; tempImg.src = svgUrl; });
+            const cvs = document.createElement('canvas');
+            cvs.width = tempImg.naturalWidth || 200;
+            cvs.height = tempImg.naturalHeight || 60;
+            cvs.getContext('2d').drawImage(tempImg, 0, 0, cvs.width, cvs.height);
+            logoImg.src = cvs.toDataURL('image/png');
             URL.revokeObjectURL(svgUrl);
-          } catch (e) { console.warn('Logo conversion skipped', e); }
+          } catch (e) { console.warn('Logo conversion skipped:', e); }
         }
 
-        offscreenWrap.appendChild(clone);
-        document.body.appendChild(offscreenWrap);
+        // Wait one frame so the browser processes the logo src swap
+        await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
-        const canvas = await html2canvas(clone, {
+        // Capture the VISIBLE card directly — matches the preview pixel-for-pixel
+        const canvas = await html2canvas(card, {
           scale: 2,
           backgroundColor: '#ffffff',
           useCORS: true,
-          allowTaint: true,
+          logging: false,
           width: 720,
-          height: clone.scrollHeight,
-          windowWidth: 760,
+          height: card.scrollHeight,
           scrollX: 0,
-          scrollY: 0
+          scrollY: 0,
+          x: 0,
+          y: 0
         });
+
+        // Restore original SVG logo immediately
+        if (logoImg && originalLogoSrc) logoImg.src = originalLogoSrc;
 
         canvas.toBlob(async (blob) => {
           if (!blob) throw new Error('No se pudo generar la imagen');
@@ -1797,11 +1791,10 @@
           document.body.removeChild(link);
         }, 'image/png');
       } catch (err) {
+        // Restore logo on error too
+        if (logoImg && originalLogoSrc) logoImg.src = originalLogoSrc;
         alert('Error al generar la imagen');
       } finally {
-        if (offscreenWrap && offscreenWrap.parentNode) {
-          offscreenWrap.parentNode.removeChild(offscreenWrap);
-        }
         btn.disabled = false;
         btn.innerHTML = '<i class="fa-solid fa-download"></i> Guardar / Compartir PNG';
       }
