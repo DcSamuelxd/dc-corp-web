@@ -2296,6 +2296,19 @@ async function loadMaterials() {
   }
 }
 
+function openPublishMaterialModal() {
+  const matGrpSel = document.getElementById('matGroupSelect');
+  if (selectedClassroomCardId && matGrpSel) {
+    matGrpSel.value = String(selectedClassroomCardId);
+    onMatGroupSelectChange();
+  }
+  document.getElementById('publishMaterialModal').classList.remove('hidden');
+}
+
+function closePublishMaterialModal() {
+  document.getElementById('publishMaterialModal').classList.add('hidden');
+}
+
 function renderMaterialsFiltered() {
   const gid = selectedClassroomCardId;
   const filteredMats = gid
@@ -2335,15 +2348,17 @@ function renderMaterialsFiltered() {
       <div class="p-4 sm:p-5 rounded-2xl bg-white/90 border border-black/[0.06] space-y-3">
         <div class="flex items-start justify-between gap-3">
           <div>
-            <span class="px-2.5 py-0.5 rounded-full ${isSol ? 'bg-amber-500/15 text-amber-800' : 'bg-indigo-500/10 text-indigo-700'} text-[10px] font-semibold">[${m.category || 'Particulares'}] ${m.group_name || 'General'}</span>
+            <div class="flex flex-wrap items-center gap-1.5">
+              <span class="px-2.5 py-0.5 rounded-full ${isSol ? 'bg-amber-500/15 text-amber-800' : 'bg-indigo-500/10 text-indigo-700'} text-[10px] font-semibold">[${m.category || 'Particulares'}] ${m.group_name || 'General'}</span>
+              ${m.target_grade ? `<span class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-800 text-[10px] font-bold"><i class="fa-solid fa-graduation-cap mr-1"></i>${m.target_grade}</span>` : ''}
+            </div>
             <h4 class="text-sm font-bold text-[#1d1d1f] mt-1">${m.title}</h4>
             ${m.description ? `<p class="text-xs text-[#6e6e73] mt-0.5">${m.description}</p>` : ''}
           </div>
           <div class="flex items-center gap-1.5 shrink-0">
-            ${isSol ? `
-              <button type="button" onclick="openEditMaterialModal(${m.id})" class="px-2.5 py-1 rounded-lg bg-[#0071e3]/10 hover:bg-[#0071e3]/20 text-[#0071e3] text-xs font-semibold transition" title="Editar canción">
-                <i class="fa-solid fa-pen-to-square mr-1"></i> Editar
-              </button>` : ''}
+            <button type="button" onclick="openEditMaterialModal(${m.id})" class="px-2.5 py-1 rounded-lg bg-[#0071e3]/10 hover:bg-[#0071e3]/20 text-[#0071e3] text-xs font-semibold transition" title="Editar material">
+              <i class="fa-solid fa-pen-to-square mr-1"></i> Editar
+            </button>
             <button type="button" onclick="deleteMaterial(${m.id})" class="text-red-500 hover:text-red-700 text-xs p-1.5" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
           </div>
         </div>

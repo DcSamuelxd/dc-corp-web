@@ -177,106 +177,32 @@
     </section>
 
     <!-- ==================== SECCIÓN 2: AULAS Y MATERIALES (TARJETAS DE CLASE) ==================== -->
-    <section id="panel-materiales" class="hidden space-y-6">
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-        <div class="lg:col-span-5 glass-bento p-6 sm:p-8 h-fit">
-          <h2 class="text-lg font-bold mb-1">Publicar Material o Canción de Estudio</h2>
-          <p class="text-xs text-[#6e6e73] mb-5">
-            Selecciona varios archivos dentro de cada fila (por ejemplo, PDF y MP3 de 1ra Guitarra juntos) y elige el aula o subgrupo destino.
-          </p>
-
-          <form id="materialForm" class="space-y-4">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label class="block text-xs font-medium text-[#6e6e73] mb-1">Aula / Subgrupo destino *</label>
-                <select id="matGroupSelect" onchange="onMatGroupSelectChange()" required class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs font-medium"></select>
-              </div>
-              <div>
-                <label class="block text-xs font-medium text-[#6e6e73] mb-1">Formato de publicación *</label>
-                <select id="matFormatSelect" onchange="onMatFormatChange()" class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-[#1d1d1f]">
-                  <option value="music">Formato Música (Pistas / Instrumentos)</option>
-                  <option value="classroom">Formato Aula / Classroom (PDF / Reforzamiento)</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
-              <div class="sm:col-span-7">
-                <label class="block text-xs font-medium text-[#6e6e73] mb-1">Título del tema, canción o actividad *</label>
-                <input type="text" id="matTitle" required placeholder="Ej: Guía de Suma y Resta / Regresión Lineal"
-                  class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
-              </div>
-              <div id="matEvalToggleBox" class="sm:col-span-5 pt-4 sm:pt-5">
-                <label class="flex items-center gap-2 p-2.5 rounded-xl bg-indigo-500/[0.07] border border-indigo-500/20 cursor-pointer">
-                  <input type="checkbox" id="matEvalEnabled" checked class="rounded text-indigo-600">
-                  <span class="text-[11px] font-bold text-indigo-900 leading-tight">Habilitar evaluación (0 - 20)</span>
-                </label>
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-xs font-medium text-[#6e6e73] mb-1">Video de referencia en YouTube o enlace externo <span class="text-[10px] text-[#6e6e73] font-normal">(opcional)</span></label>
-              <input type="url" id="matUrl" placeholder="https://www.youtube.com/watch?v=..."
-                class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
-            </div>
-
-            <div>
-              <label class="block text-xs font-medium text-[#6e6e73] mb-1">Indicaciones para el estudio</label>
-              <textarea id="matDesc" rows="2" placeholder="Resuelve los ejercicios propuestos y sube fotos nítidas o PDF..."
-                class="w-full bg-white border border-black/10 rounded-xl px-3.5 py-2.5 text-xs resize-none"></textarea>
-            </div>
-
-            <div class="p-4 rounded-2xl bg-[#f5f5f7] border border-black/[0.06] space-y-3">
-              <div class="flex flex-wrap items-center justify-between gap-2">
-                <span class="text-xs font-bold text-[#1d1d1f]">Archivos adjuntos</span>
-                <button type="button" onclick="addFileRow()"
-                  class="px-3 py-1.5 rounded-full bg-[#0071e3]/10 hover:bg-[#0071e3]/20 text-[#0071e3] text-[11px] font-semibold transition">
-                  + Agregar fila
-                </button>
-              </div>
-
-              <div class="flex flex-wrap items-center gap-1.5">
-                <span class="text-[10px] text-[#6e6e73] mr-1">Plantilla rápida:</span>
-                <button type="button" onclick="loadSongPreset()"
-                  class="px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 text-[10px] font-semibold transition">
-                  <i class="fa-solid fa-music mr-1"></i> Pistas de banda
-                </button>
-                <button type="button" onclick="loadClassroomPreset()"
-                  class="px-2.5 py-1 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-800 text-[10px] font-semibold transition">
-                  <i class="fa-solid fa-file-pdf mr-1"></i> Actividad y Reforzamiento (PDF)
-                </button>
-              </div>
-
-              <div id="fileRowsContainer" class="space-y-2.5 max-h-80 overflow-y-auto overflow-x-hidden pr-1"></div>
-            </div>
-
-            <button type="submit" id="btnUploadMat" class="w-full py-3 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold transition shadow-sm">
-              <i class="fa-solid fa-cloud-arrow-up mr-1.5"></i> Publicar Material en el Aula
-            </button>
-          </form>
-        </div>
-
-        <div class="lg:col-span-7 space-y-5">
-          <div class="glass-bento p-5 sm:p-6">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-600">Tablero de Aulas</span>
-                <h2 class="text-lg font-bold tracking-tight" id="classroomHeaderTitle">Clases y Subgrupos</h2>
-                <p class="text-xs text-[#6e6e73]" id="classroomHeaderMeta">Presiona una tarjeta de clase para ver sus materiales, entregas y consultas.</p>
-              </div>
-              <button type="button" id="btnBackToClassroomCards" onclick="selectClassroomCard(null)"
-                class="hidden px-3.5 py-2 rounded-full bg-black/[0.06] hover:bg-black/[0.1] text-[#1d1d1f] text-xs font-semibold shrink-0 transition">
-                <i class="fa-solid fa-arrow-left mr-1.5"></i> Todas las tarjetas
-              </button>
-            </div>
+    <section id="panel-materiales" class="hidden space-y-5">
+      <div class="glass-bento p-5 sm:p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-600">Tablero de Aulas</span>
+            <h2 class="text-lg font-bold tracking-tight" id="classroomHeaderTitle">Clases y Subgrupos</h2>
+            <p class="text-xs text-[#6e6e73]" id="classroomHeaderMeta">Presiona una tarjeta de clase para ver sus materiales, entregas y consultas.</p>
           </div>
-
-          <div id="classroomCardsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5"></div>
-          <div id="materialsList" class="hidden space-y-4"></div>
+          <div class="flex flex-wrap items-center gap-2 shrink-0">
+            <button type="button" id="btnBackToClassroomCards" onclick="selectClassroomCard(null)"
+              class="hidden px-3.5 py-2 rounded-full bg-black/[0.06] hover:bg-black/[0.1] text-[#1d1d1f] text-xs font-semibold transition">
+              <i class="fa-solid fa-arrow-left mr-1.5"></i> Todas las tarjetas
+            </button>
+            <button type="button" onclick="openPublishMaterialModal()"
+              class="group px-4 py-2.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] active:scale-95 hover:scale-[1.03] text-white text-xs font-semibold shadow-md shadow-[#0071e3]/20 inline-flex items-center gap-2 transition-all duration-150">
+              <span class="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center group-hover:rotate-90 transition-transform duration-200">
+                <i class="fa-solid fa-plus text-[11px]"></i>
+              </span>
+              <span>Publicar Material</span>
+            </button>
+          </div>
         </div>
-
       </div>
+
+      <div id="classroomCardsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5"></div>
+      <div id="materialsList" class="hidden space-y-4"></div>
     </section>
 
     <!-- ==================== SECCIÓN 3: SUBGRUPOS Y ALUMNADO ==================== -->
@@ -880,6 +806,113 @@
     </div>
   </div>
 
+  <!-- ==================== MODAL PUBLICAR MATERIAL ==================== -->
+  <div id="publishMaterialModal" class="hidden fixed inset-0 z-50 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto" onclick="if(event.target===this) closePublishMaterialModal()">
+    <div class="glass-bento p-6 sm:p-7 max-w-2xl w-full bg-white my-auto space-y-5 relative">
+      <button type="button" onclick="closePublishMaterialModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/5 hover:bg-black/10 text-[#1d1d1f] flex items-center justify-center">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div>
+        <span class="px-2.5 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[11px] font-semibold">Nueva Publicación</span>
+        <h3 class="text-lg font-bold text-[#1d1d1f] mt-1">Publicar Material o Canción de Estudio</h3>
+        <p class="text-xs text-[#6e6e73]">Elige el aula destino, el grado (si aplica a Particulares) y adjunta tus archivos.</p>
+      </div>
+
+      <form id="materialForm" class="space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-[#6e6e73] mb-1">Aula / Subgrupo *</label>
+            <select id="matGroupSelect" onchange="onMatGroupSelectChange()" required class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3 py-2.5 text-xs font-medium"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-[#6e6e73] mb-1">Formato *</label>
+            <select id="matFormatSelect" onchange="onMatFormatChange()" class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3 py-2.5 text-xs font-semibold text-[#1d1d1f]">
+              <option value="music">Música (Pistas / Instrumentos)</option>
+              <option value="classroom">Aula / Classroom (PDF)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-indigo-700 mb-1">Grado destino</label>
+            <select id="matTargetGrade" class="w-full bg-[#f5f5f7] border border-indigo-200 rounded-xl px-3 py-2.5 text-xs font-semibold text-[#1d1d1f]">
+              <option value="Todos">Todos los grados</option>
+              <option value="1er Grado Primaria">1er Grado Primaria</option>
+              <option value="2do Grado Primaria">2do Grado Primaria</option>
+              <option value="3er Grado Primaria">3er Grado Primaria</option>
+              <option value="4to Grado Primaria">4to Grado Primaria</option>
+              <option value="5to Grado Primaria">5to Grado Primaria</option>
+              <option value="6to Grado Primaria">6to Grado Primaria</option>
+              <option value="1er Año Secundaria">1er Año Secundaria</option>
+              <option value="2do Año Secundaria">2do Año Secundaria</option>
+              <option value="3er Año Secundaria">3er Año Secundaria</option>
+              <option value="4to Año Secundaria">4to Año Secundaria</option>
+              <option value="5to Año Secundaria">5to Año Secundaria</option>
+              <option value="Preuniversitario / Academia">Preuniversitario / Academia</option>
+              <option value="Universitario">Universitario</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+          <div class="sm:col-span-7">
+            <label class="block text-xs font-medium text-[#6e6e73] mb-1">Título del tema, canción o actividad *</label>
+            <input type="text" id="matTitle" required placeholder="Ej: Guía de Suma y Resta / Regresión Lineal"
+              class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
+          </div>
+          <div id="matEvalToggleBox" class="sm:col-span-5 pt-4 sm:pt-5">
+            <label class="flex items-center gap-2 p-2.5 rounded-xl bg-indigo-500/[0.07] border border-indigo-500/20 cursor-pointer">
+              <input type="checkbox" id="matEvalEnabled" checked class="rounded text-indigo-600">
+              <span class="text-[11px] font-bold text-indigo-900 leading-tight">Habilitar evaluación (0 - 20)</span>
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-[#6e6e73] mb-1">Video de YouTube o enlace externo <span class="text-[10px] text-[#6e6e73] font-normal">(opcional)</span></label>
+          <input type="url" id="matUrl" placeholder="https://www.youtube.com/watch?v=..."
+            class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-[#6e6e73] mb-1">Indicaciones para el estudio</label>
+          <textarea id="matDesc" rows="2" placeholder="Resuelve los ejercicios propuestos y sube fotos nítidas o PDF..."
+            class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2.5 text-xs resize-none"></textarea>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-[#f5f5f7] border border-black/[0.06] space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <span class="text-xs font-bold text-[#1d1d1f]">Archivos adjuntos</span>
+            <button type="button" onclick="addFileRow()"
+              class="px-3 py-1.5 rounded-full bg-[#0071e3]/10 hover:bg-[#0071e3]/20 text-[#0071e3] text-[11px] font-semibold transition">
+              + Agregar fila
+            </button>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span class="text-[10px] text-[#6e6e73] mr-1">Plantilla rápida:</span>
+            <button type="button" onclick="loadSongPreset()"
+              class="px-2.5 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 text-[10px] font-semibold transition">
+              <i class="fa-solid fa-music mr-1"></i> Pistas de banda
+            </button>
+            <button type="button" onclick="loadClassroomPreset()"
+              class="px-2.5 py-1 rounded-lg bg-indigo-500/15 hover:bg-indigo-500/25 text-indigo-800 text-[10px] font-semibold transition">
+              <i class="fa-solid fa-file-pdf mr-1"></i> Actividad y Reforzamiento (PDF)
+            </button>
+          </div>
+
+          <div id="fileRowsContainer" class="space-y-2.5 max-h-64 overflow-y-auto overflow-x-hidden pr-1"></div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-1">
+          <button type="button" onclick="closePublishMaterialModal()" class="px-4 py-2 rounded-full text-xs font-medium text-[#6e6e73]">Cancelar</button>
+          <button type="submit" id="btnUploadMat" class="px-6 py-2.5 rounded-full bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold transition shadow-sm">
+            <i class="fa-solid fa-cloud-arrow-up mr-1.5"></i> Publicar Material en el Aula
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- ==================== MODAL EDITAR MATERIAL / CANCIÓN ==================== -->
   <div id="editMaterialModal" class="hidden fixed inset-0 z-50 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto" onclick="if(event.target===this) closeEditMaterialModal()">
     <div class="glass-bento p-6 sm:p-7 max-w-2xl w-full bg-white my-auto space-y-5 relative">
@@ -895,15 +928,34 @@
 
       <form id="editMaterialForm" class="space-y-4">
         <input type="hidden" id="editMatId">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="sm:col-span-2">
             <label class="block text-xs font-semibold text-[#6e6e73] mb-1">Título del tema o canción *</label>
             <input type="text" id="editMatTitle" required class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-[#6e6e73] mb-1">Video de YouTube / enlace (opcional)</label>
-            <input type="url" id="editMatUrl" placeholder="Déjalo vacío si no deseas video" class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
+            <label class="block text-xs font-semibold text-indigo-700 mb-1">Grado destino</label>
+            <select id="editMatTargetGrade" class="w-full bg-[#f5f5f7] border border-indigo-200 rounded-xl px-3 py-2.5 text-xs font-semibold text-[#1d1d1f]">
+              <option value="Todos">Todos los grados</option>
+              <option value="1er Grado Primaria">1er Grado Primaria</option>
+              <option value="2do Grado Primaria">2do Grado Primaria</option>
+              <option value="3er Grado Primaria">3er Grado Primaria</option>
+              <option value="4to Grado Primaria">4to Grado Primaria</option>
+              <option value="5to Grado Primaria">5to Grado Primaria</option>
+              <option value="6to Grado Primaria">6to Grado Primaria</option>
+              <option value="1er Año Secundaria">1er Año Secundaria</option>
+              <option value="2do Año Secundaria">2do Año Secundaria</option>
+              <option value="3er Año Secundaria">3er Año Secundaria</option>
+              <option value="4to Año Secundaria">4to Año Secundaria</option>
+              <option value="5to Año Secundaria">5to Año Secundaria</option>
+              <option value="Preuniversitario / Academia">Preuniversitario / Academia</option>
+              <option value="Universitario">Universitario</option>
+            </select>
           </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-[#6e6e73] mb-1">Video de YouTube / enlace (opcional)</label>
+          <input type="url" id="editMatUrl" placeholder="Déjalo vacío si no deseas video" class="w-full bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2.5 text-xs">
         </div>
 
         <div>
