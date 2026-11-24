@@ -505,6 +505,18 @@ function appendHoursNote(hoursText) {
   inp.focus();
 }
 
+function appendRefHoursNote(hoursText) {
+  const inp = document.getElementById('modalRefNoteInput');
+  if (!inp) return;
+  const cur = inp.value.trim();
+  if (!cur) {
+    inp.value = hoursText;
+  } else if (!cur.toLowerCase().includes(hoursText.toLowerCase())) {
+    inp.value = `${hoursText} — ${cur}`;
+  }
+  inp.focus();
+}
+
 function openCellModal(studentId, dateISO, dateLabel) {
   const stu = weeklyDataCache.students.find(s => s.student_id === studentId);
   if (!stu) return;
@@ -521,6 +533,8 @@ function openCellModal(studentId, dateISO, dateLabel) {
   document.getElementById('modalDateBadge').innerText = dateLabel;
   document.getElementById('modalStudentName').innerText = stu.full_name;
   document.getElementById('modalNoteInput').value = mainRec ? (mainRec.note || '') : '';
+  const refNoteEl = document.getElementById('modalRefNoteInput');
+  if (refNoteEl) refNoteEl.value = refRec ? (refRec.note || '') : '';
   document.getElementById('modalArrivalInput').value = refRec ? (refRec.arrival_time || '') : '';
 
   const markerEl = document.getElementById('modalMarkerInfo');
@@ -589,7 +603,8 @@ async function clearRegularAndRecup() {
 async function saveReforzamientoAction() {
   if (!activeCellContext) return;
   const arrival_time = document.getElementById('modalArrivalInput').value;
-  const note = document.getElementById('modalNoteInput').value.trim();
+  const refNoteEl = document.getElementById('modalRefNoteInput');
+  const note = refNoteEl ? refNoteEl.value.trim() : '';
 
   const res = await fetch('/intranet/api/admin/attendance/cell', {
     method: 'POST',
