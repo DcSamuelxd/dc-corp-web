@@ -1,53 +1,45 @@
 /* ==========================================================================
-   Estilos Base, Fondos Difuminados y Animaciones GPU — Intranet DC CORP
+   Estilos Base, Aurora Glass Dashboard y Animaciones GPU — Intranet DC CORP
    ========================================================================== */
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', sans-serif;
-  background-color: #eef2f9;
+  background-color: #0d2638;
   color: #1d1d1f;
   padding-top: env(safe-area-inset-top);
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Variantes de página con difuminados de color suaves (sin recargar) */
-body.page-login {
-  background-color: #eef2f9;
+/* Lienzo Aurora Profundo (Admin, Estudiantes y Login) */
+body.page-login,
+body.page-admin,
+body.page-student {
+  background-color: #0d2638;
   background-image:
-    radial-gradient(circle at 12% 14%, rgba(0, 113, 227, 0.16) 0%, transparent 48%),
-    radial-gradient(circle at 88% 18%, rgba(79, 70, 229, 0.12) 0%, transparent 45%),
-    radial-gradient(circle at 82% 88%, rgba(124, 58, 237, 0.14) 0%, transparent 50%),
-    radial-gradient(circle at 18% 85%, rgba(16, 185, 129, 0.08) 0%, transparent 45%);
+    radial-gradient(circle at 12% 14%, rgba(14, 165, 233, 0.24) 0%, transparent 46%),
+    radial-gradient(circle at 86% 18%, rgba(0, 113, 227, 0.22) 0%, transparent 44%),
+    radial-gradient(circle at 78% 86%, rgba(16, 185, 129, 0.14) 0%, transparent 48%),
+    radial-gradient(circle at 18% 85%, rgba(56, 189, 248, 0.12) 0%, transparent 45%),
+    linear-gradient(135deg, #0d2638 0%, #16465f 52%, #1f637d 100%);
+  background-attachment: fixed;
   min-height: 100dvh;
+}
+
+body.page-admin,
+body.page-student {
+  overflow-x: hidden;
+  padding-bottom: calc(84px + env(safe-area-inset-bottom));
+}
+
+body.page-login {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-body.page-admin {
-  background-color: #eef2f9;
-  background-image:
-    radial-gradient(circle at 8% 8%, rgba(0, 113, 227, 0.14) 0%, transparent 45%),
-    radial-gradient(circle at 92% 12%, rgba(79, 70, 229, 0.11) 0%, transparent 42%),
-    radial-gradient(circle at 85% 88%, rgba(124, 58, 237, 0.12) 0%, transparent 48%),
-    radial-gradient(circle at 15% 86%, rgba(16, 185, 129, 0.08) 0%, transparent 45%);
-  background-attachment: fixed;
-  overflow-x: hidden;
-  padding-bottom: calc(84px + env(safe-area-inset-bottom));
-}
-
-body.page-student {
-  background-color: #eef3f8;
-  background-image:
-    radial-gradient(circle at 10% 10%, rgba(0, 113, 227, 0.14) 0%, transparent 46%),
-    radial-gradient(circle at 90% 14%, rgba(16, 185, 129, 0.12) 0%, transparent 44%),
-    radial-gradient(circle at 85% 88%, rgba(79, 70, 229, 0.10) 0%, transparent 48%);
-  background-attachment: fixed;
-  overflow-x: hidden;
-  padding-bottom: calc(84px + env(safe-area-inset-bottom));
-}
-
 @media (min-width: 768px) {
-  body.page-admin { padding-bottom: 4rem; }
-  body.page-student { padding-bottom: 5rem; }
+  body.page-admin,
+  body.page-student {
+    padding-bottom: 1.5rem;
+  }
 }
 
 /* Evita el auto-zoom molesto en iOS y Android al tocar inputs */
@@ -55,40 +47,99 @@ body.page-student {
   input, select, textarea { font-size: 16px !important; }
 }
 
-/* Barra superior sticky */
+/* Contenedor principal Aurora Shell (Desktop md+) */
+.aurora-shell {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 25px 60px rgba(4, 15, 25, 0.45);
+}
+
+/* Sidebar Izquierdo Glass Oscuro */
+.aurora-sidebar {
+  background: rgba(9, 24, 36, 0.58);
+  backdrop-filter: saturate(160%) blur(24px);
+  -webkit-backdrop-filter: saturate(160%) blur(24px);
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.sidebar-item {
+  color: rgba(226, 232, 240, 0.78);
+  transition: background-color 0.18s ease, color 0.18s ease, transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.sidebar-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.sidebar-item-active {
+  background: linear-gradient(90deg, #0ea5e9 0%, #0071e3 100%);
+  color: #ffffff !important;
+  box-shadow: 0 8px 20px rgba(14, 165, 233, 0.28);
+}
+
+/* Área de Contenido Claro Translúcido */
+.aurora-canvas {
+  background: rgba(241, 246, 250, 0.90);
+  backdrop-filter: saturate(160%) blur(20px);
+  -webkit-backdrop-filter: saturate(160%) blur(20px);
+}
+
+/* Barra superior sticky (Móvil) */
 .apple-nav {
-  background: rgba(255, 255, 255, 0.76);
+  background: rgba(9, 24, 36, 0.78);
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 /* Dock de navegación inferior móvil */
 .bottom-dock {
-  background: rgba(255, 255, 255, 0.90);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: saturate(180%) blur(24px);
   -webkit-backdrop-filter: saturate(180%) blur(24px);
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
   padding-bottom: env(safe-area-inset-bottom);
 }
 
-/* Tarjetas glassmorphism */
+/* Tarjetas glassmorphism dentro del canvas */
 .glass-bento {
-  background: rgba(255, 255, 255, 0.84);
-  backdrop-filter: saturate(180%) blur(22px);
-  -webkit-backdrop-filter: saturate(180%) blur(22px);
-  border: 1px solid rgba(255, 255, 255, 0.95);
-  box-shadow: 0 10px 35px rgba(15, 23, 42, 0.055);
-  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: saturate(160%) blur(18px);
+  -webkit-backdrop-filter: saturate(160%) blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.96);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.055);
+  border-radius: 22px;
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: saturate(180%) blur(24px);
   -webkit-backdrop-filter: saturate(180%) blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.96);
-  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.07);
+  box-shadow: 0 24px 55px rgba(4, 15, 25, 0.35);
   border-radius: 28px;
+}
+
+/* ==========================================================================
+   Animación de Cambio de Sección (Desplazamiento + Difuminado Ligero GPU)
+   ========================================================================== */
+
+@keyframes sectionSlideFadeIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: blur(0);
+  }
+}
+
+.section-enter {
+  animation: sectionSlideFadeIn 240ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform, opacity, filter;
 }
 
 /* ==========================================================================
@@ -151,9 +202,12 @@ body.page-student {
   .btn-interactive,
   .btn-plus-icon,
   .card-interactive,
-  .modal-panel-anim {
+  .modal-panel-anim,
+  .section-enter,
+  .sidebar-item {
     transition: none !important;
     animation: none !important;
     transform: none !important;
+    filter: none !important;
   }
 }

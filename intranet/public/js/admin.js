@@ -6,13 +6,27 @@ if (!token || (role !== 'admin' && role !== 'teacher')) {
 const isAdmin = role === 'admin';
 const currentUserName = localStorage.getItem('dc_name') || 'Usuario';
 document.getElementById('userName').innerText = currentUserName;
+const sidebarUserEl = document.getElementById('sidebarUserName');
+if (sidebarUserEl) sidebarUserEl.innerText = currentUserName;
+
+const dateEl = document.getElementById('adminCurrentDate');
+if (dateEl) {
+  const formatted = new Date().toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  dateEl.innerText = formatted.charAt(0).toUpperCase() + formatted.slice(1);
+}
 
 const badge = document.getElementById('roleBadge');
+const mobileBadge = document.getElementById('mobileRoleBadge');
 if (isAdmin) {
   badge.innerText = 'Administrador';
+  if (mobileBadge) mobileBadge.innerText = 'Admin';
 } else {
   badge.innerText = 'Profesor • Sol Music';
-  badge.className = 'px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 text-[11px] font-semibold';
+  badge.className = 'px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-200 border border-amber-300/25 text-[11px] font-semibold';
+  if (mobileBadge) {
+    mobileBadge.innerText = 'Profesor';
+    mobileBadge.className = 'px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-200 text-[10px] font-semibold truncate';
+  }
   document.querySelectorAll('.admin-only-tab').forEach(el => el.classList.add('hidden'));
   const mGrid = document.getElementById('mobileAdminNavGrid'); if (mGrid) mGrid.className = 'grid grid-cols-4 h-16 max-w-lg mx-auto';
   const annCatWrap = document.getElementById('annCategoryWrapper'); if (annCatWrap) annCatWrap.classList.add('hidden');
@@ -57,12 +71,23 @@ function switchTab(tab) {
     if (mDot) mDot.classList.add('hidden');
   }
   ['asistencia', 'materiales', 'alumnos', 'avisos', 'profesores'].forEach(t => {
-    document.getElementById(`panel-${t}`).classList.toggle('hidden', t !== tab);
+    const panel = document.getElementById(`panel-${t}`);
+    if (panel) {
+      if (t === tab) {
+        panel.classList.remove('hidden', 'section-enter');
+        requestAnimationFrame(() => {
+          panel.classList.add('section-enter');
+        });
+      } else {
+        panel.classList.add('hidden');
+        panel.classList.remove('section-enter');
+      }
+    }
     const btn = document.getElementById(`tab-${t}`);
     if (btn && !btn.classList.contains('hidden')) {
       btn.className = (t === tab)
-        ? "tab-btn px-5 py-2 rounded-xl bg-white text-[#1d1d1f] shadow-sm text-xs font-semibold transition"
-        : "tab-btn px-5 py-2 rounded-xl text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition";
+        ? "tab-btn sidebar-item sidebar-item-active w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-left"
+        : "tab-btn sidebar-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-left";
     }
     const mbtn = document.getElementById(`mtab-${t}`);
     if (mbtn && !mbtn.classList.contains('hidden')) {
@@ -1307,7 +1332,7 @@ function renderStudentClassCards() {
     const isSol = g.category === 'Sol Music';
     return `
       <button type="button" onclick="selectStudentGroupCard(${g.id})"
-        class="text-left p-3.5 rounded-2xl border transition flex flex-col justify-between gap-1.5 ${
+        class="card-interactive text-left p-3.5 rounded-2xl border flex flex-col justify-between gap-1.5 ${
           active
             ? 'bg-[#1d1d1f] text-white border-[#1d1d1f] shadow-sm'
             : 'bg-white/95 hover:bg-white text-[#1d1d1f] border-black/[0.08]'
@@ -1377,7 +1402,7 @@ function renderGroupsCards() {
     const isSol = g.category === 'Sol Music';
     const badgeCls = isSol ? 'bg-amber-500/15 text-amber-800' : 'bg-indigo-500/10 text-indigo-700';
     return `
-      <div class="p-3.5 rounded-2xl bg-white/95 border border-black/[0.07] space-y-2">
+      <div class="card-interactive p-3.5 rounded-2xl bg-white/95 border border-black/[0.07] space-y-2">
         <div class="flex items-start justify-between gap-2">
           <div class="min-w-0">
             <div class="flex flex-wrap items-center gap-1.5">
@@ -1391,7 +1416,7 @@ function renderGroupsCards() {
             ${g.description ? `<p class="text-[11px] text-[#6e6e73] mt-0.5">${g.description}</p>` : ''}
           </div>
           <div class="flex items-center gap-1 shrink-0">
-            <button type="button" onclick="openEditGroupModal(${g.id})" class="px-2.5 py-1 rounded-lg bg-[#0071e3]/10 hover:bg-[#0071e3]/20 text-[#0071e3] text-[11px] font-semibold transition">
+            <button type="button" onclick="openEditGroupModal(${g.id})" class="btn-interactive px-2.5 py-1 rounded-lg bg-[#0071e3]/10 hover:bg-[#0071e3]/20 text-[#0071e3] text-[11px] font-semibold">
               <i class="fa-solid fa-pen-to-square mr-1"></i> Editar
             </button>
             <button type="button" onclick="deleteGroup(${g.id})" class="p-1.5 text-red-500 hover:bg-red-50 rounded-lg text-xs" title="Eliminar">
@@ -1699,7 +1724,7 @@ function renderStudentsViews() {
 
     return `
       <button type="button" onclick="openStudentDetailModal(${s.id})"
-        class="w-full px-4 py-3.5 flex items-center justify-between gap-3 text-left hover:bg-black/[0.025] active:bg-black/[0.04] transition">
+        class="w-full px-4 py-3.5 flex items-center justify-between gap-3 text-left hover:bg-[#0071e3]/[0.04] active:scale-[0.995] transition-all duration-150">
         <div class="flex items-center gap-3 min-w-0">
           ${avatarThumb}
           <div class="min-w-0">

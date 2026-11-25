@@ -12,12 +12,23 @@ function logout() {
 
 function switchStudentTab(tabName) {
   ['materiales', 'asistencia', 'companeros', 'perfil'].forEach(t => {
-    document.getElementById(`view-${t}`).classList.toggle('hidden', t !== tabName);
+    const view = document.getElementById(`view-${t}`);
+    if (view) {
+      if (t === tabName) {
+        view.classList.remove('hidden', 'section-enter');
+        requestAnimationFrame(() => {
+          view.classList.add('section-enter');
+        });
+      } else {
+        view.classList.add('hidden');
+        view.classList.remove('section-enter');
+      }
+    }
     const btn = document.getElementById(`stab-${t}`);
     if (btn) {
       btn.className = (t === tabName)
-        ? "stab-btn px-5 py-2.5 rounded-xl bg-white text-[#1d1d1f] shadow-sm text-xs font-semibold transition flex items-center gap-2"
-        : "stab-btn px-5 py-2.5 rounded-xl text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition flex items-center gap-2";
+        ? "stab-btn sidebar-item sidebar-item-active w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-left"
+        : "stab-btn sidebar-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-left";
     }
     const mbtn = document.getElementById(`mstab-${t}`);
     if (mbtn) {
@@ -695,7 +706,7 @@ function renderMaterialsSection(materials) {
            </div>`;
 
       return `
-        <div class="rounded-2xl bg-white/95 border border-black/[0.07] overflow-hidden shadow-sm">
+        <div class="card-interactive rounded-2xl bg-white/95 border border-black/[0.07] overflow-hidden shadow-sm">
           <button type="button" onclick="toggleClassroomTopic(${m.id})"
             class="w-full p-4 sm:p-5 flex items-center justify-between gap-3 text-left hover:bg-black/[0.015] transition">
             <div class="flex items-center gap-3.5 min-w-0">
@@ -885,24 +896,27 @@ function renderClassmatesSection() {
     return;
   }
 
+  const isSolGroup = dashboardData.student.category === 'Sol Music';
   grid.innerHTML = list.map(cm => {
     const isMe = Number(cm.id) === myId;
     const avatarHtml = cm.avatar_file
       ? `<img src="/intranet/api/avatars/${cm.avatar_file}" alt="${cm.full_name}" class="w-14 h-14 rounded-2xl object-cover border border-black/10 shrink-0">`
       : `<div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#0071e3]/85 to-indigo-600/85 text-white flex items-center justify-center text-lg font-bold shrink-0">${cm.full_name.charAt(0)}</div>`;
 
+    const specialtyBadge = isSolGroup
+      ? (cm.instrument ? `<span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 font-semibold text-[10px]"><i class="fa-solid fa-guitar mr-1"></i>${cm.instrument}</span>` : '')
+      : (cm.grade ? `<span class="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 font-semibold text-[10px]"><i class="fa-solid fa-graduation-cap mr-1"></i>${cm.grade}</span>` : '');
+
     return `
       <button type="button" onclick="openClassmateModal(${cm.id})"
-        class="text-left p-4 rounded-2xl bg-white/95 hover:bg-white border ${isMe ? 'border-[#0071e3]/35 ring-1 ring-[#0071e3]/15' : 'border-black/[0.06]'} shadow-sm hover:shadow transition flex items-start gap-3.5 active:scale-[0.99]">
+        class="card-interactive text-left p-4 rounded-2xl bg-white/95 hover:bg-white border ${isMe ? 'border-[#0071e3]/35 ring-1 ring-[#0071e3]/15' : 'border-black/[0.06]'} shadow-sm flex items-start gap-3.5">
         ${avatarHtml}
         <div class="min-w-0 flex-1 space-y-1">
           <div class="flex items-center gap-1.5">
             <p class="text-sm font-bold text-[#1d1d1f] truncate">${cm.full_name}</p>
             ${isMe ? '<span class="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 text-[9px] font-bold shrink-0">Tú</span>' : ''}
           </div>
-          <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
-            <span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 font-semibold text-[10px]"><i class="fa-solid fa-guitar mr-1"></i>${cm.instrument || 'Guitarra acustica'}</span>
-          </div>
+          ${specialtyBadge ? `<div class="flex flex-wrap items-center gap-1.5 pt-0.5">${specialtyBadge}</div>` : ''}
           ${cm.schedule ? `<p class="text-[11px] text-[#0071e3] font-medium truncate"><i class="fa-regular fa-clock mr-1"></i>${cm.schedule}</p>` : ''}
           <p class="text-xs text-[#6e6e73] line-clamp-2 leading-relaxed">
             ${cm.bio ? cm.bio : '<span class="italic opacity-75">Sin descripción personal</span>'}
@@ -920,11 +934,28 @@ function openClassmateModal(studentId) {
   if (!cm) return;
 
   const isMe = Number(cm.id) === Number(dashboardData.student.id);
+  const isSolGroup = dashboardData.student.category === 'Sol Music';
   document.getElementById('cmModalName').innerText = cm.full_name;
   document.getElementById('cmModalBadge').innerText = dashboardData.student.group_name || 'Grupo';
-  document.getElementById('cmModalInstBadge').querySelector('span').innerText = (dashboardData.student.category === 'Sol Music')
-    ? (cm.instrument || 'Guitarra acustica')
-    : ('Matemáticas' + (cm.grade ? ` • ${cm.grade}` : ''));
+
+  const instBadge = document.getElementById('cmModalInstBadge');
+  if (isSolGroup) {
+    if (cm.instrument) {
+      instBadge.className = 'px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-800 text-[11px] font-bold';
+      instBadge.innerHTML = `<i class="fa-solid fa-guitar mr-1"></i><span>${cm.instrument}</span>`;
+      instBadge.classList.remove('hidden');
+    } else {
+      instBadge.classList.add('hidden');
+    }
+  } else {
+    if (cm.grade) {
+      instBadge.className = 'px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 text-[11px] font-bold';
+      instBadge.innerHTML = `<i class="fa-solid fa-graduation-cap mr-1"></i><span>${cm.grade}</span>`;
+      instBadge.classList.remove('hidden');
+    } else {
+      instBadge.classList.add('hidden');
+    }
+  }
   document.getElementById('cmModalYouTag').classList.toggle('hidden', !isMe);
 
   const schEl = document.getElementById('cmModalSchedule');

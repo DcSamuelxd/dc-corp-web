@@ -6,10 +6,12 @@ Documentación oficial de diseño, tokens visuales, componentes y navegación de
 
 ## 1. Paleta de Colores
 
-### Colores Base y Texto
+### Colores Base y Texto (Aurora Glass Dashboard)
 | Token / Uso | Código Hex / RGBA | Notas |
 |---|---|---|
-| Fondo principal (`body`) | `#f5f5f7` | Gris claro estilo Apple (`theme-color`) |
+| Fondo principal (`body`) | `#0d2638` → `#16465f` → `#1f637d` | Lienzo Aurora Profundo con radiales cian (`rgba(14,165,233,0.24)`), azul (`rgba(0,113,227,0.22)`) y esmeralda (`rgba(16,185,129,0.14)`) |
+| Sidebar oscuro (`.aurora-sidebar`) | `rgba(9, 24, 36, 0.58)` | Glassmorphism oscuro con `blur(24px)` y texto claro |
+| Canvas claro (`.aurora-canvas`) | `rgba(241, 246, 250, 0.90)` | Superficie translúcida derecha en desktop `md+` |
 | Texto principal | `#1d1d1f` | Títulos, encabezados y cuerpo principal |
 | Texto secundario | `#6e6e73` | Subtítulos, etiquetas y metadatos |
 | Texto medio | `#424245` | Labels de formularios e iconos sutiles |
@@ -71,7 +73,9 @@ Documentación oficial de diseño, tokens visuales, componentes y navegación de
 - **Estilos externos**: `/intranet/css/styles.css` (`intranet/public/css/styles.css`).
 - **Scripts externos**: `/intranet/js/login.js`, `/intranet/js/admin.js`, `/intranet/js/student.js`.
 
-### Patrón de Navegación
-1. **Header Sticky (`.apple-nav`)**: altura `h-16`, logo `/logo.svg`, badge de rol/estado en vivo, accesos de cuenta y botón Salir.
-2. **Tabs Desktop (`hidden md:inline-flex` / `hidden md:flex`)**: contenedor `p-1.5 rounded-2xl bg-black/[0.05]`; pestaña activa con `bg-white text-[#1d1d1f] shadow-sm rounded-xl`.
-3. **Dock Inferior Móvil (`.bottom-dock`, `md:hidden fixed bottom-0 inset-x-0 z-40`)**: grilla fija inferior (`grid-cols-5` en admin, `grid-cols-4` en estudiante) con soporte `env(safe-area-inset-bottom)`.
+### Patrón de Navegación y Animaciones
+1. **Aurora Shell (`.aurora-shell`, `max-w-[1440px]`)**: Contenedor principal en desktop (`md+`) con `.aurora-sidebar` oscuro a la izquierda y `.aurora-canvas` claro a la derecha.
+2. **Sidebar Desktop (`.sidebar-item` / `.sidebar-item-active`)**: Ítems verticales agrupados por categoría (`Académico`, `Gestión`, `Mi Portal`); el ítem activo usa degradado `#0ea5e9` → `#0071e3`.
+3. **Header Móvil (`.apple-nav`, `md:hidden`)**: Barra superior oscura translúcida con logo, rol/estado y botón Salir.
+4. **Dock Inferior Móvil (`.bottom-dock`, `md:hidden fixed bottom-0 inset-x-0 z-40`)**: Grilla fija inferior (`grid-cols-5` en admin, `grid-cols-4` en estudiante) con soporte `env(safe-area-inset-bottom)`.
+5. **Animación de Cambio de Sección (`.section-enter`)**: `sectionSlideFadeIn` (`240ms cubic-bezier(0.22, 1, 0.36, 1)`) combinando `opacity`, `translate3d(0, 12px, 0)` y `blur(3px)` → `0`, respetando `prefers-reduced-motion`.

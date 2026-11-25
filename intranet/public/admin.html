@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
-  <meta name="theme-color" content="#f5f5f7">
+  <meta name="theme-color" content="#0d2638">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <link rel="manifest" href="/intranet/manifest.json">
@@ -12,60 +12,151 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="/intranet/css/styles.css?v=20261124-4">
+  <link rel="stylesheet" href="/intranet/css/styles.css?v=20261124-6">
 </head>
-<body class="page-admin min-h-screen pb-16">
+<body class="page-admin min-h-screen">
 
-  <!-- ==================== HEADER ==================== -->
-  <header class="sticky top-0 z-40 apple-nav">
-    <div class="max-w-7xl mx-auto px-5 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <img src="/logo.svg" alt="DC CORP" class="h-10">
-        <span id="roleBadge" class="px-2.5 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[11px] font-semibold">Admin</span>
-        <span id="liveAdminBadge" class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 text-[10px] font-semibold">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> En vivo
-        </span>
+  <!-- ==================== HEADER MÓVIL ==================== -->
+  <header class="md:hidden sticky top-0 z-40 apple-nav text-white">
+    <div class="px-4 h-14 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="bg-white/95 px-2.5 py-1 rounded-xl shrink-0">
+          <img src="/logo.svg" alt="DC CORP" class="h-6">
+        </div>
+        <span id="mobileRoleBadge" class="px-2 py-0.5 rounded-full bg-sky-400/20 text-sky-200 text-[10px] font-semibold truncate">Admin</span>
       </div>
-      <div class="flex items-center gap-4">
-        <span class="hidden sm:inline text-xs font-medium text-[#6e6e73]" id="userName">Usuario</span>
-        <button onclick="downloadDatabaseBackup()" class="admin-only-tab text-xs text-[#424245] hover:text-emerald-600 transition p-1.5" title="Descargar copia de seguridad (Base de datos SQLite)">
+      <div class="flex items-center gap-2 shrink-0">
+        <button onclick="downloadDatabaseBackup()" class="admin-only-tab text-xs text-slate-200 hover:text-emerald-300 transition p-1.5" title="Respaldo SQLite">
           <i class="fa-solid fa-database"></i>
         </button>
-        <button onclick="openPassModal()" class="text-xs text-[#424245] hover:text-[#0071e3] transition p-1.5" title="Cambiar contraseña">
+        <button onclick="openPassModal()" class="text-xs text-slate-200 hover:text-sky-300 transition p-1.5" title="Cambiar contraseña">
           <i class="fa-solid fa-key"></i>
         </button>
-        <button onclick="logout()" class="px-3.5 py-1.5 rounded-full bg-black/5 hover:bg-red-500/10 hover:text-red-600 text-xs font-medium transition">
+        <button onclick="logout()" class="px-3 py-1.5 rounded-full bg-white/10 hover:bg-red-500/25 text-white text-xs font-medium transition">
           Salir
         </button>
       </div>
     </div>
   </header>
 
-  <!-- ==================== CONTENIDO PRINCIPAL ==================== -->
-  <main class="max-w-7xl mx-auto px-5 pt-8 space-y-8">
+  <!-- ==================== AURORA GLASS SHELL ==================== -->
+  <div class="max-w-[1440px] mx-auto md:my-5 md:px-4">
+    <div class="aurora-shell md:rounded-[28px] overflow-hidden flex flex-col md:flex-row min-h-[calc(100dvh-2.5rem)]">
 
-    <!-- ==================== NAVEGACIÓN PRINCIPAL (DESKTOP TABS) ==================== -->
-    <div class="hidden md:inline-flex flex-wrap gap-1.5 p-1.5 rounded-2xl bg-black/[0.05]">
-      <button onclick="switchTab('asistencia')" id="tab-asistencia" class="tab-btn px-5 py-2 rounded-xl bg-white text-[#1d1d1f] shadow-sm text-xs font-semibold transition">
-        <i class="fa-solid fa-calendar-week mr-1.5 text-[#0071e3]"></i> Asistencia Semanal
-      </button>
-      <button onclick="switchTab('materiales')" id="tab-materiales" class="tab-btn px-5 py-2 rounded-xl text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition relative">
-        <i class="fa-solid fa-chalkboard mr-1.5 text-indigo-600"></i> Aulas y Materiales
-        <span id="unreadChatDot" class="hidden ml-1.5 px-1.5 py-0.2 rounded-full bg-red-600 text-white text-[9px] font-bold">Nuevo</span>
-      </button>
-      <button onclick="switchTab('alumnos')" id="tab-alumnos" class="tab-btn px-5 py-2 rounded-xl text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition">
-        <i class="fa-solid fa-users mr-1.5 text-emerald-600"></i> Subgrupos y Alumnado
-      </button>
-      <button onclick="switchTab('avisos')" id="tab-avisos" class="tab-btn px-5 py-2 rounded-xl text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition">
-        <i class="fa-solid fa-bullhorn mr-1.5 text-rose-600"></i> Avisos
-      </button>
-      <button onclick="switchTab('profesores')" id="tab-profesores" class="admin-only-tab tab-btn px-5 py-2 rounded-xl text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition">
-        <i class="fa-solid fa-chalkboard-user mr-1.5 text-amber-600"></i> Plana Docente
-      </button>
-    </div>
+      <!-- ==================== SIDEBAR IZQUIERDO (DESKTOP) ==================== -->
+      <aside class="hidden md:flex md:w-64 lg:w-[270px] shrink-0 aurora-sidebar flex-col justify-between p-5 text-white">
+        <div class="space-y-6">
+          <!-- Marca y Rol -->
+          <div class="space-y-3">
+            <div class="bg-white/95 px-3.5 py-2.5 rounded-2xl shadow-sm inline-flex items-center justify-center w-full">
+              <img src="/logo.svg" alt="DC CORP" class="h-9">
+            </div>
+            <div class="flex items-center justify-between gap-2 px-1">
+              <span id="roleBadge" class="px-2.5 py-0.5 rounded-full bg-sky-400/20 text-sky-200 border border-sky-300/25 text-[11px] font-semibold">Administrador</span>
+              <span id="liveAdminBadge" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-400/15 text-emerald-300 border border-emerald-400/25 text-[10px] font-semibold">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> En vivo
+              </span>
+            </div>
+          </div>
+
+          <!-- ==================== NAVEGACIÓN PRINCIPAL (SIDEBAR) ==================== -->
+          <nav class="space-y-5">
+            <div class="space-y-1.5">
+              <span class="block px-3 text-[10px] font-bold uppercase tracking-widest text-slate-400/80">Académico</span>
+              <button type="button" onclick="switchTab('asistencia')" id="tab-asistencia"
+                class="tab-btn sidebar-item sidebar-item-active w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-left">
+                <i class="fa-solid fa-calendar-week w-4 text-center"></i>
+                <span class="flex-1">Asistencia Semanal</span>
+              </button>
+              <button type="button" onclick="switchTab('materiales')" id="tab-materiales"
+                class="tab-btn sidebar-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-left">
+                <i class="fa-solid fa-chalkboard w-4 text-center"></i>
+                <span class="flex-1">Aulas y Materiales</span>
+                <span id="unreadChatDot" class="hidden px-2 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-bold">Nuevo</span>
+              </button>
+            </div>
+
+            <div class="space-y-1.5">
+              <span class="block px-3 text-[10px] font-bold uppercase tracking-widest text-slate-400/80">Gestión</span>
+              <button type="button" onclick="switchTab('alumnos')" id="tab-alumnos"
+                class="tab-btn sidebar-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-left">
+                <i class="fa-solid fa-users w-4 text-center"></i>
+                <span class="flex-1">Subgrupos y Alumnado</span>
+              </button>
+              <button type="button" onclick="switchTab('avisos')" id="tab-avisos"
+                class="tab-btn sidebar-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-left">
+                <i class="fa-solid fa-bullhorn w-4 text-center"></i>
+                <span class="flex-1">Avisos</span>
+              </button>
+              <button type="button" onclick="switchTab('profesores')" id="tab-profesores"
+                class="admin-only-tab tab-btn sidebar-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-left">
+                <i class="fa-solid fa-chalkboard-user w-4 text-center"></i>
+                <span class="flex-1">Plana Docente</span>
+              </button>
+            </div>
+          </nav>
+        </div>
+
+        <!-- Pie del Sidebar (Cuenta y Accesos Rápidos) -->
+        <div class="pt-4 border-t border-white/10 space-y-2.5">
+          <div class="flex items-center gap-3 px-2.5 py-2 rounded-2xl bg-white/[0.06] border border-white/10">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-sky-400 to-blue-600 flex items-center justify-center text-xs font-bold text-white shrink-0">
+              <i class="fa-solid fa-user-shield"></i>
+            </div>
+            <div class="min-w-0 flex-1">
+              <p id="sidebarUserName" class="text-xs font-semibold text-white truncate">Usuario</p>
+              <p class="text-[10px] text-slate-300/80 truncate">Intranet DC CORP</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" onclick="openPassModal()"
+              class="btn-interactive px-3 py-2 rounded-xl bg-white/[0.08] hover:bg-white/[0.15] text-slate-200 text-[11px] font-medium flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-key"></i> Clave
+            </button>
+            <button type="button" onclick="logout()"
+              class="btn-interactive px-3 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/35 text-rose-200 text-[11px] font-semibold flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-right-from-bracket"></i> Salir
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ==================== ÁREA DE CONTENIDO (CANVAS CLARO) ==================== -->
+      <div class="flex-1 aurora-canvas min-w-0 flex flex-col">
+
+        <!-- Topbar del Canvas (Desktop) -->
+        <header class="hidden md:flex items-center justify-between gap-4 px-7 py-5 border-b border-black/[0.06] bg-white/45">
+          <div>
+            <h1 class="text-xl font-bold tracking-tight text-[#1d1d1f]">Hola, <span id="userName">Usuario</span></h1>
+            <p id="adminCurrentDate" class="text-xs text-[#6e6e73] mt-0.5">Panel Académico y Administrativo</p>
+          </div>
+
+          <div class="flex items-center gap-2.5">
+            <button type="button" onclick="downloadDatabaseBackup()"
+              class="admin-only-tab btn-interactive px-3.5 py-2 rounded-full bg-white/90 hover:bg-white border border-black/[0.08] text-[#1d1d1f] text-xs font-semibold shadow-sm inline-flex items-center gap-2"
+              title="Descargar copia de seguridad (Base de datos SQLite)">
+              <i class="fa-solid fa-database text-emerald-600"></i>
+              <span>Respaldo SQLite</span>
+            </button>
+            <button type="button" onclick="openPassModal()"
+              class="btn-interactive px-3.5 py-2 rounded-full bg-white/90 hover:bg-white border border-black/[0.08] text-[#1d1d1f] text-xs font-semibold shadow-sm inline-flex items-center gap-2">
+              <i class="fa-solid fa-key text-[#0071e3]"></i>
+              <span>Contraseña</span>
+            </button>
+            <button type="button" onclick="logout()"
+              class="btn-interactive px-4 py-2 rounded-full bg-[#1d1d1f] hover:bg-black text-white text-xs font-semibold shadow-sm inline-flex items-center gap-1.5">
+              <i class="fa-solid fa-right-from-bracket"></i>
+              <span>Salir</span>
+            </button>
+          </div>
+        </header>
+
+        <!-- ==================== CONTENIDO PRINCIPAL ==================== -->
+        <main class="flex-1 p-4 sm:p-6 md:p-7 space-y-6">
 
     <!-- ==================== SECCIÓN 1: GRILLA SEMANAL GRÁFICA ==================== -->
-    <section id="panel-asistencia" class="space-y-6">
+    <section id="panel-asistencia" class="section-enter space-y-6">
       <div class="glass-bento p-5 sm:p-8 max-w-full overflow-hidden space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-black/[0.06]">
           <div>
@@ -357,7 +448,10 @@
       </div>
     </section>
 
-  </main>
+        </main>
+      </div>
+    </div>
+  </div>
 
   <!-- ==================== MODAL CREAR SUBGRUPO ==================== -->
   <div id="createGroupModal" class="hidden fixed inset-0 z-50 bg-black/45 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto" onclick="if(event.target===this) closeCreateGroupModal()">
@@ -1136,7 +1230,7 @@
   </div>
 
   <!-- ==================== SCRIPTS ==================== -->
-  <script src="/intranet/js/admin.js?v=20261124-4"></script>
+  <script src="/intranet/js/admin.js?v=20261124-6"></script>
 
   <!-- Barra de Navegación Inferior Tipo App Nativa (Solo Móvil Android / iOS) -->
   <nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bottom-dock">

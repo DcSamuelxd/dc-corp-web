@@ -1389,7 +1389,7 @@ app.get('/intranet/api/student/dashboard', authMiddleware, (req, res) => {
                         [stuCat],
                         (err5, anns) => {
                           db.all(
-                            `SELECT DISTINCT u.id, u.full_name, u.schedule, u.bio, u.avatar_file, u.instrument
+                            `SELECT DISTINCT u.id, u.full_name, u.schedule, u.bio, u.avatar_file, u.instrument, u.grade
                              FROM users u
                              LEFT JOIN student_groups sg ON sg.student_id = u.id
                              WHERE u.role = 'student' AND (sg.group_id = ? OR u.group_id = ?)
