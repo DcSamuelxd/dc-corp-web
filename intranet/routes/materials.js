@@ -393,6 +393,7 @@ router.post('/intranet/api/student/materials/:id/submission', authMiddleware, up
             return { id: idx + 1, submission_id: subId, file_name: f.filename, original_name: f.originalname, file_type: fType };
           });
           stmt.finalize(() => {
+            notifySubmission({ materialId: matId, studentId: req.user.id, studentName: req.user.full_name });
             res.json({
               ok: true,
               submission: {
@@ -442,6 +443,7 @@ router.post('/intranet/api/admin/submissions/:subId/grade', authMiddleware, staf
     [numScore, (feedback || '').trim(), subId],
     function (err) {
       if (err) return res.status(500).json({ error: 'Error guardando calificación' });
+      notifyGrade({ submissionId: subId, gradeScore: numScore });
       res.json({ ok: true, grade_score: numScore, feedback: (feedback || '').trim() });
     }
   );
@@ -518,7 +520,7 @@ router.get('/intranet/api/student/dashboard', authMiddleware, (req, res) => {
                   attachFilesToMaterials(visibleMaterials, (enrichedMats) => {
                     const finishPayload = (matsWithNotes) => {
                       db.all(
-                        `SELECT * FROM announcements WHERE target_category IN ('Todos', ?) ORDER BY created_at DESC LIMIT 5`,
+                        `SELECT * FROM announcements WHERE target_category IN ('Todos', 'Profesores y Alumnos', ?) ORDER BY created_at DESC LIMIT 5`,
                         [stuCat],
                         (err5, anns) => {
                           db.all(
