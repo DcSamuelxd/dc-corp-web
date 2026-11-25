@@ -113,58 +113,102 @@ function updateGradePreviewBadge(subId) {
 
 function renderSubmissionsAdmin(mat) {
   const subs = mat.submissions || [];
-  if (!subs.length) return '';
+  const expectedStudents = (studentsCache || []).filter(s => {
+    const inGroup = (s.group_ids || []).includes(Number(mat.group_id)) || Number(s.group_id) === Number(mat.group_id);
+    if (!inGroup) return false;
+    if (mat.category === 'Particulares' && mat.target_grade && mat.target_grade !== 'Todos') {
+      const sg = (s.grade || '').trim();
+      if (sg && sg !== mat.target_grade) return false;
+    }
+    return true;
+  });
+  const submittedIds = new Set(subs.map(sb => Number(sb.student_id)));
+  const pendingStudents = expectedStudents.filter(s => !submittedIds.has(Number(s.id)));
+
+  if (!subs.length && !pendingStudents.length) return '';
 
   return `
-    <div class="pt-3 border-t border-black/[0.07] space-y-2.5">
-      <p class="text-xs font-bold text-indigo-700"><i class="fa-solid fa-file-circle-check mr-1.5"></i>Resoluciones entregadas por alumnos (${subs.length})</p>
-      ${subs.map(sb => {
-        const sFiles = (sb.files && sb.files.length)
-          ? sb.files
-          : (sb.file_name ? [{ id: sb.id, file_name: sb.file_name, original_name: sb.original_name, file_type: (sb.original_name || '').toLowerCase().endsWith('.pdf') ? 'pdf' : 'image' }] : []);
-        const scoreVal = (sb.grade_score !== null && sb.grade_score !== undefined) ? sb.grade_score : '';
-        const eq = getGradeEquivalence(scoreVal);
+    <div class="space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-black/[0.06]">
+        <p class="text-xs font-bold text-[#1d1d1f]"><i class="fa-solid fa-clipboard-check mr-1.5 text-emerald-600"></i>Control de Entregas</p>
+        <div class="flex flex-wrap items-center gap-2 text-[11px] font-bold">
+          <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700"><i class="fa-solid fa-check mr-1"></i>Entregaron: ${subs.length}</span>
+          <span class="px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-800"><i class="fa-regular fa-clock mr-1"></i>Faltan: ${pendingStudents.length}</span>
+        </div>
+      </div>
 
-        const filesButtonsHtml = sFiles.map((sf, idx) => {
-          const fUrl = `/intranet/api/files/${sf.file_name}?token=${token}`;
-          const cleanN = cleanDisplayName(sf.original_name || `Archivo ${idx + 1}`).replace(/'/g, '');
-          if (sf.file_type === 'pdf') {
-            return `<button type="button" onclick="openPdfModal('${fUrl}', '${cleanN}')" class="px-2.5 py-1 rounded-full bg-red-600 text-white text-[10px] font-semibold inline-flex items-center gap-1"><i class="fa-solid fa-file-pdf"></i> PDF ${idx + 1}</button>`;
-          }
-          return `<button type="button" onclick="openImageModal('${fUrl}', '${cleanN}')" class="px-2.5 py-1 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-semibold inline-flex items-center gap-1"><i class="fa-solid fa-image"></i> Ver Imagen ${idx + 1}</button>`;
-        }).join('');
+      ${subs.length ? `
+        <div class="space-y-2.5">
+          <p class="text-xs font-bold text-indigo-700"><i class="fa-solid fa-file-circle-check mr-1.5"></i>Resoluciones entregadas (${subs.length})</p>
+          ${subs.map(sb => {
+            const sFiles = (sb.files && sb.files.length)
+              ? sb.files
+              : (sb.file_name ? [{ id: sb.id, file_name: sb.file_name, original_name: sb.original_name, file_type: (sb.original_name || '').toLowerCase().endsWith('.pdf') ? 'pdf' : 'image' }] : []);
+            const scoreVal = (sb.grade_score !== null && sb.grade_score !== undefined) ? sb.grade_score : '';
+            const eq = getGradeEquivalence(scoreVal);
 
-        return `
-          <div class="p-3 rounded-xl bg-indigo-500/[0.05] border border-indigo-500/15 space-y-2.5 text-xs">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <span class="font-bold text-[#1d1d1f]">${sb.student_name || 'Estudiante'}</span>
-                ${sb.student_grade ? `<span class="ml-1.5 px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 text-[10px] font-semibold">${sb.student_grade}</span>` : ''}
-                <p class="text-[11px] text-[#6e6e73] mt-0.5">${sFiles.length} archivo(s) adjunto(s)</p>
+            const filesButtonsHtml = sFiles.map((sf, idx) => {
+              const fUrl = `/intranet/api/files/${sf.file_name}?token=${token}`;
+              const cleanN = cleanDisplayName(sf.original_name || `Archivo ${idx + 1}`).replace(/'/g, '');
+              if (sf.file_type === 'pdf') {
+                return `<button type="button" onclick="openPdfModal('${fUrl}', '${cleanN}')" class="btn-interactive px-2.5 py-1 rounded-full bg-red-600 text-white text-[10px] font-semibold inline-flex items-center gap-1"><i class="fa-solid fa-file-pdf"></i> PDF ${idx + 1}</button>`;
+              }
+              return `<button type="button" onclick="openImageModal('${fUrl}', '${cleanN}')" class="btn-interactive px-2.5 py-1 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-semibold inline-flex items-center gap-1"><i class="fa-solid fa-image"></i> Ver Imagen ${idx + 1}</button>`;
+            }).join('');
+
+            return `
+              <div class="p-3 rounded-xl bg-indigo-500/[0.05] border border-indigo-500/15 space-y-2.5 text-xs">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <span class="font-bold text-[#1d1d1f]">${sb.student_name || 'Estudiante'}</span>
+                    ${sb.student_grade ? `<span class="ml-1.5 px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 text-[10px] font-semibold">${sb.student_grade}</span>` : ''}
+                    <p class="text-[11px] text-[#6e6e73] mt-0.5">${sFiles.length} archivo(s) adjunto(s)</p>
+                  </div>
+                  <div class="flex flex-wrap items-center gap-1.5">${filesButtonsHtml}</div>
+                </div>
+                <div class="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 pt-1">
+                  <div class="flex items-center gap-1.5 bg-white border border-black/10 rounded-lg px-2.5 py-1">
+                    <span class="text-[11px] font-semibold text-[#6e6e73]">Nota (0-20):</span>
+                    <input type="number" id="gradeScore-${sb.id}" min="0" max="20" step="0.5" value="${scoreVal}" placeholder="0 - 20"
+                      oninput="updateGradePreviewBadge(${sb.id})"
+                      class="w-16 text-xs font-bold text-[#1d1d1f] focus:outline-none">
+                  </div>
+                  <span id="gradeEquivBadge-${sb.id}" class="px-3 py-1.5 rounded-xl border text-[11px] font-bold inline-flex items-center gap-1.5 ${eq.badgeClass}">
+                    ${eq.trophy ? '<i class="fa-solid fa-trophy"></i>' : ''}<span>${eq.letter} • ${eq.label}</span>
+                  </span>
+                  <input type="text" id="gradeFeedback-${sb.id}" value="${(sb.feedback || '').replace(/"/g, '&quot;')}"
+                    placeholder="Observación o retroalimentación..."
+                    class="flex-1 min-w-[160px] bg-white border border-black/10 rounded-lg px-2.5 py-1.5 text-xs">
+                  <button type="button" onclick="saveSubmissionGrade(${sb.id})"
+                    class="btn-interactive px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold shrink-0">
+                    Guardar Nota
+                  </button>
+                </div>
               </div>
-              <div class="flex flex-wrap items-center gap-1.5">${filesButtonsHtml}</div>
-            </div>
-            <div class="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 pt-1">
-              <div class="flex items-center gap-1.5 bg-white border border-black/10 rounded-lg px-2.5 py-1">
-                <span class="text-[11px] font-semibold text-[#6e6e73]">Nota (0-20):</span>
-                <input type="number" id="gradeScore-${sb.id}" min="0" max="20" step="0.5" value="${scoreVal}" placeholder="0 - 20"
-                  oninput="updateGradePreviewBadge(${sb.id})"
-                  class="w-16 text-xs font-bold text-[#1d1d1f] focus:outline-none">
+            `;
+          }).join('')}
+        </div>
+      ` : '<p class="text-xs text-[#6e6e73] py-2">Ningún estudiante ha enviado entregas todavía.</p>'}
+
+      ${pendingStudents.length ? `
+        <div class="pt-3 border-t border-black/[0.06] space-y-2">
+          <p class="text-xs font-bold text-amber-800"><i class="fa-regular fa-clock mr-1.5"></i>Faltan por entregar (${pendingStudents.length})</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto aurora-scroll pr-1">
+            ${pendingStudents.map(ps => `
+              <div class="card-interactive flex items-center justify-between gap-2 p-2.5 rounded-xl bg-amber-500/[0.07] border border-amber-500/20 text-xs">
+                <div class="min-w-0">
+                  <p class="font-semibold text-[#1d1d1f] truncate">${ps.full_name}</p>
+                  <span class="text-[10px] text-[#6e6e73]">${isMusicStudent(ps) ? (ps.instrument || 'Música') : (ps.grade || 'Matemáticas')}</span>
+                </div>
+                <button type="button" onclick="openStudentDetailModal(${ps.id})"
+                  class="btn-interactive shrink-0 px-2.5 py-1 rounded-lg bg-white border border-black/10 text-[10px] font-semibold text-[#1d1d1f]">
+                  Ver perfil
+                </button>
               </div>
-              <span id="gradeEquivBadge-${sb.id}" class="px-3 py-1.5 rounded-xl border text-[11px] font-bold inline-flex items-center gap-1.5 ${eq.badgeClass}">
-                ${eq.trophy ? '<i class="fa-solid fa-trophy"></i>' : ''}<span>${eq.letter} • ${eq.label}</span>
-              </span>
-              <input type="text" id="gradeFeedback-${sb.id}" value="${(sb.feedback || '').replace(/"/g, '&quot;')}"
-                placeholder="Observación o retroalimentación..."
-                class="flex-1 min-w-[160px] bg-white border border-black/10 rounded-lg px-2.5 py-1.5 text-xs">
-              <button type="button" onclick="saveSubmissionGrade(${sb.id})"
-                class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold shrink-0">
-                Guardar Nota
-              </button>
-            </div>
+            `).join('')}
           </div>
-        `;
-      }).join('')}
+        </div>
+      ` : (subs.length ? '<div class="p-3 rounded-xl bg-emerald-500/10 text-emerald-700 text-xs font-semibold text-center"><i class="fa-solid fa-circle-check mr-1.5"></i>¡Todos los alumnos de este grupo ya entregaron!</div>' : '')}
     </div>
   `;
 }
@@ -327,6 +371,10 @@ function initAdminRealtimeChat() {
           adminNotificationsCache.unshift(payload.notification);
           updateAdminNotifBadges(adminNotificationsCache.filter(n => !n.is_read).length);
           renderAdminNotificationsList();
+        }
+      } else if (payload.type === 'student_dm_audit' && payload.message) {
+        if (typeof onAdminAuditMessageEvent === 'function') {
+          onAdminAuditMessageEvent(payload.message);
         }
       }
     } catch {}
