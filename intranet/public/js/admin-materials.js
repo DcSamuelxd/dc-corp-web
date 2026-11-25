@@ -376,6 +376,10 @@ function initAdminRealtimeChat() {
         if (typeof onAdminAuditMessageEvent === 'function') {
           onAdminAuditMessageEvent(payload.message);
         }
+      } else if (payload.type === 'staff_dm' && payload.message) {
+        if (typeof onStaffDmEvent === 'function') {
+          onStaffDmEvent(payload.message);
+        }
       }
     } catch {}
   };

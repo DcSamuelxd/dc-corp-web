@@ -847,8 +847,129 @@ async function downloadDatabaseBackup() {
   URL.revokeObjectURL(url);
 }
 
-// ==================== SUPERVISIÓN DE MENSAJES ENTRE ALUMNOS (ADMIN) ====================
+// ==================== MENSAJES DIRECTOS Y SUPERVISIÓN ====================
+let adminMessagesMode = 'direct';
+let activeStaffDmStudent = null;
 let activeAuditPair = null;
+
+function setAdminMessagesMode(mode) {
+  if (!isAdmin && mode === 'audit') mode = 'direct';
+  adminMessagesMode = mode;
+  ['direct', 'audit'].forEach(m => {
+    const btn = document.getElementById(`msg-mode-${m}`);
+    if (btn) {
+      btn.className = (m === mode)
+        ? 'msg-mode-btn segmented-btn px-3 py-1.5 rounded-lg text-[#1d1d1f]'
+        : 'msg-mode-btn segmented-btn px-3 py-1.5 rounded-lg text-[#6e6e73] hover:text-[#1d1d1f]';
+    }
+  });
+  updateSegmentedPill('mensajesModeFilter', `msg-mode-${mode}`);
+  const staffWrap = document.getElementById('staffDmWorkspace');
+  const auditWrap = document.getElementById('adminAuditWorkspace');
+  if (staffWrap) staffWrap.classList.toggle('hidden', mode !== 'direct');
+  if (auditWrap) auditWrap.classList.toggle('hidden', mode !== 'audit');
+  refreshCurrentMessagesMode();
+}
+
+function refreshCurrentMessagesMode() {
+  if (adminMessagesMode === 'audit' && isAdmin) {
+    loadAdminStudentMessages();
+  } else {
+    loadStaffStudentMessages();
+  }
+  requestAnimationFrame(() => updateSegmentedPill('mensajesModeFilter', `msg-mode-${adminMessagesMode}`));
+}
+
+async function loadStaffStudentMessages() {
+  const listEl = document.getElementById('staffDmStudentList');
+  if (!listEl) return;
+  const res = await fetch('/intranet/api/staff/messages/students', { headers: authHeaders() });
+  if (!res.ok) return;
+  const students = await res.json();
+
+  const totalUnread = students.reduce((acc, s) => acc + (s.unread_count || 0), 0);
+  const badgeEl = document.getElementById('staffDmBadge');
+  if (badgeEl) {
+    badgeEl.innerText = totalUnread > 9 ? '9+' : String(totalUnread);
+    badgeEl.classList.toggle('hidden', totalUnread === 0);
+  }
+
+  if (!students.length) {
+    listEl.innerHTML = '<p class="text-xs text-[#6e6e73] py-6 text-center">No hay estudiantes disponibles.</p>';
+    return;
+  }
+
+  listEl.innerHTML = students.map(s => {
+    const active = activeStaffDmStudent && Number(activeStaffDmStudent.id) === Number(s.id);
+    return `
+      <button type="button" onclick="openStaffDmThread(${s.id}, '${s.full_name.replace(/'/g, "\\'")}')"
+        class="card-interactive w-full text-left p-3 rounded-2xl border transition ${active ? 'bg-[#102e44] text-white border-[#0ea5e9]' : 'bg-white/95 hover:bg-white border-black/[0.07] text-[#1d1d1f]'}">
+        <div class="flex items-center justify-between gap-2">
+          <p class="text-xs font-bold truncate">${s.full_name}</p>
+          ${s.unread_count ? `<span class="px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-bold shrink-0">${s.unread_count}</span>` : ''}
+        </div>
+        <p class="text-[11px] truncate mt-0.5 ${active ? 'text-slate-200' : 'text-[#6e6e73]'}">${s.last_message || (s.instrument || s.grade || 'Estudiante')}</p>
+      </button>
+    `;
+  }).join('');
+}
+
+async function openStaffDmThread(studentId, studentName) {
+  activeStaffDmStudent = { id: Number(studentId), name: studentName };
+  loadStaffStudentMessages();
+  const headerEl = document.getElementById('staffDmThreadHeader');
+  const boxEl = document.getElementById('staffDmThreadMessages');
+  const formEl = document.getElementById('staffDmForm');
+  if (headerEl) headerEl.innerText = `Chat con ${studentName}`;
+  if (formEl) formEl.classList.remove('hidden');
+  if (!boxEl) return;
+
+  const res = await fetch(`/intranet/api/staff/messages/${studentId}`, { headers: authHeaders() });
+  const msgs = await res.json();
+  if (!msgs.length) {
+    boxEl.innerHTML = '<p class="text-xs text-[#6e6e73] text-center py-12">Sin mensajes todavía. Escribe para iniciar el chat.</p>';
+    return;
+  }
+  boxEl.innerHTML = msgs.map(m => {
+    const isStu = Number(m.sender_id) === Number(studentId);
+    return `
+      <div class="flex ${isStu ? 'justify-start' : 'justify-end'}">
+        <div class="max-w-[82%] p-3 rounded-2xl text-xs shadow-sm ${isStu ? 'bg-white border border-black/[0.06] text-[#1d1d1f]' : 'bg-gradient-to-r from-[#0ea5e9] to-[#0071e3] text-white'}">
+          <p class="leading-relaxed">${m.content}</p>
+          <span class="block text-[9px] mt-1 ${isStu ? 'text-[#6e6e73]' : 'text-sky-100/80'}">${new Date(m.created_at).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+  boxEl.scrollTop = boxEl.scrollHeight;
+}
+
+const staffDmFormEl = document.getElementById('staffDmForm');
+if (staffDmFormEl) {
+  staffDmFormEl.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!activeStaffDmStudent) return;
+    const inp = document.getElementById('staffDmInput');
+    const content = inp.value.trim();
+    if (!content) return;
+    inp.value = '';
+    const res = await fetch(`/intranet/api/staff/messages/${activeStaffDmStudent.id}`, {
+      method: 'POST', headers: authHeaders(), body: JSON.stringify({ content })
+    });
+    if (res.ok) {
+      openStaffDmThread(activeStaffDmStudent.id, activeStaffDmStudent.name);
+    }
+  });
+}
+
+function onStaffDmEvent(msg) {
+  loadStaffStudentMessages();
+  if (activeStaffDmStudent && (Number(msg.sender_id) === activeStaffDmStudent.id || Number(msg.receiver_id) === activeStaffDmStudent.id)) {
+    openStaffDmThread(activeStaffDmStudent.id, activeStaffDmStudent.name);
+  }
+}
+
+window.addEventListener('DOMContentLoaded', loadStaffStudentMessages);
 
 async function loadAdminStudentMessages() {
   if (!isAdmin) return;

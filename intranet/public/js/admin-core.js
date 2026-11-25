@@ -95,7 +95,7 @@ function applyAdminRouteFromHash(hashStr) {
   const parts = clean.split('/').filter(Boolean);
   const validTabs = ['asistencia', 'materiales', 'entregas', 'alumnos', 'avisos', 'profesores', 'mensajes'];
   let tab = validTabs.includes(parts[0]) ? parts[0] : 'asistencia';
-  if (!isAdmin && (tab === 'profesores' || tab === 'mensajes')) tab = 'asistencia';
+  if (!isAdmin && tab === 'profesores') tab = 'asistencia';
   const aulaId = (parts[1] === 'aula' && parts[2]) ? Number(parts[2]) : null;
 
   isApplyingAdminRoute = true;
@@ -126,10 +126,10 @@ function updateSegmentedPill(containerId, activeBtnId, pillSelector = '.segmente
 }
 
 function switchTab(tab, pushHistory = true) {
-  if (!isAdmin && (tab === 'profesores' || tab === 'mensajes')) return;
+  if (!isAdmin && tab === 'profesores') return;
   activeAdminTab = tab;
-  if (tab === 'mensajes' && typeof loadAdminStudentMessages === 'function') {
-    loadAdminStudentMessages();
+  if (tab === 'mensajes' && typeof refreshCurrentMessagesMode === 'function') {
+    refreshCurrentMessagesMode();
   }
   if (tab === 'entregas' && typeof renderGlobalSubmissionsPanel === 'function') {
     renderGlobalSubmissionsPanel();
