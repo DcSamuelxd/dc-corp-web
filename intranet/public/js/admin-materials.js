@@ -218,7 +218,7 @@ async function saveSubmissionGrade(subId) {
   const fbEl = document.getElementById(`gradeFeedback-${subId}`);
   const grade_score = parseFloat(scoreEl.value);
   if (isNaN(grade_score) || grade_score < 0 || grade_score > 20) {
-    alert('Ingresa una nota válida entre 0 y 20');
+    showToast('Ingresa una nota válida entre 0 y 20', "error");
     return;
   }
 
@@ -229,11 +229,11 @@ async function saveSubmissionGrade(subId) {
   });
 
   if (res.ok) {
-    alert('Calificación guardada');
+    showToast('Calificación guardada', "success");
     loadMaterials();
   } else {
     const d = await res.json();
-    alert(d.error || 'Error al guardar nota');
+    showToast(d.error || 'Error al guardar nota', "error");
   }
 }
 
@@ -959,7 +959,7 @@ document.getElementById('editMaterialForm').addEventListener('submit', async (e)
     loadMaterials();
   } else {
     const d = await res.json();
-    alert(d.error || 'Error guardando los cambios');
+    showToast(d.error || 'Error guardando los cambios', "error");
   }
 });
 
@@ -968,7 +968,7 @@ document.getElementById('materialForm').addEventListener('submit', async (e) => 
   e.preventDefault();
   const checkedGroups = Array.from(document.querySelectorAll('input[name="matGroupCheck"]:checked')).map(cb => Number(cb.value));
   if (!checkedGroups.length) {
-    alert('Selecciona al menos un aula o subgrupo destino.');
+    showToast('Selecciona al menos un aula o subgrupo destino.', "error");
     return;
   }
 
@@ -1018,7 +1018,7 @@ document.getElementById('materialForm').addEventListener('submit', async (e) => 
     loadMaterials();
   } else {
     const errData = await res.json().catch(() => ({}));
-    alert(errData.error || 'Error al publicar el material');
+    showToast(errData.error || 'Error al publicar el material', "error");
   }
 });
 

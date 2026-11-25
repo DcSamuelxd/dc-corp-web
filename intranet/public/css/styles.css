@@ -314,6 +314,42 @@ body.page-login {
   will-change: transform, opacity;
 }
 
+/* Notificaciones Toast Aurora Glass */
+.aurora-toast-container {
+  position: fixed;
+  top: calc(16px + env(safe-area-inset-top));
+  right: 16px;
+  z-index: 120;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: min(92vw, 360px);
+  pointer-events: none;
+}
+
+@keyframes toastSlideIn {
+  from {
+    opacity: 0;
+    transform: translate3d(20px, -6px, 0) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.aurora-toast {
+  background: rgba(13, 38, 56, 0.94);
+  backdrop-filter: saturate(160%) blur(18px);
+  -webkit-backdrop-filter: saturate(160%) blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 16px 36px rgba(4, 15, 25, 0.34);
+  color: #ffffff;
+  pointer-events: auto;
+  animation: toastSlideIn 240ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  transition: opacity 200ms ease, transform 200ms ease;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .btn-interactive,
   .btn-plus-icon,

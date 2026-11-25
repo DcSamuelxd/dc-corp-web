@@ -5,6 +5,36 @@ const authHeaders = () => ({ 'Authorization': `Bearer ${token}`, 'Content-Type':
 let dashboardData = null;
 let activeGroupId = null;
 
+function showToast(message, type = 'info') {
+  let container = document.getElementById('auroraToastContainer');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'auroraToastContainer';
+    container.className = 'aurora-toast-container';
+    document.body.appendChild(container);
+  }
+  const iconMap = {
+    success: { icon: 'fa-circle-check', cls: 'bg-emerald-500/20 text-emerald-300' },
+    error: { icon: 'fa-circle-exclamation', cls: 'bg-rose-500/20 text-rose-300' },
+    info: { icon: 'fa-circle-info', cls: 'bg-sky-500/20 text-sky-300' }
+  };
+  const meta = iconMap[type] || iconMap.info;
+  const toast = document.createElement('div');
+  toast.className = 'aurora-toast rounded-2xl px-4 py-3 flex items-center gap-3 text-xs font-medium';
+  toast.innerHTML = `
+    <div class="w-7 h-7 rounded-xl ${meta.cls} flex items-center justify-center shrink-0">
+      <i class="fa-solid ${meta.icon}"></i>
+    </div>
+    <span class="flex-1 leading-snug">${message}</span>
+  `;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translate3d(16px, 0, 0)';
+    setTimeout(() => toast.remove(), 220);
+  }, 3200);
+}
+
 function logout() {
   localStorage.clear();
   window.location.href = '/intranet';
@@ -33,7 +63,7 @@ function syncStudentUrl(push = true) {
 function applyStudentRouteFromHash(hashStr) {
   const clean = (hashStr || '').replace(/^#/, '');
   const parts = clean.split('/').filter(Boolean);
-  const validTabs = ['materiales', 'asistencia', 'companeros', 'mensajes', 'perfil'];
+  const validTabs = ['materiales', 'asistencia', 'horario', 'companeros', 'mensajes', 'perfil'];
   const tab = validTabs.includes(parts[0]) ? parts[0] : 'materiales';
   const temaId = (parts[1] === 'tema' && parts[2]) ? Number(parts[2]) : null;
 
@@ -67,7 +97,10 @@ function switchStudentTab(tabName, pushHistory = true) {
   if (tabName === 'mensajes' && typeof loadStudentPeers === 'function') {
     loadStudentPeers();
   }
-  ['materiales', 'asistencia', 'companeros', 'mensajes', 'perfil'].forEach(t => {
+  if (tabName === 'horario' && typeof renderStudentWeeklySchedule === 'function') {
+    renderStudentWeeklySchedule();
+  }
+  ['materiales', 'asistencia', 'horario', 'companeros', 'mensajes', 'perfil'].forEach(t => {
     const view = document.getElementById(`view-${t}`);
     if (view) {
       if (t === tabName) {
@@ -554,7 +587,7 @@ async function uploadResolution(materialId) {
     return;
   }
   if (inp.files.length > 8) {
-    alert('Puedes subir un máximo de 8 archivos por entrega');
+    showToast('Puedes subir un máximo de 8 archivos por entrega', "error");
     return;
   }
 
@@ -569,11 +602,11 @@ async function uploadResolution(materialId) {
   });
 
   if (res.ok) {
-    alert('Resolución enviada correctamente');
+    showToast('Resolución enviada correctamente', "success");
     loadStudentPortal(activeGroupId);
   } else {
     const d = await res.json();
-    alert(d.error || 'Error subiendo resolución');
+    showToast(d.error || 'Error subiendo resolución', "error");
     if (statusEl) statusEl.innerText = '';
   }
 }
@@ -591,7 +624,7 @@ function onResolutionFilesSelected(materialId) {
     return;
   }
   if (files.length > 8) {
-    alert('Puedes adjuntar un máximo de 8 archivos por entrega');
+    showToast('Puedes adjuntar un máximo de 8 archivos por entrega', "error");
     inp.value = '';
     previewEl.classList.add('hidden');
     previewEl.innerHTML = '';
@@ -1299,7 +1332,65 @@ async function loadStudentPortal(targetGroupId = null) {
 
   renderMaterialsSection(dashboardData.materials || []);
   renderAttendancesList();
+  renderStudentWeeklySchedule();
   renderClassmatesSection();
+}
+
+function renderStudentWeeklySchedule() {
+  const grid = document.getElementById('studentWeeklyScheduleGrid');
+  if (!grid || !dashboardData) return;
+
+  const days = [
+    { key: 'lunes', label: 'Lunes', regex: /\blunes\b/i },
+    { key: 'martes', label: 'Martes', regex: /\bmartes\b/i },
+    { key: 'miercoles', label: 'Miércoles', regex: /\bmi[eé]rcoles\b/i },
+    { key: 'jueves', label: 'Jueves', regex: /\bjueves\b/i },
+    { key: 'viernes', label: 'Viernes', regex: /\bviernes\b/i },
+    { key: 'sabado', label: 'Sábado', regex: /\bs[aá]bado(s)?\b/i }
+  ];
+  const todayName = new Date().toLocaleDateString('es-PE', { weekday: 'long' }).toLowerCase();
+  const buckets = {};
+  days.forEach(d => { buckets[d.key] = []; });
+
+  const sources = [];
+  if (dashboardData.student && dashboardData.student.schedule) {
+    sources.push({ title: 'Mi Horario Personal', schedule: dashboardData.student.schedule, tag: dashboardData.student.group_name || 'Personal' });
+  }
+  (dashboardData.enrolledGroups || []).forEach(g => {
+    if (g.schedule && g.schedule.trim()) {
+      sources.push({ title: g.name, schedule: g.schedule, tag: g.category || 'Grupo' });
+    }
+  });
+
+  sources.forEach(src => {
+    days.forEach(d => {
+      if (d.regex.test(src.schedule)) {
+        buckets[d.key].push(src);
+      }
+    });
+  });
+
+  grid.innerHTML = days.map(d => {
+    const items = buckets[d.key];
+    const isToday = todayName.includes(d.key.slice(0, 4));
+    return `
+      <div class="rounded-2xl border p-4 space-y-3 ${isToday ? 'bg-[#0ea5e9]/[0.07] border-[#0ea5e9]/35 ring-1 ring-[#0ea5e9]/20' : 'bg-white/90 border-black/[0.07]'}">
+        <div class="flex items-center justify-between">
+          <h4 class="text-sm font-bold text-[#1d1d1f]">${d.label}</h4>
+          ${isToday ? '<span class="px-2 py-0.5 rounded-full bg-[#0071e3] text-white text-[9px] font-bold">Hoy</span>' : ''}
+        </div>
+        <div class="space-y-2">
+          ${items.length ? items.map(it => `
+            <div class="p-3 rounded-xl bg-white border border-black/[0.06] shadow-sm space-y-1">
+              <span class="inline-block px-2 py-0.5 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[9px] font-bold">${it.tag}</span>
+              <p class="text-xs font-bold text-[#1d1d1f]">${it.title}</p>
+              <p class="text-[11px] text-[#0071e3] font-medium"><i class="fa-regular fa-clock mr-1"></i>${it.schedule}</p>
+            </div>
+          `).join('') : '<p class="text-[11px] text-[#6e6e73] italic py-3 text-center">Día libre</p>'}
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 
 let studentSseSource = null;
@@ -1665,7 +1756,7 @@ document.getElementById('bioForm').addEventListener('submit', async (e) => {
 async function uploadStudentAvatar() {
   const input = document.getElementById('avatarFileInput');
   if (!input.files || !input.files[0]) {
-    alert('Selecciona primero una imagen');
+    showToast('Selecciona primero una imagen', "error");
     return;
   }
   const btn = document.getElementById('btnSaveAvatar');
@@ -1692,7 +1783,7 @@ async function uploadStudentAvatar() {
     setTimeout(() => fb.innerText = '', 3000);
   } else {
     const err = await res.json();
-    alert(err.error || 'Error subiendo la fotografía');
+    showToast(err.error || 'Error subiendo la fotografía', "error");
   }
 }
 

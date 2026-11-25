@@ -25,7 +25,7 @@ function copyCredentialsText(studentId) {
   const passText = stu.plain_hint ? stu.plain_hint : '(clave asignada)';
   const text = `Portal: https://dccorp.lat/intranet | Usuario: ${stu.code} | Clave: ${passText}`;
   navigator.clipboard.writeText(text).then(() => {
-    alert(`Credenciales de ${stu.full_name} copiadas al portapapeles.`);
+    showToast(`Credenciales de ${stu.full_name} copiadas al portapapeles.`, "success");
   });
 }
 
@@ -247,7 +247,7 @@ document.getElementById('editGroupForm').addEventListener('submit', async (e) =>
     loadAllData();
   } else {
     const d = await res.json();
-    alert(d.error || 'Error guardando subgrupo');
+    showToast(d.error || 'Error guardando subgrupo', "error");
   }
 });
 
@@ -399,7 +399,7 @@ async function uploadTeacherAvatar() {
   const uid = document.getElementById('tpUserId').value;
   const inp = document.getElementById('tpAvatarInput');
   if (!inp.files || !inp.files[0]) {
-    alert('Selecciona primero una imagen');
+    showToast('Selecciona primero una imagen', "error");
     return;
   }
   const fd = new FormData();
@@ -417,7 +417,7 @@ async function uploadTeacherAvatar() {
     document.getElementById('tpAvatarFallback').classList.add('hidden');
     await loadTeachers();
   } else {
-    alert('Error subiendo foto');
+    showToast('Error subiendo foto', "error");
   }
 }
 
@@ -446,7 +446,7 @@ document.getElementById('teacherEditForm').addEventListener('submit', async (e) 
       alert(d.error || `Error guardando perfil docente (HTTP ${res.status})`);
     }
   } catch (err) {
-    alert('Error de red al guardar perfil docente: ' + err.message);
+    showToast('Error de red al guardar perfil docente: ' + err.message, "error");
   }
 });
 
@@ -629,7 +629,7 @@ document.getElementById('editStudentForm').addEventListener('submit', async (e) 
   const studentId = document.getElementById('editStuId').value;
   const checkedIds = Array.from(document.querySelectorAll('input[name="editStuGroupCheck"]:checked')).map(cb => Number(cb.value));
   if (!checkedIds.length) {
-    alert('Selecciona al menos un subgrupo para el estudiante');
+    showToast('Selecciona al menos un subgrupo para el estudiante', "error");
     return;
   }
 
@@ -664,7 +664,7 @@ document.getElementById('editStudentForm').addEventListener('submit', async (e) 
       alert(d.error || `Error al actualizar estudiante (HTTP ${res.status})`);
     }
   } catch (err) {
-    alert('Error de conexión al guardar cambios: ' + err.message);
+    showToast('Error de conexión al guardar cambios: ' + err.message, "error");
   } finally {
     if (btn) {
       btn.disabled = false;
@@ -716,7 +716,7 @@ document.getElementById('groupForm').addEventListener('submit', async (e) => {
     loadAllData();
   } else {
     const d = await res.json();
-    alert(d.error);
+    showToast(d.error, "error");
   }
 });
 
@@ -724,7 +724,7 @@ document.getElementById('studentForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const checkedIds = Array.from(document.querySelectorAll('input[name="stuGroupCheck"]:checked')).map(cb => Number(cb.value));
   if (!checkedIds.length) {
-    alert('Selecciona al menos un subgrupo');
+    showToast('Selecciona al menos un subgrupo', "error");
     return;
   }
 
@@ -754,7 +754,7 @@ document.getElementById('studentForm').addEventListener('submit', async (e) => {
     }
   } else {
     const d = await res.json();
-    alert(d.error);
+    showToast(d.error, "error");
   }
 });
 
@@ -778,7 +778,7 @@ document.getElementById('teacherForm').addEventListener('submit', async (e) => {
     loadTeachers();
   } else {
     const d = await res.json();
-    alert(d.error);
+    showToast(d.error, "error");
   }
 });
 
@@ -854,7 +854,7 @@ async function downloadDatabaseBackup() {
     headers: { 'Authorization': `Bearer ${token}` }
   });
   if (!res.ok) {
-    alert('Error generando copia de seguridad');
+    showToast('Error generando copia de seguridad', "error");
     return;
   }
   const blob = await res.blob();

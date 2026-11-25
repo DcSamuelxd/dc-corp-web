@@ -548,7 +548,7 @@ function sendDailyReportWhatsApp() {
   const dateStr = document.getElementById('exportDatePicker').value || formatISO(new Date());
   const recs = lastDailySummaryData.records || [];
   if (!recs.length) {
-    alert('No hay asistencias registradas para esta fecha.');
+    showToast('No hay asistencias registradas para esta fecha.', "error");
     return;
   }
 
@@ -997,7 +997,7 @@ async function downloadDailyPng() {
     }, 'image/png');
   } catch (err) {
     console.error(err);
-    alert('Error al generar la imagen');
+    showToast('Error al generar la imagen', "error");
   } finally {
     btn.disabled = false;
     btn.innerHTML = '<i class="fa-solid fa-download"></i> Guardar / Compartir PNG';
@@ -1011,5 +1011,85 @@ function filterAttendanceStudents() {
     const hay = el.dataset.stuName || '';
     el.classList.toggle('hidden', q && !hay.includes(q));
   });
+}
+
+function renderAdminWeeklySchedule() {
+  const grid = document.getElementById('adminWeeklyScheduleGrid');
+  if (!grid) return;
+
+  const days = [
+    { key: 'lunes', label: 'Lunes', regex: /\blunes\b/i },
+    { key: 'martes', label: 'Martes', regex: /\bmartes\b/i },
+    { key: 'miercoles', label: 'Miércoles', regex: /\bmi[eé]rcoles\b/i },
+    { key: 'jueves', label: 'Jueves', regex: /\bjueves\b/i },
+    { key: 'viernes', label: 'Viernes', regex: /\bviernes\b/i },
+    { key: 'sabado', label: 'Sábado', regex: /\bs[aá]bado(s)?\b/i }
+  ];
+
+  const todayName = new Date().toLocaleDateString('es-PE', { weekday: 'long' }).toLowerCase();
+  const buckets = {};
+  days.forEach(d => { buckets[d.key] = []; });
+
+  const allowedGroups = isAdmin ? (groupsCache || []) : (groupsCache || []).filter(g => g.category === 'Sol Music');
+  let totalBlocks = 0;
+
+  allowedGroups.forEach(g => {
+    if (!g.schedule || !g.schedule.trim()) return;
+    days.forEach(d => {
+      if (d.regex.test(g.schedule)) {
+        buckets[d.key].push({ type: 'group', id: g.id, title: g.name, schedule: g.schedule, category: g.category, count: g.student_count || 0 });
+        totalBlocks += 1;
+      }
+    });
+  });
+
+  (studentsCache || []).forEach(s => {
+    if (!s.schedule || !s.schedule.trim()) return;
+    days.forEach(d => {
+      if (d.regex.test(s.schedule)) {
+        buckets[d.key].push({ type: 'student', id: s.id, title: s.full_name, schedule: s.schedule, category: isMusicStudent(s) ? (s.instrument || 'Sol Music') : (s.grade || 'Particulares') });
+        totalBlocks += 1;
+      }
+    });
+  });
+
+  const badge = document.getElementById('adminScheduleSummaryBadge');
+  if (badge) badge.innerText = `${totalBlocks} bloque(s)`;
+
+  grid.innerHTML = days.map(d => {
+    const items = buckets[d.key];
+    const isToday = todayName.includes(d.key.slice(0, 4));
+    return `
+      <div class="rounded-2xl border p-4 space-y-3 ${isToday ? 'bg-[#0ea5e9]/[0.07] border-[#0ea5e9]/35 ring-1 ring-[#0ea5e9]/20' : 'bg-white/90 border-black/[0.07]'}">
+        <div class="flex items-center justify-between">
+          <h4 class="text-sm font-bold text-[#1d1d1f]">${d.label}</h4>
+          ${isToday ? '<span class="px-2 py-0.5 rounded-full bg-[#0071e3] text-white text-[9px] font-bold">Hoy</span>' : `<span class="text-[10px] font-semibold text-[#6e6e73]">${items.length}</span>`}
+        </div>
+        <div class="space-y-2 max-h-60 overflow-y-auto aurora-scroll pr-1">
+          ${items.length ? items.map(it => it.type === 'group' ? `
+            <button type="button" onclick="switchTab('asistencia'); selectAttendanceGroupCard(${it.id});"
+              class="card-interactive w-full text-left p-2.5 rounded-xl bg-white border border-black/[0.06] shadow-sm space-y-0.5">
+              <div class="flex items-center justify-between gap-1.5">
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold ${it.category === 'Sol Music' ? 'bg-amber-500/15 text-amber-800' : 'bg-indigo-500/10 text-indigo-700'}">${it.category}</span>
+                <span class="text-[9px] text-[#6e6e73] font-semibold">${it.count} alum.</span>
+              </div>
+              <p class="text-xs font-bold text-[#1d1d1f] truncate">${it.title}</p>
+              <p class="text-[10px] text-[#0071e3] font-medium truncate"><i class="fa-regular fa-clock mr-1"></i>${it.schedule}</p>
+            </button>
+          ` : `
+            <button type="button" onclick="openStudentDetailModal(${it.id})"
+              class="card-interactive w-full text-left p-2.5 rounded-xl bg-[#f8fafc] border border-black/[0.05] space-y-0.5">
+              <div class="flex items-center justify-between gap-1.5">
+                <span class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 text-[9px] font-bold">Alumno</span>
+                <span class="text-[9px] text-[#6e6e73] truncate">${it.category}</span>
+              </div>
+              <p class="text-xs font-semibold text-[#1d1d1f] truncate">${it.title}</p>
+              <p class="text-[10px] text-[#0071e3] font-medium truncate"><i class="fa-regular fa-clock mr-1"></i>${it.schedule}</p>
+            </button>
+          `).join('') : '<p class="text-[11px] text-[#6e6e73] italic py-4 text-center">Sin clases programadas</p>'}
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 

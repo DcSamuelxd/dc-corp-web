@@ -50,6 +50,36 @@ function logout() {
   window.location.href = '/intranet';
 }
 
+function showToast(message, type = 'info') {
+  let container = document.getElementById('auroraToastContainer');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'auroraToastContainer';
+    container.className = 'aurora-toast-container';
+    document.body.appendChild(container);
+  }
+  const iconMap = {
+    success: { icon: 'fa-circle-check', cls: 'bg-emerald-500/20 text-emerald-300' },
+    error: { icon: 'fa-circle-exclamation', cls: 'bg-rose-500/20 text-rose-300' },
+    info: { icon: 'fa-circle-info', cls: 'bg-sky-500/20 text-sky-300' }
+  };
+  const meta = iconMap[type] || iconMap.info;
+  const toast = document.createElement('div');
+  toast.className = 'aurora-toast rounded-2xl px-4 py-3 flex items-center gap-3 text-xs font-medium';
+  toast.innerHTML = `
+    <div class="w-7 h-7 rounded-xl ${meta.cls} flex items-center justify-center shrink-0">
+      <i class="fa-solid ${meta.icon}"></i>
+    </div>
+    <span class="flex-1 leading-snug">${message}</span>
+  `;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translate3d(16px, 0, 0)';
+    setTimeout(() => toast.remove(), 220);
+  }, 3200);
+}
+
 function openPassModal() {
   document.getElementById('passModal').classList.remove('hidden');
 }
@@ -60,10 +90,10 @@ async function changeAdminPassword() {
     method: 'POST', headers: authHeaders(), body: JSON.stringify({ newPassword })
   });
   if (res.ok) {
-    alert('Contraseña actualizada correctamente');
+    showToast('Contraseña actualizada correctamente', 'success');
     document.getElementById('passModal').classList.add('hidden');
   } else {
-    alert('Error: verifica que tenga al menos 6 caracteres');
+    showToast('Error: verifica que tenga al menos 6 caracteres', 'error');
   }
 }
 
@@ -93,7 +123,7 @@ function syncAdminUrl(push = true) {
 function applyAdminRouteFromHash(hashStr) {
   const clean = (hashStr || '').replace(/^#/, '');
   const parts = clean.split('/').filter(Boolean);
-  const validTabs = ['asistencia', 'materiales', 'entregas', 'alumnos', 'avisos', 'profesores', 'mensajes'];
+  const validTabs = ['asistencia', 'materiales', 'entregas', 'horario', 'alumnos', 'avisos', 'profesores', 'mensajes'];
   let tab = validTabs.includes(parts[0]) ? parts[0] : 'asistencia';
   if (!isAdmin && tab === 'profesores') tab = 'asistencia';
   const aulaId = (parts[1] === 'aula' && parts[2]) ? Number(parts[2]) : null;
@@ -134,12 +164,15 @@ function switchTab(tab, pushHistory = true) {
   if (tab === 'entregas' && typeof renderGlobalSubmissionsPanel === 'function') {
     renderGlobalSubmissionsPanel();
   }
+  if (tab === 'horario' && typeof renderAdminWeeklySchedule === 'function') {
+    renderAdminWeeklySchedule();
+  }
   if (tab === 'materiales') {
     document.getElementById('unreadChatDot').classList.add('hidden');
     const mDot = document.getElementById('mobileUnreadDot');
     if (mDot) mDot.classList.add('hidden');
   }
-  ['asistencia', 'materiales', 'entregas', 'alumnos', 'avisos', 'profesores', 'mensajes'].forEach(t => {
+  ['asistencia', 'materiales', 'entregas', 'horario', 'alumnos', 'avisos', 'profesores', 'mensajes'].forEach(t => {
     const panel = document.getElementById(`panel-${t}`);
     if (panel) {
       if (t === tab) {
