@@ -146,6 +146,7 @@ const INSTRUMENT_OPTIONS = [
   'Cantante / Voz',
   'Cuerdas / Violín / Cello',
   'Vientos / Saxofón',
+  'Flauta',
   'Guía de Práctica'
 ];
 
@@ -163,12 +164,60 @@ function getActiveLabelOptions() {
     : [...INSTRUMENT_OPTIONS, ...CLASSROOM_LABEL_OPTIONS];
 }
 
+function renderMaterialGroupChecklist(preselectIds = null) {
+  const container = document.getElementById('matGroupChecklist');
+  if (!container) return;
+  const allowedGroups = isAdmin ? groupsCache : groupsCache.filter(g => g.category === 'Sol Music');
+  if (!allowedGroups.length) {
+    container.innerHTML = '<p class="col-span-full text-[11px] text-[#6e6e73] py-2">Crea primero un subgrupo para publicar material.</p>';
+    onMatGroupSelectChange();
+    return;
+  }
+
+  const currentlyChecked = preselectIds !== null
+    ? new Set(preselectIds.map(String))
+    : new Set(Array.from(document.querySelectorAll('input[name="matGroupCheck"]:checked')).map(cb => String(cb.value)));
+
+  if (!currentlyChecked.size && selectedClassroomCardId) {
+    currentlyChecked.add(String(selectedClassroomCardId));
+  } else if (!currentlyChecked.size && allowedGroups[0]) {
+    currentlyChecked.add(String(allowedGroups[0].id));
+  }
+
+  container.innerHTML = allowedGroups.map(g => {
+    const isChecked = currentlyChecked.has(String(g.id));
+    const isSol = g.category === 'Sol Music';
+    return `
+      <label class="mat-group-pill card-interactive flex items-center gap-2.5 px-3 py-2 rounded-xl border cursor-pointer transition ${isChecked ? 'border-[#0071e3] bg-[#0071e3]/[0.07]' : 'border-black/10 bg-white/80 hover:bg-white'}">
+        <input type="checkbox" name="matGroupCheck" value="${g.id}" ${isChecked ? 'checked' : ''} onchange="onMatGroupSelectChange()" class="rounded text-[#0071e3] shrink-0">
+        <div class="min-w-0 flex-1">
+          <p class="text-[11px] font-bold text-[#1d1d1f] truncate">${g.name}</p>
+          <span class="inline-block text-[9px] font-semibold ${isSol ? 'text-amber-700' : 'text-indigo-700'}">${g.category || 'Particulares'}</span>
+        </div>
+      </label>
+    `;
+  }).join('');
+  onMatGroupSelectChange();
+}
+
 function onMatGroupSelectChange() {
-  const gid = document.getElementById('matGroupSelect')?.value;
-  const grp = groupsCache.find(g => String(g.id) === String(gid));
+  const checkedBoxes = Array.from(document.querySelectorAll('input[name="matGroupCheck"]:checked'));
+  const countEl = document.getElementById('matGroupSelectedCount');
+  if (countEl) countEl.innerText = `${checkedBoxes.length} seleccionado(s)`;
+
+  document.querySelectorAll('.mat-group-pill').forEach(lbl => {
+    const cb = lbl.querySelector('input[type="checkbox"]');
+    const active = cb && cb.checked;
+    lbl.className = `mat-group-pill card-interactive flex items-center gap-2.5 px-3 py-2 rounded-xl border cursor-pointer transition ${active ? 'border-[#0071e3] bg-[#0071e3]/[0.07]' : 'border-black/10 bg-white/80 hover:bg-white'}`;
+  });
+
+  const selectedGroups = checkedBoxes
+    .map(cb => groupsCache.find(g => String(g.id) === String(cb.value)))
+    .filter(Boolean);
   const fmtSel = document.getElementById('matFormatSelect');
-  if (grp && fmtSel) {
-    fmtSel.value = grp.category === 'Sol Music' ? 'music' : 'classroom';
+  if (selectedGroups.length && fmtSel) {
+    const hasSol = selectedGroups.some(g => g.category === 'Sol Music');
+    fmtSel.value = hasSol ? 'music' : 'classroom';
     onMatFormatChange();
   }
 }
@@ -1526,16 +1575,16 @@ async function loadAllData() {
   if (gRes.status === 401) return logout();
   groupsCache = await gRes.json();
 
-  ['attGroupSelect', 'matGroupSelect'].forEach(id => {
-    const el = document.getElementById(id);
-    const prev = el.value;
+  const attSel = document.getElementById('attGroupSelect');
+  if (attSel) {
+    const prev = attSel.value;
     const allowedGroups = isAdmin ? groupsCache : groupsCache.filter(g => g.category === 'Sol Music');
-    el.innerHTML = allowedGroups.length
+    attSel.innerHTML = allowedGroups.length
       ? allowedGroups.map(g => `<option value="${g.id}">${isAdmin ? `[${g.category || 'Particulares'}] ` : ''}${g.name}</option>`).join('')
       : '<option value="">Crea primero un subgrupo</option>';
-    if (prev && allowedGroups.some(g => String(g.id) === prev)) el.value = prev;
-  });
-  onMatGroupSelectChange();
+    if (prev && allowedGroups.some(g => String(g.id) === prev)) attSel.value = prev;
+  }
+  renderMaterialGroupChecklist();
 
   renderGroupChecklists();
   renderGroupsCards();
@@ -2292,13 +2341,11 @@ function selectClassroomCard(groupId) {
   const backBtn = document.getElementById('btnBackToClassroomCards');
   const titleEl = document.getElementById('classroomHeaderTitle');
   const metaEl = document.getElementById('classroomHeaderMeta');
-  const matGrpSel = document.getElementById('matGroupSelect');
 
   if (selectedClassroomCardId) {
     const grp = groupsCache.find(g => Number(g.id) === Number(selectedClassroomCardId));
-    if (matGrpSel && grp) {
-      matGrpSel.value = String(grp.id);
-      onMatGroupSelectChange();
+    if (grp) {
+      renderMaterialGroupChecklist([grp.id]);
     }
     titleEl.innerText = grp ? grp.name : 'Aula seleccionada';
     metaEl.innerText = grp
@@ -2361,10 +2408,10 @@ async function loadMaterials() {
 }
 
 function openPublishMaterialModal() {
-  const matGrpSel = document.getElementById('matGroupSelect');
-  if (selectedClassroomCardId && matGrpSel) {
-    matGrpSel.value = String(selectedClassroomCardId);
-    onMatGroupSelectChange();
+  if (selectedClassroomCardId) {
+    renderMaterialGroupChecklist([selectedClassroomCardId]);
+  } else {
+    renderMaterialGroupChecklist();
   }
   document.getElementById('publishMaterialModal').classList.remove('hidden');
 }
@@ -2664,12 +2711,19 @@ document.getElementById('teacherForm').addEventListener('submit', async (e) => {
 
 document.getElementById('materialForm').addEventListener('submit', async (e) => {
   e.preventDefault();
+  const checkedGroups = Array.from(document.querySelectorAll('input[name="matGroupCheck"]:checked')).map(cb => Number(cb.value));
+  if (!checkedGroups.length) {
+    alert('Selecciona al menos un aula o subgrupo destino.');
+    return;
+  }
+
   const btn = document.getElementById('btnUploadMat');
   btn.disabled = true;
   btn.innerText = 'Subiendo archivos...';
 
   const formData = new FormData();
-  formData.append('group_id', document.getElementById('matGroupSelect').value);
+  formData.append('group_id', String(checkedGroups[0]));
+  formData.append('group_ids', JSON.stringify(checkedGroups));
   formData.append('title', document.getElementById('matTitle').value);
   formData.append('description', document.getElementById('matDesc').value);
   const pubFmt = document.getElementById('matFormatSelect')?.value || 'music';
@@ -2698,16 +2752,18 @@ document.getElementById('materialForm').addEventListener('submit', async (e) => 
     body: formData
   });
   btn.disabled = false;
-  btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up mr-1.5"></i> Publicar Material en el Aula';
+  btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i><span>Publicar Material en el Aula</span>';
   if (res.ok) {
     document.getElementById('materialForm').reset();
     document.getElementById('fileRowsContainer').innerHTML = '';
     addFileRow('General (Canción completa)');
     addFileRow('1ra Guitarra');
+    renderMaterialGroupChecklist(selectedClassroomCardId ? [selectedClassroomCardId] : null);
     closePublishMaterialModal();
     loadMaterials();
   } else {
-    alert('Error al publicar el material');
+    const errData = await res.json().catch(() => ({}));
+    alert(errData.error || 'Error al publicar el material');
   }
 });
 

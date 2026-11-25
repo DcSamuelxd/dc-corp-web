@@ -995,12 +995,40 @@ app.post('/intranet/api/admin/materials/:id/reply', authMiddleware, staffOnly, (
 });
 
 app.post('/intranet/api/admin/materials', authMiddleware, staffOnly, upload.array('files', 30), (req, res) => {
-  const { group_id, title, description, external_url, labels, publish_format, evaluation_enabled, target_grade } = req.body;
-  if (!group_id || !title) return res.status(400).json({ error: 'Grupo y título son obligatorios' });
+  const { group_id, group_ids, title, description, external_url, labels, publish_format, evaluation_enabled, target_grade } = req.body;
 
-  verifyGroupAccess(req.user, group_id, (allowed) => {
-    if (!allowed) return res.status(403).json({ error: 'Solo puedes publicar en subgrupos de Sol Music' });
+  let targetGroupIds = [];
+  if (group_ids) {
+    try {
+      const parsed = typeof group_ids === 'string' ? JSON.parse(group_ids) : group_ids;
+      if (Array.isArray(parsed)) targetGroupIds = parsed.map(Number).filter(n => Number.isInteger(n) && n > 0);
+    } catch {
+      targetGroupIds = [];
+    }
+  }
+  if (!targetGroupIds.length && group_id) {
+    const singleId = Number(group_id);
+    if (Number.isInteger(singleId) && singleId > 0) targetGroupIds = [singleId];
+  }
+  targetGroupIds = [...new Set(targetGroupIds)];
 
+  if (!targetGroupIds.length || !title || !title.trim()) {
+    return res.status(400).json({ error: 'Selecciona al menos un subgrupo y escribe el título' });
+  }
+
+  let checkIdx = 0;
+  function verifyNextGroup() {
+    if (checkIdx >= targetGroupIds.length) {
+      return insertMaterialsForGroups();
+    }
+    const gid = targetGroupIds[checkIdx++];
+    verifyGroupAccess(req.user, gid, (allowed) => {
+      if (!allowed) return res.status(403).json({ error: 'Solo puedes publicar en subgrupos de Sol Music' });
+      verifyNextGroup();
+    });
+  }
+
+  function insertMaterialsForGroups() {
     let parsedLabels = [];
     try {
       parsedLabels = labels ? JSON.parse(labels) : [];
@@ -1011,34 +1039,45 @@ app.post('/intranet/api/admin/materials', authMiddleware, staffOnly, upload.arra
     const fmt = publish_format === 'classroom' ? 'classroom' : 'music';
     const evalFlag = (evaluation_enabled === '1' || evaluation_enabled === 1 || evaluation_enabled === true) ? 1 : 0;
     const tGrade = (target_grade && target_grade !== 'Todos') ? String(target_grade).trim() : '';
+    const uploadedFiles = req.files || [];
+    const createdIds = [];
+    let insertIdx = 0;
 
-    db.run(
-      `INSERT INTO materials (group_id, title, description, external_url, publish_format, evaluation_enabled, target_grade) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [group_id, title.trim(), description || '', (external_url || '').trim(), fmt, evalFlag, tGrade],
-      function (err) {
-        if (err) return res.status(500).json({ error: 'Error al guardar el material' });
-        const materialId = this.lastID;
-        const uploadedFiles = req.files || [];
-
-        if (!uploadedFiles.length) return res.json({ id: materialId });
-
-        const stmt = db.prepare(
-          `INSERT INTO material_files (material_id, label, file_name, original_name, file_type) VALUES (?, ?, ?, ?, ?)`
-        );
-
-        uploadedFiles.forEach((f, idx) => {
-          const ext = path.extname(f.originalname || '').toLowerCase();
-          const fType = ext === '.pdf'
-            ? 'pdf'
-            : (['.mp3', '.wav', '.ogg', '.m4a', '.aac'].includes(ext) ? 'audio' : 'other');
-          const lbl = (parsedLabels[idx] && parsedLabels[idx].trim()) ? parsedLabels[idx].trim() : 'General';
-          stmt.run(materialId, lbl, f.filename, f.originalname, fType);
-        });
-
-        stmt.finalize(() => res.json({ id: materialId }));
+    function insertNext() {
+      if (insertIdx >= targetGroupIds.length) {
+        return res.json({ id: createdIds[0], ids: createdIds });
       }
-    );
-  });
+      const gid = targetGroupIds[insertIdx++];
+      db.run(
+        `INSERT INTO materials (group_id, title, description, external_url, publish_format, evaluation_enabled, target_grade) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [gid, title.trim(), description || '', (external_url || '').trim(), fmt, evalFlag, tGrade],
+        function (err) {
+          if (err) return res.status(500).json({ error: 'Error al guardar el material' });
+          const materialId = this.lastID;
+          createdIds.push(materialId);
+
+          if (!uploadedFiles.length) return insertNext();
+
+          const stmt = db.prepare(
+            `INSERT INTO material_files (material_id, label, file_name, original_name, file_type) VALUES (?, ?, ?, ?, ?)`
+          );
+          uploadedFiles.forEach((f, idx) => {
+            const ext = path.extname(f.originalname || '').toLowerCase();
+            const fType = ext === '.pdf'
+              ? 'pdf'
+              : (['.mp3', '.wav', '.ogg', '.m4a', '.aac'].includes(ext) ? 'audio' : 'other');
+            const lbl = (parsedLabels[idx] && parsedLabels[idx].trim()) ? parsedLabels[idx].trim() : 'General';
+            stmt.run(materialId, lbl, f.filename, f.originalname, fType);
+          });
+          stmt.finalize(() => insertNext());
+        }
+      );
+    }
+
+    insertNext();
+  }
+
+  verifyNextGroup();
 });
 
 app.put('/intranet/api/admin/materials/:id', authMiddleware, staffOnly, upload.array('files', 30), (req, res) => {
