@@ -63,7 +63,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     localStorage.setItem('dc_role', data.role);
     localStorage.setItem('dc_name', data.full_name);
 
-    window.location.replace((data.role === 'admin' || data.role === 'teacher') ? '/intranet/admin.html' : '/intranet/student.html');
+    window.location.replace((data.role === 'admin' || data.role === 'teacher') ? '/intranet/panel' : '/intranet/estudiante');
   } catch (err) {
     errorBox.innerText = err.message;
     errorBox.classList.remove('hidden');
