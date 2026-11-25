@@ -424,25 +424,29 @@ async function uploadTeacherAvatar() {
 document.getElementById('teacherEditForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const uid = document.getElementById('tpUserId').value;
-  const res = await fetch(`/intranet/api/admin/teachers/${uid}`, {
-    method: 'PUT',
-    headers: authHeaders(),
-    body: JSON.stringify({
-      full_name: document.getElementById('tpFullName').value,
-      specialty: document.getElementById('tpSpecialty').value,
-      whatsapp: document.getElementById('tpWhatsapp').value,
-      code: document.getElementById('tpCode').value,
-      bio: document.getElementById('tpBio').value,
-      new_password: document.getElementById('tpNewPass').value,
-      enable_faculty: true
-    })
-  });
-  if (res.ok) {
-    closeTeacherProfileModal();
-    await loadTeachers();
-  } else {
-    const d = await res.json();
-    alert(d.error || 'Error guardando perfil docente');
+  try {
+    const res = await fetch(`/intranet/api/admin/teachers/${uid}`, {
+      method: 'PUT',
+      headers: authHeaders(),
+      body: JSON.stringify({
+        full_name: document.getElementById('tpFullName').value,
+        specialty: document.getElementById('tpSpecialty').value,
+        whatsapp: document.getElementById('tpWhatsapp').value,
+        code: document.getElementById('tpCode').value,
+        bio: document.getElementById('tpBio').value,
+        new_password: document.getElementById('tpNewPass').value,
+        enable_faculty: true
+      })
+    });
+    if (res.ok) {
+      closeTeacherProfileModal();
+      await loadTeachers();
+    } else {
+      const d = await res.json().catch(() => ({}));
+      alert(d.error || `Error guardando perfil docente (HTTP ${res.status})`);
+    }
+  } catch (err) {
+    alert('Error de red al guardar perfil docente: ' + err.message);
   }
 });
 
@@ -629,28 +633,43 @@ document.getElementById('editStudentForm').addEventListener('submit', async (e) 
     return;
   }
 
-  const res = await fetch(`/intranet/api/admin/students/${studentId}`, {
-    method: 'PUT',
-    headers: authHeaders(),
-    body: JSON.stringify({
-      code: document.getElementById('editStuCode').value,
-      full_name: document.getElementById('editStuName').value,
-      group_ids: checkedIds,
-      group_id: checkedIds[0],
-      instrument: document.getElementById('editStuInstrument').value,
-      grade: document.getElementById('editStuGrade').value,
-      schedule: document.getElementById('editStuSchedule').value,
-      monthly_quota: document.getElementById('editStuQuota').value,
-      new_password: document.getElementById('editStuPass').value
-    })
-  });
+  const btn = document.getElementById('btnSaveEditStu');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerText = 'Guardando...';
+  }
 
-  if (res.ok) {
-    closeEditStudentModal();
-    loadAllData();
-  } else {
-    const d = await res.json();
-    alert(d.error || 'Error al actualizar estudiante');
+  try {
+    const res = await fetch(`/intranet/api/admin/students/${studentId}`, {
+      method: 'PUT',
+      headers: authHeaders(),
+      body: JSON.stringify({
+        code: document.getElementById('editStuCode').value,
+        full_name: document.getElementById('editStuName').value,
+        group_ids: checkedIds,
+        group_id: checkedIds[0],
+        instrument: document.getElementById('editStuInstrument').value,
+        grade: document.getElementById('editStuGrade').value,
+        schedule: document.getElementById('editStuSchedule').value,
+        monthly_quota: document.getElementById('editStuQuota').value,
+        new_password: document.getElementById('editStuPass').value
+      })
+    });
+
+    if (res.ok) {
+      closeEditStudentModal();
+      loadAllData();
+    } else {
+      const d = await res.json().catch(() => ({}));
+      alert(d.error || `Error al actualizar estudiante (HTTP ${res.status})`);
+    }
+  } catch (err) {
+    alert('Error de conexión al guardar cambios: ' + err.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerText = 'Guardar Cambios';
+    }
   }
 });
 
