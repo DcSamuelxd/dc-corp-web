@@ -188,6 +188,17 @@ db.serialize(() => {
 
   db.run(`CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications (user_id, is_read, created_at DESC)`);
 
+  db.run(`CREATE TABLE IF NOT EXISTS student_messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sender_id INTEGER NOT NULL,
+    receiver_id INTEGER NOT NULL,
+    content TEXT NOT NULL,
+    is_read INTEGER NOT NULL DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+
+  db.run(`CREATE INDEX IF NOT EXISTS idx_student_messages_pair ON student_messages (sender_id, receiver_id, created_at DESC)`);
+
   db.all(`SELECT id, file_name, original_name FROM materials WHERE file_name IS NOT NULL AND file_name != ''`, [], (err, legacyRows) => {
     if (!err && Array.isArray(legacyRows)) {
       legacyRows.forEach(r => {
