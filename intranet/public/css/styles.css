@@ -284,6 +284,36 @@ body.page-login {
   will-change: transform, opacity;
 }
 
+/* Intro Gota Aurora + Desplazamiento FLIP */
+@keyframes introDropIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.76);
+    border-radius: 9999px;
+  }
+  65% {
+    opacity: 1;
+    transform: scale(1.06);
+    border-radius: 26px;
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    border-radius: 22px;
+  }
+}
+
+.aurora-intro-overlay {
+  transition: opacity 420ms ease, background-color 420ms ease;
+  will-change: opacity;
+}
+
+.aurora-intro-pill {
+  animation: introDropIn 300ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  box-shadow: 0 24px 60px rgba(14, 165, 233, 0.36), 0 0 0 1px rgba(255, 255, 255, 0.75);
+  will-change: transform, opacity;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .btn-interactive,
   .btn-plus-icon,
@@ -294,7 +324,9 @@ body.page-login {
   .segmented-pill,
   .segmented-btn,
   .dock-pill,
-  .dock-btn {
+  .dock-btn,
+  .aurora-intro-overlay,
+  .aurora-intro-pill {
     transition: none !important;
     animation: none !important;
     transform: none !important;

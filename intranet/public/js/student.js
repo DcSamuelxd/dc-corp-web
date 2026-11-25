@@ -1486,7 +1486,46 @@ async function onStudentNotificationClick(id, linkHash) {
   }
 }
 
-window.addEventListener('DOMContentLoaded', loadStudentNotifications);
+function runBrandIntroAnimation() {
+  const overlay = document.getElementById('auroraIntroSplash');
+  const pill = document.getElementById('auroraIntroLogo');
+  if (!overlay || !pill) return;
+
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    overlay.remove();
+    return;
+  }
+
+  setTimeout(() => {
+    const target = document.getElementById(window.innerWidth >= 768 ? 'brandLogoDesktop' : 'brandLogoMobile');
+    if (!target) {
+      overlay.style.opacity = '0';
+      setTimeout(() => overlay.remove(), 300);
+      return;
+    }
+    const introRect = pill.getBoundingClientRect();
+    const targetRect = target.getBoundingClientRect();
+    const dx = (targetRect.left + targetRect.width / 2) - (introRect.left + introRect.width / 2);
+    const dy = (targetRect.top + targetRect.height / 2) - (introRect.top + introRect.height / 2);
+    const scale = targetRect.width && introRect.width ? (targetRect.width / introRect.width) : 0.65;
+
+    pill.style.animation = 'none';
+    pill.style.transition = 'transform 520ms cubic-bezier(0.22, 1.08, 0.36, 1), opacity 220ms ease 360ms';
+    requestAnimationFrame(() => {
+      pill.style.transform = `translate3d(${dx}px, ${dy}px, 0) scale(${scale})`;
+      pill.style.opacity = '0';
+      overlay.style.backgroundColor = 'transparent';
+      overlay.style.backdropFilter = 'none';
+      overlay.style.opacity = '0';
+    });
+    setTimeout(() => overlay.remove(), 600);
+  }, 280);
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  loadStudentNotifications();
+  runBrandIntroAnimation();
+});
 
 // ==================== MENSAJES DIRECTOS ENTRE ESTUDIANTES ====================
 let activeDmPeerId = null;
