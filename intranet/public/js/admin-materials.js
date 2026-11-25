@@ -569,6 +569,97 @@ async function loadMaterials() {
   if (selectedClassroomCardId) {
     renderMaterialsFiltered();
   }
+  renderGlobalSubmissionsPanel();
+}
+
+const expandedGlobalSubMat = {};
+
+function toggleGlobalSubCard(matId) {
+  expandedGlobalSubMat[matId] = !expandedGlobalSubMat[matId];
+  const body = document.getElementById(`globalSubBody-${matId}`);
+  const chev = document.getElementById(`globalSubChev-${matId}`);
+  if (body) body.classList.toggle('hidden', !expandedGlobalSubMat[matId]);
+  if (chev) chev.classList.toggle('rotate-180', Boolean(expandedGlobalSubMat[matId]));
+}
+
+function renderGlobalSubmissionsPanel() {
+  const container = document.getElementById('globalSubmissionsContainer');
+  if (!container) return;
+
+  const q = (document.getElementById('entregasSearchInput')?.value || '').trim().toLowerCase();
+  const statusFilter = document.getElementById('entregasStatusFilter')?.value || 'all';
+
+  let ungradedTotal = 0;
+  const enriched = (materialsCache || [])
+    .filter(m => Number(m.evaluation_enabled) === 1 || (m.submissions && m.submissions.length > 0))
+    .map(m => {
+      const subs = m.submissions || [];
+      const expected = (studentsCache || []).filter(s => {
+        const inGroup = (s.group_ids || []).includes(Number(m.group_id)) || Number(s.group_id) === Number(m.group_id);
+        if (!inGroup) return false;
+        if (m.category === 'Particulares' && m.target_grade && m.target_grade !== 'Todos') {
+          const sg = (s.grade || '').trim();
+          if (sg && sg !== m.target_grade) return false;
+        }
+        return true;
+      });
+      const submittedIds = new Set(subs.map(sb => Number(sb.student_id)));
+      const pendingCount = expected.filter(s => !submittedIds.has(Number(s.id))).length;
+      const ungradedCount = subs.filter(sb => sb.grade_score === null || sb.grade_score === undefined).length;
+      ungradedTotal += ungradedCount;
+      return { mat: m, subs, pendingCount, ungradedCount };
+    });
+
+  const badgeEl = document.getElementById('entregasPendingBadge');
+  if (badgeEl) {
+    badgeEl.innerText = ungradedTotal > 9 ? '9+' : String(ungradedTotal);
+    badgeEl.classList.toggle('hidden', ungradedTotal === 0);
+  }
+
+  const filtered = enriched.filter(item => {
+    if (statusFilter === 'ungraded' && item.ungradedCount === 0) return false;
+    if (statusFilter === 'pending' && item.pendingCount === 0) return false;
+    if (q) {
+      const haystack = `${item.mat.title} ${item.mat.group_name || ''} ${item.subs.map(s => s.student_name).join(' ')}`.toLowerCase();
+      if (!haystack.includes(q)) return false;
+    }
+    return true;
+  });
+
+  if (!filtered.length) {
+    container.innerHTML = '<p class="text-xs text-[#6e6e73] text-center py-8">No hay actividades que coincidan con este filtro.</p>';
+    return;
+  }
+
+  container.innerHTML = filtered.map(({ mat, subs, pendingCount, ungradedCount }) => {
+    const isOpen = Boolean(expandedGlobalSubMat[mat.id]);
+    const isSol = (mat.publish_format === 'music') || (!mat.publish_format && mat.category === 'Sol Music');
+    return `
+      <div class="card-interactive rounded-2xl bg-white/95 border border-black/[0.07] overflow-hidden shadow-sm">
+        <button type="button" onclick="toggleGlobalSubCard(${mat.id})"
+          class="w-full p-4 sm:p-5 flex flex-wrap items-center justify-between gap-3 text-left hover:bg-black/[0.015] transition">
+          <div class="min-w-0 flex-1">
+            <div class="flex flex-wrap items-center gap-1.5">
+              <span class="px-2.5 py-0.5 rounded-full ${isSol ? 'bg-amber-500/15 text-amber-800' : 'bg-indigo-500/10 text-indigo-700'} text-[10px] font-bold">${mat.group_name || 'Aula'}</span>
+              ${mat.target_grade ? `<span class="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-800 text-[10px] font-bold">${mat.target_grade}</span>` : ''}
+            </div>
+            <h4 class="text-sm sm:text-base font-bold text-[#1d1d1f] truncate mt-1">${mat.title}</h4>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2 shrink-0">
+            ${ungradedCount ? `<span class="px-2.5 py-1 rounded-full bg-rose-500/15 text-rose-700 text-[10px] font-bold">${ungradedCount} por calificar</span>` : ''}
+            <span class="px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-700 text-[10px] font-bold">Entregaron: ${subs.length}</span>
+            <span class="px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-800 text-[10px] font-bold">Faltan: ${pendingCount}</span>
+            <i id="globalSubChev-${mat.id}" class="fa-solid fa-chevron-down text-xs text-[#6e6e73] transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}"></i>
+          </div>
+        </button>
+
+        <div id="globalSubBody-${mat.id}" class="${isOpen ? 'section-enter' : 'hidden'} p-4 sm:p-5 pt-3 border-t border-black/[0.06] bg-[#f8fafc]">
+          ${renderSubmissionsAdmin(mat) || '<p class="text-xs text-[#6e6e73] text-center py-4">Sin alumnos asignados.</p>'}
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 
 function openPublishMaterialModal() {
