@@ -670,13 +670,41 @@ function renderStudentSubmissionBox(m) {
 }
 
 const expandedClassroomTopics = {};
+let selectedStudentMaterialId = null;
+const studentMaterialInnerTab = {};
+
+function selectStudentMaterial(matId) {
+  selectedStudentMaterialId = matId ? Number(matId) : null;
+  if (dashboardData) {
+    renderMaterialsSection(dashboardData.materials || []);
+  }
+}
+
+function setStudentMaterialInnerTab(matId, tabKey) {
+  studentMaterialInnerTab[matId] = tabKey;
+  ['material', 'trabajo', 'consultas'].forEach(k => {
+    const panel = document.getElementById(`matTabPanel-${matId}-${k}`);
+    if (panel) {
+      if (k === tabKey) {
+        panel.classList.remove('hidden', 'section-enter');
+        void panel.offsetWidth;
+        panel.classList.add('section-enter');
+      } else {
+        panel.classList.add('hidden');
+        panel.classList.remove('section-enter');
+      }
+    }
+    const btn = document.getElementById(`matTabBtn-${matId}-${k}`);
+    if (btn) {
+      btn.className = (k === tabKey)
+        ? 'px-3.5 py-1.5 rounded-lg bg-white text-[#1d1d1f] shadow-sm text-xs font-bold transition inline-flex items-center gap-1.5'
+        : 'px-3.5 py-1.5 rounded-lg text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition inline-flex items-center gap-1.5';
+    }
+  });
+}
 
 function toggleClassroomTopic(matId) {
-  expandedClassroomTopics[matId] = !expandedClassroomTopics[matId];
-  const bodyEl = document.getElementById(`classroomTopicBody-${matId}`);
-  const chevEl = document.getElementById(`classroomTopicChev-${matId}`);
-  if (bodyEl) bodyEl.classList.toggle('hidden', !expandedClassroomTopics[matId]);
-  if (chevEl) chevEl.classList.toggle('rotate-180', Boolean(expandedClassroomTopics[matId]));
+  selectStudentMaterial(matId);
 }
 
 function renderMaterialsSection(materials) {
@@ -691,122 +719,123 @@ function renderMaterialsSection(materials) {
 
   if (subEl) {
     subEl.innerText = isMusicArea
-      ? 'Partituras en PDF, pistas MP3 con control de velocidad y bucle A-B, metrónomo de práctica y chat directo en tiempo real.'
-      : 'Temario, fichas y guías en PDF, entrega de trabajos y resoluciones, evaluación con letra y porcentaje, y consultas en vivo.';
+      ? 'Selecciona una canción o tema para abrir sus pistas, partituras, entregas y consultas.'
+      : 'Selecciona un tema para revisar sus guías PDF, subir tu trabajo y consultar al docente.';
   }
   if (metroBtn) {
     metroBtn.classList.toggle('hidden', stuCategory !== 'Sol Music');
   }
 
   if (!materials.length) {
+    selectedStudentMaterialId = null;
     container.innerHTML = '<p class="text-xs text-[#6e6e73] text-center py-10">Tu docente aún no ha subido materiales para este grupo.</p>';
     return;
   }
 
-  container.innerHTML = materials.map((m, idx) => {
-    const isSolMusic = (m.publish_format === 'music') || (!m.publish_format && stuCategory === 'Sol Music');
-    const ytEmbed = getYouTubeEmbedUrl(m.external_url);
-    const notes = m.notes || [];
-    const notesHtml = notes.map(renderSingleNoteBubble).join('');
+  const activeMaterial = selectedStudentMaterialId
+    ? materials.find(x => Number(x.id) === Number(selectedStudentMaterialId))
+    : null;
 
-    if (!isSolMusic) {
-      if (expandedClassroomTopics[m.id] === undefined && idx === 0) {
-        expandedClassroomTopics[m.id] = false;
-      }
-      const isOpen = Boolean(expandedClassroomTopics[m.id]);
-      const sub = m.submission;
-      const hasGrade = sub && sub.grade_score !== null && sub.grade_score !== undefined;
-      const gInfo = hasGrade ? getStudentGradeInfo(sub.grade_score) : null;
-      const pctVal = hasGrade ? Math.round((parseFloat(sub.grade_score) / 20) * 100) : null;
+  if (!activeMaterial) {
+    selectedStudentMaterialId = null;
+    container.innerHTML = `
+      <div class="section-enter grid grid-cols-1 md:grid-cols-2 gap-3.5">
+        ${materials.map((m, idx) => {
+          const isSolMusic = (m.publish_format === 'music') || (!m.publish_format && stuCategory === 'Sol Music');
+          const filesCount = (m.files || []).length;
+          const notesCount = (m.notes || []).length;
+          const sub = m.submission;
+          const hasGrade = sub && sub.grade_score !== null && sub.grade_score !== undefined;
+          const gInfo = hasGrade ? getStudentGradeInfo(sub.grade_score) : null;
 
-      const circleHtml = gInfo
-        ? `<div class="w-12 h-12 rounded-full ${gInfo.cls} flex flex-col items-center justify-center shrink-0 shadow-sm" title="${gInfo.letter} • ${gInfo.label}">
-             <span class="text-xs font-extrabold leading-none">${pctVal}%</span>
-             <span class="text-[9px] font-bold leading-none mt-0.5">${gInfo.letter}</span>
-           </div>`
-        : `<div class="w-12 h-12 rounded-full bg-[#f5f5f7] border border-black/10 text-[#6e6e73] flex flex-col items-center justify-center shrink-0" title="Sin calificación aún">
-             <span class="text-[10px] font-bold leading-none">${sub ? 'Env.' : '—'}</span>
-           </div>`;
+          let statusPill = `<span class="px-2.5 py-0.5 rounded-full bg-black/[0.05] text-[#6e6e73] text-[10px] font-semibold">Pendiente</span>`;
+          if (gInfo) {
+            statusPill = `<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${gInfo.cls}">${sub.grade_score}/20 (${gInfo.letter})</span>`;
+          } else if (sub) {
+            statusPill = `<span class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 text-[10px] font-bold">Entregado</span>`;
+          } else if (isSolMusic && m.evaluation_enabled === 0) {
+            statusPill = `<span class="px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-800 text-[10px] font-bold">Repertorio</span>`;
+          }
 
-      return `
-        <div class="card-interactive rounded-2xl bg-white/95 border border-black/[0.07] overflow-hidden shadow-sm">
-          <button type="button" onclick="toggleClassroomTopic(${m.id})"
-            class="w-full p-4 sm:p-5 flex items-center justify-between gap-3 text-left hover:bg-black/[0.015] transition">
-            <div class="flex items-center gap-3.5 min-w-0">
-              ${circleHtml}
-              <div class="min-w-0">
-                <div class="flex flex-wrap items-center gap-2">
-                  <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-600">Tema ${materials.length - idx}</span>
-                  ${m.target_grade ? `<span class="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-800 text-[10px] font-bold">${m.target_grade}</span>` : ''}
-                  <span class="text-[10px] text-[#6e6e73]">${new Date(m.created_at).toLocaleDateString('es-PE')}</span>
+          return `
+            <button type="button" onclick="selectStudentMaterial(${m.id})"
+              class="card-interactive text-left p-4 sm:p-5 rounded-2xl bg-white/95 hover:bg-white border border-black/[0.07] shadow-sm flex flex-col justify-between gap-3">
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex items-start gap-3 min-w-0">
+                  <div class="w-10 h-10 rounded-xl ${isSolMusic ? 'bg-amber-500/15 text-amber-700' : 'bg-[#0071e3]/10 text-[#0071e3]'} flex items-center justify-center text-sm shrink-0">
+                    <i class="fa-solid ${isSolMusic ? 'fa-music' : 'fa-book-open'}"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <div class="flex flex-wrap items-center gap-1.5">
+                      <span class="text-[10px] font-bold uppercase tracking-wider ${isSolMusic ? 'text-amber-700' : 'text-indigo-600'}">Tema ${materials.length - idx}</span>
+                      ${m.target_grade ? `<span class="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-800 text-[10px] font-bold">${m.target_grade}</span>` : ''}
+                    </div>
+                    <h3 class="text-sm sm:text-base font-bold text-[#1d1d1f] break-words leading-snug mt-0.5">${m.title}</h3>
+                  </div>
                 </div>
-                <h3 class="text-sm sm:text-base font-bold text-[#1d1d1f] break-words leading-snug mt-0.5">${m.title}</h3>
-              </div>
-            </div>
-            <div class="flex items-center gap-2 shrink-0">
-              ${gInfo ? `<span class="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold ${gInfo.cls}">${gInfo.trophy ? '<i class="fa-solid fa-trophy"></i>' : ''}${sub.grade_score}/20 (${gInfo.letter})</span>` : ''}
-              <i id="classroomTopicChev-${m.id}" class="fa-solid fa-chevron-down text-xs text-[#6e6e73] transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}"></i>
-            </div>
-          </button>
-
-          <div id="classroomTopicBody-${m.id}" class="${isOpen ? '' : 'hidden'} px-4 sm:px-6 pb-5 pt-2 border-t border-black/[0.06] space-y-4">
-            ${m.description ? `
-              <div class="p-3.5 rounded-2xl bg-[#f5f5f7] space-y-1">
-                <span class="block text-[10px] font-bold uppercase tracking-wider text-[#6e6e73]">Indicaciones del tema</span>
-                <p class="text-xs text-[#1d1d1f] leading-relaxed">${m.description}</p>
-              </div>` : ''}
-
-            ${ytEmbed ? `
-              <div class="aspect-video w-full rounded-2xl overflow-hidden bg-black">
-                <iframe src="${ytEmbed}" class="w-full h-full border-0" allowfullscreen></iframe>
-              </div>` : (m.external_url ? `
-              <div>
-                <a href="${m.external_url}" target="_blank"
-                  class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-black/5 hover:bg-black/10 text-[#1d1d1f] text-xs font-medium transition">
-                  <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir enlace de referencia
-                </a>
-              </div>` : '')}
-
-            ${m.files && m.files.length ? `
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                ${m.files.map(renderStudentFile).join('')}
-              </div>` : ''}
-
-            ${renderStudentSubmissionBox(m)}
-
-            <div class="pt-3 border-t border-black/[0.06] space-y-3">
-              <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-[#1d1d1f]"><i class="fa-regular fa-comments mr-1.5 text-[#0071e3]"></i>Mis notas y consultas en vivo con el docente</span>
+                ${statusPill}
               </div>
 
-              <div id="notesList-${m.id}" class="space-y-2">${notesHtml}</div>
-
-              <div class="flex flex-col sm:flex-row gap-2">
-                <select id="noteType-${m.id}" class="bg-[#f5f5f7] border border-black/10 rounded-xl px-3 py-2 text-xs font-semibold sm:w-44">
-                  <option value="consulta">Consulta al profesor</option>
-                  <option value="personal">Nota personal (privada)</option>
-                </select>
-                <input type="text" id="noteInput-${m.id}" onkeydown="if(event.key==='Enter'){event.preventDefault();sendMaterialNote(${m.id});}"
-                  placeholder="Escribe tu duda sobre este tema o un apunte..."
-                  class="flex-1 bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:border-[#0071e3]">
-                <button type="button" onclick="sendMaterialNote(${m.id})"
-                  class="px-4 py-2 rounded-xl bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold shrink-0 transition">
-                  Enviar
-                </button>
+              <div class="pt-2.5 border-t border-black/[0.05] flex items-center justify-between text-[11px] text-[#6e6e73]">
+                <div class="flex items-center gap-3">
+                  <span><i class="fa-regular fa-folder-open mr-1"></i>${filesCount} archivo(s)</span>
+                  ${notesCount ? `<span><i class="fa-regular fa-comments mr-1"></i>${notesCount}</span>` : ''}
+                  <span>${new Date(m.created_at).toLocaleDateString('es-PE')}</span>
+                </div>
+                <span class="font-semibold text-[#0071e3]">Abrir <i class="fa-solid fa-arrow-right ml-0.5 text-[10px]"></i></span>
               </div>
-            </div>
-          </div>
-        </div>
-      `;
-    }
+            </button>
+          `;
+        }).join('')}
+      </div>
+    `;
+    return;
+  }
 
+  const m = activeMaterial;
+  const isSolMusic = (m.publish_format === 'music') || (!m.publish_format && stuCategory === 'Sol Music');
+  const ytEmbed = getYouTubeEmbedUrl(m.external_url);
+  const notes = m.notes || [];
+  const notesHtml = notes.map(renderSingleNoteBubble).join('');
+  const activeInnerTab = studentMaterialInnerTab[m.id] || 'material';
+  const sub = m.submission;
+  const hasGrade = sub && sub.grade_score !== null && sub.grade_score !== undefined;
+  const gInfo = hasGrade ? getStudentGradeInfo(sub.grade_score) : null;
+
+  let materialBodyHtml = '';
+  if (!isSolMusic) {
+    materialBodyHtml = `
+      ${m.description ? `
+        <div class="p-3.5 rounded-2xl bg-[#f5f5f7] space-y-1">
+          <span class="block text-[10px] font-bold uppercase tracking-wider text-[#6e6e73]">Indicaciones del tema</span>
+          <p class="text-xs text-[#1d1d1f] leading-relaxed">${m.description}</p>
+        </div>` : ''}
+
+      ${ytEmbed ? `
+        <div class="aspect-video w-full rounded-2xl overflow-hidden bg-black">
+          <iframe src="${ytEmbed}" class="w-full h-full border-0" allowfullscreen></iframe>
+        </div>` : (m.external_url ? `
+        <div>
+          <a href="${m.external_url}" target="_blank"
+            class="btn-interactive inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-black/5 hover:bg-black/10 text-[#1d1d1f] text-xs font-medium">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir enlace de referencia
+          </a>
+        </div>` : '')}
+
+      ${m.files && m.files.length ? `
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          ${m.files.map(renderStudentFile).join('')}
+        </div>` : '<p class="text-xs text-[#6e6e73] py-4 text-center">No hay archivos adjuntos en este tema.</p>'}
+    `;
+  } else {
     const files = m.files || [];
     const labels = Array.from(new Set(files.map(f => f.label || 'General (Canción completa)')));
     if (!labels.length) labels.push('General (Canción completa)');
     const activeLbl = selectedStudentSongLabel[m.id] || normalizeInstrumentMatch(stuInstrument, labels);
     selectedStudentSongLabel[m.id] = activeLbl;
 
-    const contentBlock = `
+    materialBodyHtml = `
+      ${m.description ? `<p class="text-xs text-[#6e6e73] leading-relaxed">${m.description}</p>` : ''}
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 pt-1">
         <div class="lg:col-span-8" id="stuSolStage-${m.id}">
           ${renderStudentSolStage(m, activeLbl)}
@@ -816,44 +845,73 @@ function renderMaterialsSection(materials) {
         </div>
       </div>
     `;
+  }
 
-    return `
-      <div class="p-5 sm:p-6 rounded-2xl bg-white/95 border border-black/[0.06] space-y-4">
-        <div class="flex items-start justify-between gap-2">
-          <div>
-            <h3 class="text-base sm:text-lg font-bold text-[#1d1d1f]">${m.title}</h3>
-            ${m.description ? `<p class="text-xs text-[#6e6e73] mt-1 leading-relaxed">${m.description}</p>` : ''}
+  const workBadge = gInfo
+    ? `<span class="px-1.5 py-0.5 rounded-full text-[9px] font-bold ${gInfo.cls}">${sub.grade_score}/20</span>`
+    : (sub ? `<span class="w-2 h-2 rounded-full bg-emerald-500"></span>` : '');
+
+  container.innerHTML = `
+    <div class="section-enter space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-[#f5f5f7] border border-black/[0.06]">
+        <div class="flex items-center gap-3 min-w-0">
+          <button type="button" onclick="selectStudentMaterial(null)"
+            class="btn-interactive px-3.5 py-2 rounded-full bg-white hover:bg-black/[0.04] border border-black/10 text-[#1d1d1f] text-xs font-semibold shrink-0">
+            <i class="fa-solid fa-arrow-left mr-1.5"></i> Todos los temas
+          </button>
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-1.5">
+              ${m.target_grade ? `<span class="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-800 text-[10px] font-bold">${m.target_grade}</span>` : ''}
+              <span class="text-[10px] text-[#6e6e73]">${new Date(m.created_at).toLocaleDateString('es-PE')}</span>
+            </div>
+            <h3 class="text-base sm:text-lg font-bold text-[#1d1d1f] truncate">${m.title}</h3>
           </div>
-          <span class="text-[10px] text-[#6e6e73] shrink-0">${new Date(m.created_at).toLocaleDateString('es-PE')}</span>
         </div>
 
-        ${contentBlock}
-        ${renderStudentSubmissionBox(m)}
-
-        <div class="pt-3 border-t border-black/[0.06] space-y-3">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-[#1d1d1f]"><i class="fa-regular fa-comments mr-1.5 text-[#0071e3]"></i>Mis notas y consultas en vivo con el docente</span>
-          </div>
-
-          <div id="notesList-${m.id}" class="space-y-2">${notesHtml}</div>
-
-          <div class="flex flex-col sm:flex-row gap-2">
-            <select id="noteType-${m.id}" class="bg-[#f5f5f7] border border-black/10 rounded-xl px-3 py-2 text-xs font-semibold sm:w-44">
-              <option value="consulta">Consulta al profesor</option>
-              <option value="personal">Nota personal (privada)</option>
-            </select>
-            <input type="text" id="noteInput-${m.id}" onkeydown="if(event.key==='Enter'){event.preventDefault();sendMaterialNote(${m.id});}"
-              placeholder="Escribe tu duda sobre este tema o un apunte..."
-              class="flex-1 bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:border-[#0071e3]">
-            <button type="button" onclick="sendMaterialNote(${m.id})"
-              class="px-4 py-2 rounded-xl bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold shrink-0 transition">
-              Enviar
-            </button>
-          </div>
+        <!-- Tabs internos compactos del tema -->
+        <div class="inline-flex p-1 rounded-xl bg-black/[0.06] shrink-0">
+          <button type="button" id="matTabBtn-${m.id}-material" onclick="setStudentMaterialInnerTab(${m.id}, 'material')"
+            class="${activeInnerTab === 'material' ? 'px-3.5 py-1.5 rounded-lg bg-white text-[#1d1d1f] shadow-sm text-xs font-bold transition inline-flex items-center gap-1.5' : 'px-3.5 py-1.5 rounded-lg text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition inline-flex items-center gap-1.5'}">
+            <i class="fa-solid ${isSolMusic ? 'fa-music' : 'fa-folder-open'} text-[#0071e3]"></i> Material
+          </button>
+          <button type="button" id="matTabBtn-${m.id}-trabajo" onclick="setStudentMaterialInnerTab(${m.id}, 'trabajo')"
+            class="${activeInnerTab === 'trabajo' ? 'px-3.5 py-1.5 rounded-lg bg-white text-[#1d1d1f] shadow-sm text-xs font-bold transition inline-flex items-center gap-1.5' : 'px-3.5 py-1.5 rounded-lg text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition inline-flex items-center gap-1.5'}">
+            <i class="fa-solid fa-clipboard-check text-emerald-600"></i> Tu trabajo ${workBadge}
+          </button>
+          <button type="button" id="matTabBtn-${m.id}-consultas" onclick="setStudentMaterialInnerTab(${m.id}, 'consultas')"
+            class="${activeInnerTab === 'consultas' ? 'px-3.5 py-1.5 rounded-lg bg-white text-[#1d1d1f] shadow-sm text-xs font-bold transition inline-flex items-center gap-1.5' : 'px-3.5 py-1.5 rounded-lg text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition inline-flex items-center gap-1.5'}">
+            <i class="fa-regular fa-comments text-indigo-600"></i> Consultas ${notes.length ? `<span class="px-1.5 py-0.2 rounded-full bg-indigo-500/15 text-indigo-700 text-[10px]">${notes.length}</span>` : ''}
+          </button>
         </div>
       </div>
-    `;
-  }).join('');
+
+      <div id="matTabPanel-${m.id}-material" class="${activeInnerTab === 'material' ? 'section-enter' : 'hidden'} p-4 sm:p-5 rounded-2xl bg-white/95 border border-black/[0.06] space-y-4">
+        ${materialBodyHtml}
+      </div>
+
+      <div id="matTabPanel-${m.id}-trabajo" class="${activeInnerTab === 'trabajo' ? 'section-enter' : 'hidden'}">
+        ${renderStudentSubmissionBox(m)}
+      </div>
+
+      <div id="matTabPanel-${m.id}-consultas" class="${activeInnerTab === 'consultas' ? 'section-enter' : 'hidden'} p-4 sm:p-5 rounded-2xl bg-white/95 border border-black/[0.06] space-y-3">
+        <span class="block text-xs font-bold text-[#1d1d1f]"><i class="fa-regular fa-comments mr-1.5 text-[#0071e3]"></i>Mis notas y consultas en vivo con el docente</span>
+        <div id="notesList-${m.id}" class="space-y-2 max-h-72 overflow-y-auto aurora-scroll pr-1">${notesHtml || '<p class="text-[11px] text-[#6e6e73] italic">Aún no has escrito notas o consultas en este tema.</p>'}</div>
+        <div class="flex flex-col sm:flex-row gap-2 pt-1">
+          <select id="noteType-${m.id}" class="bg-[#f5f5f7] border border-black/10 rounded-xl px-3 py-2 text-xs font-semibold sm:w-44">
+            <option value="consulta">Consulta al profesor</option>
+            <option value="personal">Nota personal (privada)</option>
+          </select>
+          <input type="text" id="noteInput-${m.id}" onkeydown="if(event.key==='Enter'){event.preventDefault();sendMaterialNote(${m.id});}"
+            placeholder="Escribe tu duda sobre este tema o un apunte..."
+            class="flex-1 bg-[#f5f5f7] border border-black/10 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:border-[#0071e3]">
+          <button type="button" onclick="sendMaterialNote(${m.id})"
+            class="btn-interactive px-4 py-2 rounded-xl bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold shrink-0">
+            Enviar
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 function renderAttendancesList() {

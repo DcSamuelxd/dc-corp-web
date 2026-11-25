@@ -1411,7 +1411,7 @@ function renderStudentClassCards() {
   });
 
   if (!visibleGroups.length) {
-    grid.innerHTML = '<p class="col-span-full text-xs text-[#6e6e73] py-2">No hay clases creadas en esta vista.</p>';
+    grid.innerHTML = '<p class="col-span-full text-xs text-[#6e6e73] py-2">No hay subgrupos creados en esta vista.</p>';
     return;
   }
 
@@ -1419,25 +1419,43 @@ function renderStudentClassCards() {
     const active = String(g.id) === String(selectedStudentGroupCardId);
     const isSol = g.category === 'Sol Music';
     return `
-      <button type="button" onclick="selectStudentGroupCard(${g.id})"
-        class="card-interactive text-left p-3.5 rounded-2xl border flex flex-col justify-between gap-1.5 ${
+      <div onclick="selectStudentGroupCard(${g.id})" role="button" tabindex="0"
+        class="card-interactive cursor-pointer text-left p-3.5 rounded-2xl border flex flex-col justify-between gap-2 ${
           active
-            ? 'bg-[#1d1d1f] text-white border-[#1d1d1f] shadow-sm'
+            ? 'bg-[#102e44] text-white border-[#0ea5e9] shadow-md shadow-sky-500/15'
             : 'bg-white/95 hover:bg-white text-[#1d1d1f] border-black/[0.08]'
         }">
         <div class="flex items-center justify-between gap-2">
-          <span class="px-2 py-0.5 rounded-full text-[9px] font-bold ${
-            active
-              ? 'bg-white/15 text-white'
-              : (isSol ? 'bg-amber-500/15 text-amber-800' : 'bg-indigo-500/10 text-indigo-700')
-          }">${g.category}</span>
-          <span class="text-[10px] font-semibold ${active ? 'text-white/85' : 'text-[#6e6e73]'}">
-            <i class="fa-solid fa-users mr-1"></i>${g.student_count || 0}
-          </span>
+          <div class="flex items-center gap-1.5 min-w-0">
+            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold shrink-0 ${
+              active
+                ? 'bg-sky-400/20 text-sky-200'
+                : (isSol ? 'bg-amber-500/15 text-amber-800' : 'bg-indigo-500/10 text-indigo-700')
+            }">${g.category}</span>
+            <span class="text-[10px] font-semibold truncate ${active ? 'text-slate-200' : 'text-[#6e6e73]'}">
+              <i class="fa-solid fa-users mr-1"></i>${g.student_count || 0}
+            </span>
+          </div>
+          <div class="flex items-center gap-1 shrink-0">
+            <button type="button" onclick="event.stopPropagation(); openEditGroupModal(${g.id})"
+              class="btn-interactive px-2 py-1 rounded-lg text-[10px] font-semibold ${
+                active ? 'bg-white/15 hover:bg-white/25 text-white' : 'bg-[#0071e3]/10 hover:bg-[#0071e3]/20 text-[#0071e3]'
+              }" title="Editar subgrupo y ver alumnos">
+              <i class="fa-solid fa-pen-to-square"></i> Editar
+            </button>
+            <button type="button" onclick="event.stopPropagation(); deleteGroup(${g.id})"
+              class="p-1.5 rounded-lg text-[10px] ${
+                active ? 'text-rose-300 hover:bg-rose-500/20' : 'text-red-500 hover:bg-red-50'
+              }" title="Eliminar subgrupo">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
         </div>
-        <p class="text-xs font-bold leading-snug line-clamp-1">${g.name}</p>
-        ${g.schedule ? `<p class="text-[10px] truncate ${active ? 'text-sky-300' : 'text-[#0071e3]'}"><i class="fa-regular fa-clock mr-1"></i>${g.schedule}</p>` : ''}
-      </button>
+        <div>
+          <p class="text-xs font-bold leading-snug line-clamp-1">${g.name}</p>
+          ${g.schedule ? `<p class="text-[10px] truncate mt-0.5 ${active ? 'text-sky-300' : 'text-[#0071e3]'}"><i class="fa-regular fa-clock mr-1"></i>${g.schedule}</p>` : ''}
+        </div>
+      </div>
     `;
   }).join('');
 }
@@ -1479,42 +1497,7 @@ function renderGroupChecklists() {
 }
 
 function renderGroupsCards() {
-  const grid = document.getElementById('groupsCardsGrid');
-  if (!grid) return;
-  if (!groupsCache.length) {
-    grid.innerHTML = '<p class="text-xs text-[#6e6e73]">Aún no hay subgrupos creados.</p>';
-    return;
-  }
-
-  grid.innerHTML = groupsCache.map(g => {
-    const isSol = g.category === 'Sol Music';
-    const badgeCls = isSol ? 'bg-amber-500/15 text-amber-800' : 'bg-indigo-500/10 text-indigo-700';
-    return `
-      <div class="card-interactive p-3.5 rounded-2xl bg-white/95 border border-black/[0.07] space-y-2">
-        <div class="flex items-start justify-between gap-2">
-          <div class="min-w-0">
-            <div class="flex flex-wrap items-center gap-1.5">
-              <span class="px-2 py-0.5 rounded-full ${badgeCls} text-[10px] font-bold">${g.category}</span>
-              <span class="px-2 py-0.5 rounded-full bg-black/[0.05] text-[#1d1d1f] text-[10px] font-semibold">
-                <i class="fa-solid fa-users mr-1 text-[#0071e3]"></i>${g.student_count || 0} alumno(s)
-              </span>
-            </div>
-            <h4 class="text-xs sm:text-sm font-bold text-[#1d1d1f] mt-1">${g.name}</h4>
-            ${g.schedule ? `<p class="text-[11px] text-[#0071e3] font-medium"><i class="fa-regular fa-clock mr-1"></i>${g.schedule}</p>` : ''}
-            ${g.description ? `<p class="text-[11px] text-[#6e6e73] mt-0.5">${g.description}</p>` : ''}
-          </div>
-          <div class="flex items-center gap-1 shrink-0">
-            <button type="button" onclick="openEditGroupModal(${g.id})" class="btn-interactive px-2.5 py-1 rounded-lg bg-[#0071e3]/10 hover:bg-[#0071e3]/20 text-[#0071e3] text-[11px] font-semibold">
-              <i class="fa-solid fa-pen-to-square mr-1"></i> Editar
-            </button>
-            <button type="button" onclick="deleteGroup(${g.id})" class="p-1.5 text-red-500 hover:bg-red-50 rounded-lg text-xs" title="Eliminar">
-              <i class="fa-solid fa-trash"></i>
-            </button>
-          </div>
-        </div>
-      </div>
-    `;
-  }).join('');
+  renderStudentClassCards();
 }
 
 function openEditGroupModal(groupId) {
