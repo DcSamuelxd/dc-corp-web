@@ -375,6 +375,38 @@ document.addEventListener("keydown", (e) => {
   const passModal = document.getElementById("passModal");
   if (passModal && !passModal.classList.contains("hidden")) {
     passModal.classList.add("hidden");
+    return;
+  }
+
+  // Navegación / limpieza rápida con Escape en todas las secciones (Académico y Gestión)
+  if (activeAdminTab === "asistencia" && typeof selectedAttGroupId !== "undefined" && selectedAttGroupId) {
+    selectAttendanceGroupCard(null);
+    return;
+  }
+  if (activeAdminTab === "materiales") {
+    if (typeof selectedAdminMaterialId !== "undefined" && selectedAdminMaterialId) {
+      selectAdminMaterial(null);
+      return;
+    }
+    if (typeof selectedClassroomCardId !== "undefined" && selectedClassroomCardId) {
+      selectClassroomCard(null);
+      return;
+    }
+  }
+  if (activeAdminTab === "alumnos") {
+    if (typeof selectedStudentGroupCardId !== "undefined" && selectedStudentGroupCardId) {
+      selectStudentGroupCard("");
+      return;
+    }
+    const searchEl = document.getElementById("dirStudentSearch");
+    if (searchEl && searchEl.value) {
+      searchEl.value = "";
+      renderStudentsViews();
+      return;
+    }
+  }
+  if (document.activeElement && ["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement.tagName)) {
+    document.activeElement.blur();
   }
 });
 

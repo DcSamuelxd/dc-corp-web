@@ -411,8 +411,40 @@ function renderAdminSolStage(m, activeLabel) {
   `;
 }
 
+let selectedAdminMaterialId = null;
+const adminMaterialInnerTab = {};
+
+function selectAdminMaterial(matId) {
+  selectedAdminMaterialId = matId ? Number(matId) : null;
+  renderMaterialsFiltered();
+}
+
+function setAdminMaterialInnerTab(matId, tabKey) {
+  adminMaterialInnerTab[matId] = tabKey;
+  ['material', 'entregas', 'consultas'].forEach(k => {
+    const panel = document.getElementById(`adminMatTabPanel-${matId}-${k}`);
+    if (panel) {
+      if (k === tabKey) {
+        panel.classList.remove('hidden', 'section-enter');
+        void panel.offsetWidth;
+        panel.classList.add('section-enter');
+      } else {
+        panel.classList.add('hidden');
+        panel.classList.remove('section-enter');
+      }
+    }
+    const btn = document.getElementById(`adminMatTabBtn-${matId}-${k}`);
+    if (btn) {
+      btn.className = (k === tabKey)
+        ? 'px-3.5 py-1.5 rounded-lg bg-white text-[#1d1d1f] shadow-sm text-xs font-bold transition inline-flex items-center gap-1.5'
+        : 'px-3.5 py-1.5 rounded-lg text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition inline-flex items-center gap-1.5';
+    }
+  });
+}
+
 function selectClassroomCard(groupId, pushHistory = true) {
   selectedClassroomCardId = groupId ? Number(groupId) : null;
+  selectedAdminMaterialId = null;
   const cardsGrid = document.getElementById('classroomCardsGrid');
   const listEl = document.getElementById('materialsList');
   const backBtn = document.getElementById('btnBackToClassroomCards');
@@ -504,61 +536,161 @@ function renderMaterialsFiltered() {
     ? materialsCache.filter(m => Number(m.group_id) === Number(gid))
     : materialsCache;
 
-  document.getElementById('materialsList').innerHTML = filteredMats.map(m => {
-    const isSol = (m.publish_format === 'music') || (!m.publish_format && m.category === 'Sol Music');
-    const files = m.files || [];
-    const defaultLbl = selectedAdminMatInstrument[m.id]
-      || (files[0] ? files[0].label : 'General (Canción completa)');
-    selectedAdminMatInstrument[m.id] = defaultLbl;
+  const listContainer = document.getElementById('materialsList');
+  if (!filteredMats.length) {
+    selectedAdminMaterialId = null;
+    listContainer.innerHTML = '<div class="glass-bento p-8 text-center"><p class="text-xs text-[#6e6e73]">No hay materiales publicados en esta aula todavía.</p></div>';
+    return;
+  }
 
-    const bodyContent = isSol
-      ? `
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 pt-1">
-          <div class="lg:col-span-8" id="adminSolStage-${m.id}">
-            ${renderAdminSolStage(m, defaultLbl)}
-          </div>
-          <div class="lg:col-span-4" id="adminSolSidebar-${m.id}">
-            ${renderAdminSolSidebar(m, defaultLbl)}
-          </div>
+  const activeMat = selectedAdminMaterialId
+    ? filteredMats.find(m => Number(m.id) === Number(selectedAdminMaterialId))
+    : null;
+
+  if (!activeMat) {
+    selectedAdminMaterialId = null;
+    listContainer.innerHTML = `
+      <div class="section-enter grid grid-cols-1 md:grid-cols-2 gap-3.5">
+        ${filteredMats.map((m, idx) => {
+          const isSol = (m.publish_format === 'music') || (!m.publish_format && m.category === 'Sol Music');
+          const filesCount = (m.files || []).length;
+          const subsCount = (m.submissions || []).length;
+          const notesCount = (m.notes || []).length;
+          return `
+            <div onclick="selectAdminMaterial(${m.id})" role="button" tabindex="0"
+              class="card-interactive cursor-pointer text-left p-4 sm:p-5 rounded-2xl bg-white/95 hover:bg-white border border-black/[0.07] shadow-sm flex flex-col justify-between gap-3">
+              <div class="flex items-start justify-between gap-2.5">
+                <div class="flex items-start gap-3 min-w-0">
+                  <div class="w-10 h-10 rounded-xl ${isSol ? 'bg-amber-500/15 text-amber-700' : 'bg-[#0071e3]/10 text-[#0071e3]'} flex items-center justify-center text-sm shrink-0">
+                    <i class="fa-solid ${isSol ? 'fa-music' : 'fa-book-open'}"></i>
+                  </div>
+                  <div class="min-w-0">
+                    <div class="flex flex-wrap items-center gap-1.5">
+                      <span class="text-[10px] font-bold uppercase tracking-wider ${isSol ? 'text-amber-700' : 'text-indigo-600'}">Tema ${filteredMats.length - idx}</span>
+                      ${m.target_grade ? `<span class="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-800 text-[10px] font-bold">${m.target_grade}</span>` : ''}
+                    </div>
+                    <h4 class="text-sm sm:text-base font-bold text-[#1d1d1f] break-words leading-snug mt-0.5">${m.title}</h4>
+                  </div>
+                </div>
+                <div class="flex items-center gap-1 shrink-0">
+                  <button type="button" onclick="event.stopPropagation(); openEditMaterialModal(${m.id})"
+                    class="btn-interactive px-2.5 py-1 rounded-lg bg-[#0071e3]/10 hover:bg-[#0071e3]/20 text-[#0071e3] text-[11px] font-semibold" title="Editar material">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                  </button>
+                  <button type="button" onclick="event.stopPropagation(); deleteMaterial(${m.id})"
+                    class="p-1.5 text-red-500 hover:bg-red-50 rounded-lg text-xs" title="Eliminar">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="pt-2.5 border-t border-black/[0.05] flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#6e6e73]">
+                <div class="flex flex-wrap items-center gap-2.5">
+                  <span><i class="fa-regular fa-folder-open mr-1"></i>${filesCount} archivo(s)</span>
+                  ${subsCount ? `<span class="text-emerald-700 font-semibold"><i class="fa-solid fa-clipboard-check mr-1"></i>${subsCount} entrega(s)</span>` : ''}
+                  ${notesCount ? `<span class="text-indigo-700 font-semibold"><i class="fa-regular fa-comments mr-1"></i>${notesCount}</span>` : ''}
+                </div>
+                <span class="font-semibold text-[#0071e3]">Abrir <i class="fa-solid fa-arrow-right ml-0.5 text-[10px]"></i></span>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+    return;
+  }
+
+  const m = activeMat;
+  const isSol = (m.publish_format === 'music') || (!m.publish_format && m.category === 'Sol Music');
+  const files = m.files || [];
+  const subsCount = (m.submissions || []).length;
+  const notesCount = (m.notes || []).length;
+  const activeInnerTab = adminMaterialInnerTab[m.id] || 'material';
+  const defaultLbl = selectedAdminMatInstrument[m.id]
+    || (files[0] ? files[0].label : 'General (Canción completa)');
+  selectedAdminMatInstrument[m.id] = defaultLbl;
+
+  const bodyContent = isSol
+    ? `
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 pt-1">
+        <div class="lg:col-span-8" id="adminSolStage-${m.id}">
+          ${renderAdminSolStage(m, defaultLbl)}
         </div>
-      `
-      : `
-        ${m.external_url ? `
-          <div>
-            <a href="${m.external_url}" target="_blank"
-              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-600/10 text-red-700 hover:bg-red-600/20 text-xs font-semibold transition">
-              <i class="fa-brands fa-youtube"></i> Ver video / enlace de referencia
-            </a>
-          </div>` : ''}
-        ${files.length ? `<div class="space-y-2 pt-1">${files.map(renderAttachmentAdmin).join('')}</div>` : ''}
-      `;
+        <div class="lg:col-span-4" id="adminSolSidebar-${m.id}">
+          ${renderAdminSolSidebar(m, defaultLbl)}
+        </div>
+      </div>
+    `
+    : `
+      ${m.external_url ? `
+        <div>
+          <a href="${m.external_url}" target="_blank"
+            class="btn-interactive inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-600/10 text-red-700 hover:bg-red-600/20 text-xs font-semibold">
+            <i class="fa-brands fa-youtube"></i> Ver video / enlace de referencia
+          </a>
+        </div>` : ''}
+      ${files.length ? `<div class="space-y-2 pt-1">${files.map(renderAttachmentAdmin).join('')}</div>` : '<p class="text-xs text-[#6e6e73] py-4 text-center">No hay archivos adjuntos en este tema.</p>'}
+    `;
 
-    return `
-      <div class="p-4 sm:p-5 rounded-2xl bg-white/90 border border-black/[0.06] space-y-3">
-        <div class="flex items-start justify-between gap-3">
-          <div>
+  listContainer.innerHTML = `
+    <div class="section-enter glass-bento p-4 sm:p-6 space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-black/[0.06]">
+        <div class="flex items-center gap-3 min-w-0">
+          <button type="button" onclick="selectAdminMaterial(null)"
+            class="btn-interactive px-3.5 py-2 rounded-full bg-[#f5f5f7] hover:bg-black/[0.06] border border-black/10 text-[#1d1d1f] text-xs font-semibold shrink-0">
+            <i class="fa-solid fa-arrow-left mr-1.5"></i> Todos los temas
+          </button>
+          <div class="min-w-0">
             <div class="flex flex-wrap items-center gap-1.5">
               <span class="px-2.5 py-0.5 rounded-full ${isSol ? 'bg-amber-500/15 text-amber-800' : 'bg-indigo-500/10 text-indigo-700'} text-[10px] font-semibold">[${m.category || 'Particulares'}] ${m.group_name || 'General'}</span>
               ${m.target_grade ? `<span class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-800 text-[10px] font-bold"><i class="fa-solid fa-graduation-cap mr-1"></i>${m.target_grade}</span>` : ''}
             </div>
-            <h4 class="text-sm font-bold text-[#1d1d1f] mt-1">${m.title}</h4>
+            <h4 class="text-base sm:text-lg font-bold text-[#1d1d1f] truncate mt-0.5">${m.title}</h4>
             ${m.description ? `<p class="text-xs text-[#6e6e73] mt-0.5">${m.description}</p>` : ''}
-          </div>
-          <div class="flex items-center gap-1.5 shrink-0">
-            <button type="button" onclick="openEditMaterialModal(${m.id})" class="px-2.5 py-1 rounded-lg bg-[#0071e3]/10 hover:bg-[#0071e3]/20 text-[#0071e3] text-xs font-semibold transition" title="Editar material">
-              <i class="fa-solid fa-pen-to-square mr-1"></i> Editar
-            </button>
-            <button type="button" onclick="deleteMaterial(${m.id})" class="text-red-500 hover:text-red-700 text-xs p-1.5" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
           </div>
         </div>
 
-        ${bodyContent}
-
-        ${renderSubmissionsAdmin(m)}
-        ${renderConsultasAdmin(m)}
+        <div class="flex flex-wrap items-center gap-2 shrink-0">
+          <button type="button" onclick="openEditMaterialModal(${m.id})"
+            class="btn-interactive px-3 py-1.5 rounded-full bg-[#0071e3]/10 hover:bg-[#0071e3]/20 text-[#0071e3] text-xs font-semibold">
+            <i class="fa-solid fa-pen-to-square mr-1"></i> Editar
+          </button>
+          <button type="button" onclick="deleteMaterial(${m.id})"
+            class="btn-interactive px-3 py-1.5 rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-600 text-xs font-semibold" title="Eliminar">
+            <i class="fa-solid fa-trash mr-1"></i> Eliminar
+          </button>
+        </div>
       </div>
-    `;
-  }).join('') || '<p class="text-xs text-[#6e6e73] text-center py-8">No hay materiales publicados en esta aula todavía.</p>';
+
+      <!-- Tabs internos compactos -->
+      <div class="inline-flex p-1 rounded-xl bg-black/[0.05]">
+        <button type="button" id="adminMatTabBtn-${m.id}-material" onclick="setAdminMaterialInnerTab(${m.id}, 'material')"
+          class="${activeInnerTab === 'material' ? 'px-3.5 py-1.5 rounded-lg bg-white text-[#1d1d1f] shadow-sm text-xs font-bold transition inline-flex items-center gap-1.5' : 'px-3.5 py-1.5 rounded-lg text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition inline-flex items-center gap-1.5'}">
+          <i class="fa-solid ${isSol ? 'fa-music' : 'fa-folder-open'} text-[#0071e3]"></i> Material y Pistas
+        </button>
+        <button type="button" id="adminMatTabBtn-${m.id}-entregas" onclick="setAdminMaterialInnerTab(${m.id}, 'entregas')"
+          class="${activeInnerTab === 'entregas' ? 'px-3.5 py-1.5 rounded-lg bg-white text-[#1d1d1f] shadow-sm text-xs font-bold transition inline-flex items-center gap-1.5' : 'px-3.5 py-1.5 rounded-lg text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition inline-flex items-center gap-1.5'}">
+          <i class="fa-solid fa-clipboard-check text-emerald-600"></i> Entregas ${subsCount ? `<span class="px-1.5 py-0.2 rounded-full bg-emerald-500/15 text-emerald-700 text-[10px]">${subsCount}</span>` : ''}
+        </button>
+        <button type="button" id="adminMatTabBtn-${m.id}-consultas" onclick="setAdminMaterialInnerTab(${m.id}, 'consultas')"
+          class="${activeInnerTab === 'consultas' ? 'px-3.5 py-1.5 rounded-lg bg-white text-[#1d1d1f] shadow-sm text-xs font-bold transition inline-flex items-center gap-1.5' : 'px-3.5 py-1.5 rounded-lg text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition inline-flex items-center gap-1.5'}">
+          <i class="fa-regular fa-comments text-indigo-600"></i> Consultas ${notesCount ? `<span class="px-1.5 py-0.2 rounded-full bg-indigo-500/15 text-indigo-700 text-[10px]">${notesCount}</span>` : ''}
+        </button>
+      </div>
+
+      <div id="adminMatTabPanel-${m.id}-material" class="${activeInnerTab === 'material' ? 'section-enter' : 'hidden'} space-y-3">
+        ${bodyContent}
+      </div>
+
+      <div id="adminMatTabPanel-${m.id}-entregas" class="${activeInnerTab === 'entregas' ? 'section-enter' : 'hidden'}">
+        ${renderSubmissionsAdmin(m) || '<p class="text-xs text-[#6e6e73] py-6 text-center">Ningún estudiante ha enviado entregas en este tema todavía.</p>'}
+      </div>
+
+      <div id="adminMatTabPanel-${m.id}-consultas" class="${activeInnerTab === 'consultas' ? 'section-enter' : 'hidden'}">
+        ${renderConsultasAdmin(m) || '<p class="text-xs text-[#6e6e73] py-6 text-center">No hay consultas de estudiantes en este tema todavía.</p>'}
+      </div>
+    </div>
+  `;
 }
 
 let editDeletedFileIds = [];
