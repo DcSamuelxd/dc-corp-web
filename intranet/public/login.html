@@ -12,70 +12,101 @@
   <link rel="manifest" href="/intranet/manifest.json">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="/intranet/css/styles.css?v=20261124-6">
+  <link rel="stylesheet" href="/intranet/css/styles.css?v=20261124-11">
 </head>
 <body class="page-login flex flex-col justify-between px-4 py-6 sm:p-8">
 
   <!-- ==================== HEADER ==================== -->
-  <div class="w-full max-w-md mx-auto flex items-center justify-between">
-    <a href="/" class="btn-interactive inline-flex items-center gap-1.5 text-xs font-semibold text-white/90 hover:text-white py-2 px-3.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md">
+  <header class="w-full max-w-md mx-auto flex items-center justify-between gap-2">
+    <a href="/" class="btn-interactive inline-flex items-center gap-1.5 text-xs font-semibold text-white/95 hover:text-white py-2 px-3.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md">
       <i class="fa-solid fa-arrow-left"></i> Inicio
     </a>
-    <span id="deviceBadge" class="text-[11px] font-medium text-sky-100 px-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-md">
-      Portal Académico
+    <span id="deviceBadge" class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-sky-100 px-3 py-1.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-md">
+      <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+      <span>Portal Académico</span>
     </span>
-  </div>
+  </header>
 
   <!-- ==================== CONTENIDO PRINCIPAL ==================== -->
   <main class="w-full max-w-md mx-auto my-auto py-6">
-    <div class="section-enter glass-card p-6 sm:p-9 space-y-6">
-      <div class="text-center space-y-2">
-        <img src="/logo.svg" alt="DC CORP" class="h-12 sm:h-14 mx-auto">
-        <h1 class="text-2xl font-bold tracking-tight text-[#1d1d1f] pt-1">Intranet Académica</h1>
-        <p class="text-xs sm:text-sm text-[#6e6e73]">Ingresa con tu usuario o DNI asignado</p>
+    <div class="section-enter aurora-shell rounded-[28px] overflow-hidden">
+
+      <!-- Cabecera Oscura Aurora dentro de la tarjeta -->
+      <div class="aurora-sidebar px-6 py-6 sm:px-8 text-center space-y-3 border-b border-white/10">
+        <div class="bg-white/95 px-4 py-2.5 rounded-2xl shadow-sm inline-flex items-center justify-center">
+          <img src="/logo.svg" alt="DC CORP" class="h-10 sm:h-11">
+        </div>
+        <div>
+          <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-white">Intranet Académica</h1>
+          <p class="text-xs text-slate-300/90 mt-1">Ingresa con tu usuario o DNI asignado</p>
+        </div>
+        <div class="flex flex-wrap items-center justify-center gap-1.5 pt-0.5">
+          <span class="px-2.5 py-0.5 rounded-full bg-sky-400/15 text-sky-200 border border-sky-300/20 text-[10px] font-semibold">Estudiantes</span>
+          <span class="px-2.5 py-0.5 rounded-full bg-amber-400/15 text-amber-200 border border-amber-300/20 text-[10px] font-semibold">Docentes</span>
+          <span class="px-2.5 py-0.5 rounded-full bg-emerald-400/15 text-emerald-200 border border-emerald-300/20 text-[10px] font-semibold">Administración</span>
+        </div>
       </div>
 
-      <form id="loginForm" class="space-y-4">
-        <div>
-          <label for="code" class="block text-xs font-semibold text-[#424245] mb-1.5">Usuario o DNI</label>
-          <div class="relative">
-            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-[#6e6e73] text-sm">
-              <i class="fa-regular fa-user"></i>
-            </span>
-            <input type="text" id="code" required autocomplete="username" autocapitalize="none" autocorrect="off"
-              placeholder="Ej: 74859612 o prof.diosdi"
-              class="w-full bg-white border border-black/15 rounded-2xl pl-10 pr-4 py-3.5 text-sm focus:outline-none focus:border-[#0071e3] focus:ring-2 focus:ring-[#0071e3]/15 transition">
+      <!-- Formulario en Canvas Claro Translúcido -->
+      <div class="aurora-canvas p-6 sm:p-8 space-y-5">
+        <form id="loginForm" class="space-y-4">
+          <div>
+            <label for="code" class="block text-xs font-semibold text-[#424245] mb-1.5">Usuario o DNI</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-[#6e6e73] text-sm">
+                <i class="fa-regular fa-user"></i>
+              </span>
+              <input type="text" id="code" required autocomplete="username" autocapitalize="none" autocorrect="off"
+                placeholder="Ej: 74859612 o prof.diosdi"
+                class="w-full bg-white/90 focus:bg-white border border-black/10 rounded-2xl pl-10 pr-4 py-3.5 text-sm focus:outline-none focus:border-[#0071e3] focus:ring-2 focus:ring-[#0071e3]/15 transition">
+            </div>
           </div>
+
+          <div>
+            <label for="password" class="block text-xs font-semibold text-[#424245] mb-1.5">Contraseña</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-[#6e6e73] text-sm">
+                <i class="fa-solid fa-lock"></i>
+              </span>
+              <input type="password" id="password" required autocomplete="current-password"
+                placeholder="••••••••"
+                class="w-full bg-white/90 focus:bg-white border border-black/10 rounded-2xl pl-10 pr-12 py-3.5 text-sm focus:outline-none focus:border-[#0071e3] focus:ring-2 focus:ring-[#0071e3]/15 transition">
+              <button type="button" onclick="togglePassVisibility()" aria-label="Mostrar contraseña"
+                class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#6e6e73] hover:text-[#1d1d1f] text-sm transition">
+                <i id="eyeIcon" class="fa-regular fa-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <div id="errorBox" class="hidden p-3.5 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-700 text-xs font-semibold text-center"></div>
+
+          <button type="submit" id="submitBtn"
+            class="btn-interactive w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#0ea5e9] to-[#0071e3] hover:opacity-95 text-white text-sm font-semibold shadow-lg shadow-sky-500/25 flex items-center justify-center gap-2 transition">
+            <span>Ingresar a la Intranet</span>
+            <i class="fa-solid fa-arrow-right text-xs"></i>
+          </button>
+        </form>
+
+        <!-- Aviso instalable en Android / iOS -->
+        <div id="installHint" class="hidden pt-3 border-t border-black/[0.06] text-center">
+          <p class="text-[11px] text-[#6e6e73]" id="installHintText"></p>
         </div>
 
-        <div>
-          <label for="password" class="block text-xs font-semibold text-[#424245] mb-1.5">Contraseña</label>
-          <div class="relative">
-            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-[#6e6e73] text-sm">
-              <i class="fa-solid fa-lock"></i>
-            </span>
-            <input type="password" id="password" required autocomplete="current-password"
-              placeholder="••••••••"
-              class="w-full bg-white border border-black/15 rounded-2xl pl-10 pr-12 py-3.5 text-sm focus:outline-none focus:border-[#0071e3] focus:ring-2 focus:ring-[#0071e3]/15 transition">
-            <button type="button" onclick="togglePassVisibility()" aria-label="Mostrar contraseña"
-              class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-[#6e6e73] hover:text-[#1d1d1f] text-sm">
-              <i id="eyeIcon" class="fa-regular fa-eye"></i>
-            </button>
+        <!-- Soporte Directo por WhatsApp -->
+        <div class="p-4 rounded-2xl bg-white/80 border border-black/[0.06] space-y-2.5 text-center shadow-sm">
+          <div class="space-y-0.5">
+            <p class="text-xs font-bold text-[#1d1d1f]">¿Tienes problemas de acceso?</p>
+            <p class="text-[11px] text-[#6e6e73]">Comunícate directamente con el administrador para recuperar o activar tu cuenta.</p>
           </div>
+          <a href="https://wa.me/51992507489?text=Hola%20administrador%2C%20tengo%20problemas%20para%20ingresar%20a%20la%20Intranet%20DC%20CORP."
+             target="_blank" rel="noopener noreferrer"
+             class="btn-interactive w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-md shadow-emerald-600/20 inline-flex items-center justify-center gap-2 transition">
+            <i class="fa-brands fa-whatsapp text-base"></i>
+            <span>Escribir al Administrador por WhatsApp</span>
+          </a>
         </div>
-
-        <div id="errorBox" class="hidden p-3.5 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-700 text-xs font-semibold text-center"></div>
-
-        <button type="submit" id="submitBtn"
-          class="btn-interactive w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#0ea5e9] to-[#0071e3] hover:opacity-95 text-white text-sm font-semibold shadow-lg shadow-sky-500/25 transition">
-          Ingresar a la Intranet
-        </button>
-      </form>
-
-      <!-- Aviso instalable en Android / iOS -->
-      <div id="installHint" class="hidden pt-3 border-t border-black/[0.06] text-center">
-        <p class="text-[11px] text-[#6e6e73]" id="installHintText"></p>
       </div>
+
     </div>
   </main>
 
@@ -85,6 +116,6 @@
   </footer>
 
   <!-- ==================== SCRIPTS ==================== -->
-  <script src="/intranet/js/login.js?v=20261124-6"></script>
+  <script src="/intranet/js/login.js?v=20261124-11"></script>
 </body>
 </html>

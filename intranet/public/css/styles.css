@@ -84,6 +84,30 @@ body.page-login {
   -webkit-backdrop-filter: saturate(160%) blur(20px);
 }
 
+/* Scrollbar minimalista Aurora */
+.aurora-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(15, 23, 42, 0.22) transparent;
+}
+
+.aurora-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.aurora-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.aurora-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(15, 23, 42, 0.20);
+  border-radius: 9999px;
+}
+
+.aurora-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(15, 23, 42, 0.36);
+}
+
 /* Barra superior sticky (Móvil) */
 .apple-nav {
   background: rgba(9, 24, 36, 0.78);
@@ -94,11 +118,36 @@ body.page-login {
 
 /* Dock de navegación inferior móvil */
 .bottom-dock {
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.94);
   backdrop-filter: saturate(180%) blur(24px);
   -webkit-backdrop-filter: saturate(180%) blur(24px);
   border-top: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 -8px 28px rgba(4, 15, 25, 0.14);
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+.dock-pill {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  left: 0;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #0ea5e9 0%, #0071e3 100%);
+  box-shadow: 0 6px 16px rgba(0, 113, 227, 0.30);
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1), width 240ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform, width;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.dock-btn {
+  position: relative;
+  z-index: 1;
+  transition: color 180ms ease, transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dock-btn:active {
+  transform: scale(0.95);
 }
 
 /* Tarjetas glassmorphism dentro del canvas */
@@ -127,19 +176,56 @@ body.page-login {
 @keyframes sectionSlideFadeIn {
   from {
     opacity: 0;
-    transform: translate3d(0, 12px, 0);
-    filter: blur(3px);
+    transform: translate3d(0, 22px, 0) scale(0.992);
+    filter: blur(4px);
   }
   to {
     opacity: 1;
-    transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0) scale(1);
     filter: blur(0);
   }
 }
 
 .section-enter {
-  animation: sectionSlideFadeIn 240ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: sectionSlideFadeIn 320ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
   will-change: transform, opacity, filter;
+}
+
+.is-hidden-role {
+  display: none !important;
+}
+
+/* Segmented Control con pill deslizante animado */
+.segmented-control {
+  position: relative;
+  display: inline-flex;
+  padding: 4px;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.06);
+}
+
+.segmented-pill {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 0;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1), width 240ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform, width;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.segmented-btn {
+  position: relative;
+  z-index: 1;
+  transition: color 180ms ease, transform 150ms ease;
+}
+
+.segmented-btn:active {
+  transform: scale(0.96);
 }
 
 /* ==========================================================================
@@ -204,7 +290,11 @@ body.page-login {
   .card-interactive,
   .modal-panel-anim,
   .section-enter,
-  .sidebar-item {
+  .sidebar-item,
+  .segmented-pill,
+  .segmented-btn,
+  .dock-pill,
+  .dock-btn {
     transition: none !important;
     animation: none !important;
     transform: none !important;

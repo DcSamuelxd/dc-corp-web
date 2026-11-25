@@ -10,15 +10,27 @@ function logout() {
   window.location.href = '/intranet';
 }
 
+let activeStudentTab = 'materiales';
+
+function updateMobileStudentDockPill(tabName) {
+  const container = document.getElementById('mobileStudentNavGrid');
+  const activeBtn = document.getElementById(`mstab-${tabName}`);
+  if (!container || !activeBtn) return;
+  const pill = container.querySelector('.dock-pill');
+  if (!pill || !activeBtn.offsetWidth) return;
+  pill.style.width = `${activeBtn.offsetWidth}px`;
+  pill.style.transform = `translate3d(${activeBtn.offsetLeft}px, 0, 0)`;
+}
+
 function switchStudentTab(tabName) {
+  activeStudentTab = tabName;
   ['materiales', 'asistencia', 'companeros', 'perfil'].forEach(t => {
     const view = document.getElementById(`view-${t}`);
     if (view) {
       if (t === tabName) {
         view.classList.remove('hidden', 'section-enter');
-        requestAnimationFrame(() => {
-          view.classList.add('section-enter');
-        });
+        void view.offsetWidth;
+        view.classList.add('section-enter');
       } else {
         view.classList.add('hidden');
         view.classList.remove('section-enter');
@@ -33,14 +45,25 @@ function switchStudentTab(tabName) {
     const mbtn = document.getElementById(`mstab-${t}`);
     if (mbtn) {
       mbtn.className = (t === tabName)
-        ? "mstab-btn flex flex-col items-center justify-center gap-1 text-[#0071e3] font-bold text-[10px] transition"
-        : "mstab-btn flex flex-col items-center justify-center gap-1 text-[#6e6e73] font-medium text-[10px] transition";
+        ? "mstab-btn dock-btn flex flex-col items-center justify-center gap-0.5 text-white font-bold text-[10px]"
+        : "mstab-btn dock-btn flex flex-col items-center justify-center gap-0.5 text-[#64748b] font-medium text-[10px]";
     }
   });
+  updateMobileStudentDockPill(tabName);
+  const mainEl = document.querySelector('main');
+  if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
   if (window.innerWidth < 768) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }
+
+window.addEventListener('DOMContentLoaded', () => {
+  requestAnimationFrame(() => updateMobileStudentDockPill(activeStudentTab));
+});
+
+window.addEventListener('resize', () => {
+  updateMobileStudentDockPill(activeStudentTab);
+});
 
 function openPdfModal(fileUrl, title) {
   document.getElementById('pdfModalTitle').innerText = title || 'Documento PDF';

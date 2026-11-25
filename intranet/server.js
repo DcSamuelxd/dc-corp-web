@@ -876,7 +876,7 @@ app.get('/intranet/api/admin/daily-summary', authMiddleware, staffOnly, (req, re
        FROM attendance a
        INNER JOIN users u ON a.student_id = u.id
        INNER JOIN groups g ON a.group_id = g.id
-       WHERE a.date = ? AND (gMain.category = 'Sol Music' OR gSub.category = 'Sol Music')
+       WHERE a.date = ? AND g.category = 'Sol Music'
        ORDER BY g.name ASC, u.full_name ASC`,
       [monthPrefix, date],
       (err, rows) => res.json({ date, records: rows || [] })

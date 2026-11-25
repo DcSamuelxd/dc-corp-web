@@ -11,7 +11,7 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="/intranet/css/styles.css?v=20261124-6">
+  <link rel="stylesheet" href="/intranet/css/styles.css?v=20261124-10">
 </head>
 <body class="page-student min-h-screen">
 
@@ -39,7 +39,7 @@
 
   <!-- ==================== AURORA GLASS SHELL ==================== -->
   <div class="max-w-[1440px] mx-auto md:my-5 md:px-4">
-    <div class="aurora-shell md:rounded-[28px] overflow-hidden flex flex-col md:flex-row min-h-[calc(100dvh-2.5rem)]">
+    <div class="aurora-shell md:rounded-[28px] overflow-hidden flex flex-col md:flex-row min-h-[calc(100dvh-2.5rem)] md:h-[calc(100dvh-2.5rem)]">
 
       <!-- ==================== SIDEBAR IZQUIERDO (DESKTOP) ==================== -->
       <aside class="hidden md:flex md:w-64 lg:w-[270px] shrink-0 aurora-sidebar flex-col justify-between p-5 text-white">
@@ -105,10 +105,10 @@
       </aside>
 
       <!-- ==================== ÁREA DE CONTENIDO (CANVAS CLARO) ==================== -->
-      <div class="flex-1 aurora-canvas min-w-0 flex flex-col">
+      <div class="flex-1 aurora-canvas min-w-0 flex flex-col md:h-full md:overflow-hidden">
 
         <!-- ==================== CONTENIDO PRINCIPAL ==================== -->
-        <main class="flex-1 p-4 sm:p-6 md:p-7 space-y-6">
+        <main class="flex-1 p-4 sm:p-6 md:p-7 space-y-6 md:overflow-y-auto aurora-scroll">
 
           <!-- Cabecera Dashboard del Estudiante + 3 KPIs -->
           <div class="glass-bento p-5 sm:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-5 max-w-full overflow-hidden">
@@ -449,28 +449,29 @@
   </div>
 
   <!-- ==================== SCRIPTS ==================== -->
-  <script src="/intranet/js/student.js?v=20261124-6"></script>
+  <script src="/intranet/js/student.js?v=20261124-10"></script>
 
   <!-- Barra de Navegación Inferior Tipo App Nativa (Solo Móvil Android / iOS) -->
   <nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bottom-dock">
-    <div class="grid grid-cols-4 h-16 max-w-md mx-auto">
+    <div id="mobileStudentNavGrid" class="relative grid grid-cols-4 h-16 max-w-md mx-auto p-1.5">
+      <span class="dock-pill" aria-hidden="true"></span>
       <button type="button" onclick="switchStudentTab('materiales')" id="mstab-materiales"
-        class="mstab-btn flex flex-col items-center justify-center gap-1 text-[#0071e3] font-bold text-[10px] transition">
+        class="mstab-btn dock-btn flex flex-col items-center justify-center gap-0.5 text-white font-bold text-[10px]">
         <i class="fa-solid fa-book-open text-base"></i>
         <span>Estudio</span>
       </button>
       <button type="button" onclick="switchStudentTab('asistencia')" id="mstab-asistencia"
-        class="mstab-btn flex flex-col items-center justify-center gap-1 text-[#6e6e73] font-medium text-[10px] transition">
+        class="mstab-btn dock-btn flex flex-col items-center justify-center gap-0.5 text-[#64748b] font-medium text-[10px]">
         <i class="fa-solid fa-calendar-check text-base"></i>
         <span>Asistencia</span>
       </button>
       <button type="button" onclick="switchStudentTab('companeros')" id="mstab-companeros"
-        class="mstab-btn flex flex-col items-center justify-center gap-1 text-[#6e6e73] font-medium text-[10px] transition">
+        class="mstab-btn dock-btn flex flex-col items-center justify-center gap-0.5 text-[#64748b] font-medium text-[10px]">
         <i class="fa-solid fa-user-group text-base"></i>
         <span>Grupo</span>
       </button>
       <button type="button" onclick="switchStudentTab('perfil')" id="mstab-perfil"
-        class="mstab-btn flex flex-col items-center justify-center gap-1 text-[#6e6e73] font-medium text-[10px] transition">
+        class="mstab-btn dock-btn flex flex-col items-center justify-center gap-0.5 text-[#64748b] font-medium text-[10px]">
         <i class="fa-solid fa-user-circle text-base"></i>
         <span>Mi Perfil</span>
       </button>

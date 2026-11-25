@@ -27,8 +27,11 @@ if (isAdmin) {
     mobileBadge.innerText = 'Profesor';
     mobileBadge.className = 'px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-200 text-[10px] font-semibold truncate';
   }
-  document.querySelectorAll('.admin-only-tab').forEach(el => el.classList.add('hidden'));
-  const mGrid = document.getElementById('mobileAdminNavGrid'); if (mGrid) mGrid.className = 'grid grid-cols-4 h-16 max-w-lg mx-auto';
+  document.querySelectorAll('.admin-only-tab').forEach(el => {
+    el.classList.add('hidden', 'is-hidden-role');
+    el.style.display = 'none';
+  });
+  const mGrid = document.getElementById('mobileAdminNavGrid'); if (mGrid) mGrid.className = 'relative grid grid-cols-4 h-16 max-w-lg mx-auto p-1.5';
   const annCatWrap = document.getElementById('annCategoryWrapper'); if (annCatWrap) annCatWrap.classList.add('hidden');
   document.getElementById('groupCategoryWrapper').classList.add('hidden');
   document.getElementById('adminCategoryFilter').classList.add('hidden');
@@ -64,7 +67,21 @@ async function changeAdminPassword() {
   }
 }
 
+let activeAdminTab = 'asistencia';
+
+function updateSegmentedPill(containerId, activeBtnId, pillSelector = '.segmented-pill') {
+  const container = document.getElementById(containerId);
+  const activeBtn = document.getElementById(activeBtnId);
+  if (!container || !activeBtn || container.classList.contains('hidden')) return;
+  const pill = container.querySelector(pillSelector);
+  if (!pill || !activeBtn.offsetWidth) return;
+  pill.style.width = `${activeBtn.offsetWidth}px`;
+  pill.style.transform = `translate3d(${activeBtn.offsetLeft}px, 0, 0)`;
+}
+
 function switchTab(tab) {
+  if (!isAdmin && tab === 'profesores') return;
+  activeAdminTab = tab;
   if (tab === 'materiales') {
     document.getElementById('unreadChatDot').classList.add('hidden');
     const mDot = document.getElementById('mobileUnreadDot');
@@ -75,8 +92,11 @@ function switchTab(tab) {
     if (panel) {
       if (t === tab) {
         panel.classList.remove('hidden', 'section-enter');
+        void panel.offsetWidth;
+        panel.classList.add('section-enter');
         requestAnimationFrame(() => {
-          panel.classList.add('section-enter');
+          if (t === 'asistencia') updateSegmentedPill('attCategoryFilter', `att-cat-${attCategoryFilter}`);
+          if (t === 'alumnos') updateSegmentedPill('adminCategoryFilter', `cat-${currentCategoryFilter}`);
         });
       } else {
         panel.classList.add('hidden');
@@ -92,10 +112,13 @@ function switchTab(tab) {
     const mbtn = document.getElementById(`mtab-${t}`);
     if (mbtn && !mbtn.classList.contains('hidden')) {
       mbtn.className = (t === tab)
-        ? "mtab-btn flex flex-col items-center justify-center gap-1 text-[#0071e3] font-bold text-[10px] transition"
-        : "mtab-btn flex flex-col items-center justify-center gap-1 text-[#6e6e73] font-medium text-[10px] transition relative";
+        ? "mtab-btn dock-btn flex flex-col items-center justify-center gap-0.5 text-white font-bold text-[10px] relative"
+        : "mtab-btn dock-btn flex flex-col items-center justify-center gap-0.5 text-[#64748b] font-medium text-[10px] relative";
     }
   });
+  updateSegmentedPill('mobileAdminNavGrid', `mtab-${tab}`, '.dock-pill');
+  const mainEl = document.querySelector('main');
+  if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
   if (window.innerWidth < 768) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -279,10 +302,11 @@ let selectedAttGroupId = null;
 function setAttCategoryFilter(cat) {
   attCategoryFilter = cat;
   document.querySelectorAll('.att-cat-btn').forEach(b => {
-    b.className = 'att-cat-btn px-3.5 py-1.5 rounded-lg text-[#6e6e73] hover:text-[#1d1d1f] transition';
+    b.className = 'att-cat-btn segmented-btn px-3.5 py-1.5 rounded-lg text-[#6e6e73] hover:text-[#1d1d1f]';
   });
   const active = document.getElementById(`att-cat-${cat}`);
-  if (active) active.className = 'att-cat-btn px-3.5 py-1.5 rounded-lg bg-white text-[#1d1d1f] shadow-sm transition';
+  if (active) active.className = 'att-cat-btn segmented-btn px-3.5 py-1.5 rounded-lg text-[#1d1d1f]';
+  updateSegmentedPill('attCategoryFilter', `att-cat-${cat}`);
   renderAttendanceGroupCards();
 }
 
@@ -1291,14 +1315,29 @@ function setStudentCategoryFilter(cat) {
   selectedStudentGroupCardId = '';
   ['Todos', 'Particulares', 'Sol Music'].forEach(c => {
     const btn = document.getElementById(`cat-${c}`);
-    if (c === cat) {
-      btn.className = "cat-btn px-3.5 py-1.5 rounded-lg bg-white text-[#1d1d1f] shadow-sm transition";
-    } else {
-      btn.className = "cat-btn px-3.5 py-1.5 rounded-lg text-[#6e6e73] hover:text-[#1d1d1f] transition";
+    if (btn) {
+      btn.className = (c === cat)
+        ? "cat-btn segmented-btn px-3.5 py-1.5 rounded-lg text-[#1d1d1f]"
+        : "cat-btn segmented-btn px-3.5 py-1.5 rounded-lg text-[#6e6e73] hover:text-[#1d1d1f]";
     }
   });
+  updateSegmentedPill('adminCategoryFilter', `cat-${cat}`);
   loadStudents();
 }
+
+window.addEventListener('DOMContentLoaded', () => {
+  requestAnimationFrame(() => {
+    updateSegmentedPill('attCategoryFilter', `att-cat-${attCategoryFilter}`);
+    updateSegmentedPill('adminCategoryFilter', `cat-${currentCategoryFilter}`);
+    updateSegmentedPill('mobileAdminNavGrid', `mtab-${activeAdminTab}`, '.dock-pill');
+  });
+});
+
+window.addEventListener('resize', () => {
+  updateSegmentedPill('attCategoryFilter', `att-cat-${attCategoryFilter}`);
+  updateSegmentedPill('adminCategoryFilter', `cat-${currentCategoryFilter}`);
+  updateSegmentedPill('mobileAdminNavGrid', `mtab-${activeAdminTab}`, '.dock-pill');
+});
 
 function selectStudentGroupCard(groupId) {
   selectedStudentGroupCardId = groupId ? String(groupId) : '';
