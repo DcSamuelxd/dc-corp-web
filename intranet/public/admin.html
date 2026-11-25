@@ -78,6 +78,12 @@
                 <span class="flex-1">Aulas y Materiales</span>
                 <span id="unreadChatDot" class="hidden px-2 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-bold">Nuevo</span>
               </button>
+              <button type="button" onclick="switchTab('entregas')" id="tab-entregas"
+                class="tab-btn sidebar-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-left">
+                <i class="fa-solid fa-clipboard-check w-4 text-center"></i>
+                <span class="flex-1">Entregas</span>
+                <span id="entregasPendingBadge" class="hidden px-2 py-0.5 rounded-full bg-amber-400 text-slate-900 text-[9px] font-bold">0</span>
+              </button>
             </div>
 
             <div class="space-y-1.5">
@@ -311,6 +317,35 @@
 
       <div id="classroomCardsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5"></div>
       <div id="materialsList" class="hidden space-y-4"></div>
+    </section>
+
+    <!-- ==================== SECCIÓN 2.5: CONTROL GLOBAL DE ENTREGAS ==================== -->
+    <section id="panel-entregas" class="hidden space-y-5">
+      <div class="glass-bento p-5 sm:p-7 space-y-5">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-black/[0.06]">
+          <div>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Académico • Seguimiento</span>
+            <h2 class="text-lg sm:text-xl font-bold tracking-tight text-[#1d1d1f]">Control Global de Entregas</h2>
+            <p class="text-xs text-[#6e6e73] mt-0.5">Revisa en un solo lugar quiénes entregaron y quiénes faltan por entregar en cada actividad.</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2.5">
+            <select id="entregasStatusFilter" onchange="renderGlobalSubmissionsPanel()"
+              class="bg-white border border-black/10 rounded-xl px-3 py-2 text-xs font-semibold text-[#1d1d1f] focus:outline-none focus:border-[#0071e3]">
+              <option value="all">Todas las tareas</option>
+              <option value="ungraded">Por calificar</option>
+              <option value="pending">Con alumnos pendientes</option>
+            </select>
+            <input type="search" id="entregasSearchInput" oninput="renderGlobalSubmissionsPanel()"
+              placeholder="Buscar tema, aula o alumno..."
+              class="bg-white border border-black/10 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:border-[#0071e3] w-full sm:w-56">
+          </div>
+        </div>
+
+        <div id="globalSubmissionsContainer" class="space-y-4">
+          <p class="text-xs text-[#6e6e73] text-center py-8">Cargando entregas...</p>
+        </div>
+      </div>
     </section>
 
     <!-- ==================== SECCIÓN 3: SUBGRUPOS Y ALUMNADO ==================== -->
@@ -1410,39 +1445,44 @@
   </div>
 
   <!-- ==================== SCRIPTS ==================== -->
-  <script src="/intranet/js/admin-core.js?v=20261125-10"></script>
-  <script src="/intranet/js/admin-attendance.js?v=20261125-10"></script>
-  <script src="/intranet/js/admin-users.js?v=20261125-10"></script>
-  <script src="/intranet/js/admin-materials.js?v=20261125-10"></script>
+  <script src="/intranet/js/admin-core.js?v=20261125-11"></script>
+  <script src="/intranet/js/admin-attendance.js?v=20261125-11"></script>
+  <script src="/intranet/js/admin-users.js?v=20261125-11"></script>
+  <script src="/intranet/js/admin-materials.js?v=20261125-11"></script>
 
   <!-- Barra de Navegación Inferior Tipo App Nativa (Solo Móvil Android / iOS) -->
   <nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bottom-dock">
-    <div id="mobileAdminNavGrid" class="relative grid grid-cols-5 h-16 max-w-lg mx-auto p-1.5">
+    <div id="mobileAdminNavGrid" class="relative grid grid-cols-6 h-16 max-w-lg mx-auto p-1.5">
       <span class="dock-pill" aria-hidden="true"></span>
       <button type="button" onclick="switchTab('asistencia')" id="mtab-asistencia"
-        class="mtab-btn dock-btn flex flex-col items-center justify-center gap-0.5 text-white font-bold text-[10px]">
-        <i class="fa-solid fa-calendar-week text-base"></i>
-        <span>Asistencia</span>
+        class="mtab-btn dock-btn flex flex-col items-center justify-center gap-0.5 text-white font-bold text-[9px]">
+        <i class="fa-solid fa-calendar-week text-sm"></i>
+        <span>Asist.</span>
       </button>
       <button type="button" onclick="switchTab('materiales')" id="mtab-materiales"
-        class="mtab-btn dock-btn flex flex-col items-center justify-center gap-0.5 text-[#64748b] font-medium text-[10px] relative">
-        <i class="fa-solid fa-chalkboard text-base"></i>
+        class="mtab-btn dock-btn flex flex-col items-center justify-center gap-0.5 text-[#64748b] font-medium text-[9px] relative">
+        <i class="fa-solid fa-chalkboard text-sm"></i>
         <span>Aulas</span>
-        <span id="mobileUnreadDot" class="hidden absolute top-1.5 right-4 w-2 h-2 rounded-full bg-red-600"></span>
+        <span id="mobileUnreadDot" class="hidden absolute top-1.5 right-3 w-2 h-2 rounded-full bg-red-600"></span>
+      </button>
+      <button type="button" onclick="switchTab('entregas')" id="mtab-entregas"
+        class="mtab-btn dock-btn flex flex-col items-center justify-center gap-0.5 text-[#64748b] font-medium text-[9px]">
+        <i class="fa-solid fa-clipboard-check text-sm"></i>
+        <span>Entregas</span>
       </button>
       <button type="button" onclick="switchTab('alumnos')" id="mtab-alumnos"
-        class="mtab-btn dock-btn flex flex-col items-center justify-center gap-0.5 text-[#64748b] font-medium text-[10px]">
-        <i class="fa-solid fa-users text-base"></i>
-        <span>Subgrupos</span>
+        class="mtab-btn dock-btn flex flex-col items-center justify-center gap-0.5 text-[#64748b] font-medium text-[9px]">
+        <i class="fa-solid fa-users text-sm"></i>
+        <span>Grupos</span>
       </button>
       <button type="button" onclick="switchTab('avisos')" id="mtab-avisos"
-        class="mtab-btn dock-btn flex flex-col items-center justify-center gap-0.5 text-[#64748b] font-medium text-[10px]">
-        <i class="fa-solid fa-bullhorn text-base"></i>
+        class="mtab-btn dock-btn flex flex-col items-center justify-center gap-0.5 text-[#64748b] font-medium text-[9px]">
+        <i class="fa-solid fa-bullhorn text-sm"></i>
         <span>Avisos</span>
       </button>
       <button type="button" onclick="switchTab('profesores')" id="mtab-profesores"
-        class="admin-only-tab mtab-btn dock-btn flex flex-col items-center justify-center gap-0.5 text-[#64748b] font-medium text-[10px]">
-        <i class="fa-solid fa-chalkboard-user text-base"></i>
+        class="admin-only-tab mtab-btn dock-btn flex flex-col items-center justify-center gap-0.5 text-[#64748b] font-medium text-[9px]">
+        <i class="fa-solid fa-chalkboard-user text-sm"></i>
         <span>Docentes</span>
       </button>
     </div>
