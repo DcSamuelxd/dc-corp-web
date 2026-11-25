@@ -42,6 +42,23 @@ body.page-login {
   }
 }
 
+/* Optimización para celular en horizontal (landscape: pantalla ancha pero baja altura) */
+@media (max-height: 540px) and (min-width: 640px) {
+  .aurora-shell {
+    height: auto !important;
+    min-height: 100dvh;
+  }
+  .aurora-sidebar {
+    max-height: 100dvh;
+    overflow-y: auto;
+    padding: 0.875rem !important;
+  }
+  .aurora-canvas {
+    height: auto !important;
+    overflow: visible !important;
+  }
+}
+
 /* Evita el auto-zoom molesto en iOS y Android al tocar inputs */
 @media (max-width: 640px) {
   input, select, textarea { font-size: 16px !important; }
