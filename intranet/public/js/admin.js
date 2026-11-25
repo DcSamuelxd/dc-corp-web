@@ -443,7 +443,7 @@ function renderAttendanceGroupCards() {
   }).join('');
 }
 
-function selectAttendanceGroupCard(groupId) {
+function selectAttendanceGroupCard(groupId, pushHistory = true) {
   selectedAttGroupId = groupId ? Number(groupId) : null;
   const cardsView = document.getElementById('attCardsView');
   const workspace = document.getElementById('attGridWorkspace');
@@ -455,7 +455,7 @@ function selectAttendanceGroupCard(groupId) {
     const grp = groupsCache.find(g => Number(g.id) === Number(selectedAttGroupId) && (isAdmin || g.category === 'Sol Music'));
     if (!grp) {
       selectedAttGroupId = null;
-      return selectAttendanceGroupCard(null);
+      return selectAttendanceGroupCard(null, pushHistory);
     }
     if (sel) sel.value = String(grp.id);
     document.getElementById('attSelectedGroupTitle').innerText = grp.name;
@@ -468,6 +468,7 @@ function selectAttendanceGroupCard(groupId) {
     if (workspace) workspace.classList.add('hidden');
     renderAttendanceGroupCards();
   }
+  syncAdminUrl(pushHistory);
 }
 
 async function loadWeeklyGrid() {
@@ -1627,6 +1628,12 @@ async function loadAllData() {
   renderAttendanceGroupCards();
   syncStudentFieldBySelectedGroups(Array.from(document.querySelectorAll('input[name="stuGroupCheck"]:checked')).map(cb => Number(cb.value)), false);
 
+  if (window.location.hash) {
+    applyAdminRouteFromHash(window.location.hash);
+  } else {
+    syncAdminUrl(false);
+  }
+
   if (isAdmin) {
     await loadTeachers();
   }
@@ -2370,7 +2377,7 @@ function renderAdminSolStage(m, activeLabel) {
   `;
 }
 
-function selectClassroomCard(groupId) {
+function selectClassroomCard(groupId, pushHistory = true) {
   selectedClassroomCardId = groupId ? Number(groupId) : null;
   const cardsGrid = document.getElementById('classroomCardsGrid');
   const listEl = document.getElementById('materialsList');
@@ -2399,6 +2406,7 @@ function selectClassroomCard(groupId) {
     if (backBtn) backBtn.classList.add('hidden');
     renderClassroomCards();
   }
+  syncAdminUrl(pushHistory);
 }
 
 function renderClassroomCards() {
