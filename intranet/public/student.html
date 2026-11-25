@@ -27,6 +27,10 @@
         </span>
       </div>
       <div class="flex items-center gap-2">
+        <button type="button" onclick="openNotificationsModal()" class="relative px-2.5 py-1 rounded-full bg-white/10 text-white text-xs font-medium" title="Notificaciones">
+          <i class="fa-solid fa-bell"></i>
+          <span class="notif-unread-badge hidden absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center">0</span>
+        </button>
         <button type="button" onclick="switchStudentTab('perfil')" class="px-2.5 py-1 rounded-full bg-white/10 text-white text-xs font-medium">
           <i class="fa-solid fa-user"></i>
         </button>
@@ -95,6 +99,12 @@
               <p id="navStudentShortName" class="text-xs font-semibold text-white truncate">Mi Cuenta</p>
               <p class="text-[10px] text-slate-300/80 truncate">Ver perfil y clave</p>
             </div>
+          </button>
+
+          <button type="button" onclick="openNotificationsModal()"
+            class="btn-interactive w-full py-2 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-white text-[11px] font-semibold flex items-center justify-between">
+            <span class="inline-flex items-center gap-2"><i class="fa-solid fa-bell text-amber-300"></i> Notificaciones</span>
+            <span class="notif-unread-badge hidden px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-bold leading-none">0</span>
           </button>
 
           <button type="button" onclick="logout()"
@@ -448,8 +458,36 @@
     </div>
   </div>
 
+  <!-- ==================== MODAL NOTIFICACIONES ==================== -->
+  <div id="notificationsModal" class="hidden fixed inset-0 z-50 bg-[#071826]/65 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 overflow-y-auto" onclick="if(event.target===this) closeNotificationsModal()">
+    <div class="modal-panel-anim aurora-shell rounded-[28px] overflow-hidden max-w-lg w-full my-auto relative">
+      <div class="aurora-sidebar px-6 py-5 text-white border-b border-white/10 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white shadow-lg shadow-amber-500/25 shrink-0">
+            <i class="fa-solid fa-bell"></i>
+          </div>
+          <div>
+            <span class="inline-block px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-200 border border-amber-300/25 text-[10px] font-semibold">Recordatorios y Avisos</span>
+            <h3 class="text-lg font-bold tracking-tight text-white mt-0.5">Notificaciones</h3>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="markAllNotificationsRead()" class="btn-interactive px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-[11px] font-semibold">
+            Marcar leídas
+          </button>
+          <button type="button" onclick="closeNotificationsModal()" class="btn-interactive w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+      <div class="aurora-canvas p-5 max-h-[70vh] overflow-y-auto aurora-scroll">
+        <div id="notificationsList" class="space-y-2.5"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== SCRIPTS ==================== -->
-  <script src="/intranet/js/student.js?v=20261125-5"></script>
+  <script src="/intranet/js/student.js?v=20261125-8"></script>
 
   <!-- Barra de Navegación Inferior Tipo App Nativa (Solo Móvil Android / iOS) -->
   <nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bottom-dock">

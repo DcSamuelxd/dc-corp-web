@@ -377,6 +377,11 @@ document.addEventListener("keydown", (e) => {
     passModal.classList.add("hidden");
     return;
   }
+  const notifModal = document.getElementById("notificationsModal");
+  if (notifModal && !notifModal.classList.contains("hidden")) {
+    closeNotificationsModal();
+    return;
+  }
 
   // Navegación / limpieza rápida con Escape en todas las secciones (Académico y Gestión)
   if (activeAdminTab === "asistencia" && typeof selectedAttGroupId !== "undefined" && selectedAttGroupId) {
@@ -409,4 +414,99 @@ document.addEventListener("keydown", (e) => {
     document.activeElement.blur();
   }
 });
+
+// ==================== CENTRO DE NOTIFICACIONES ====================
+let adminNotificationsCache = [];
+
+function updateAdminNotifBadges(unreadCount) {
+  document.querySelectorAll('.notif-unread-badge').forEach(el => {
+    if (unreadCount > 0) {
+      el.innerText = unreadCount > 9 ? '9+' : String(unreadCount);
+      el.classList.remove('hidden');
+    } else {
+      el.classList.add('hidden');
+    }
+  });
+}
+
+function renderAdminNotificationsList() {
+  const listEl = document.getElementById('notificationsList');
+  if (!listEl) return;
+  if (!adminNotificationsCache.length) {
+    listEl.innerHTML = '<div class="p-6 rounded-2xl bg-white/90 text-center text-xs text-[#6e6e73]">No tienes notificaciones por ahora.</div>';
+    return;
+  }
+  const iconMap = {
+    announcement: { icon: 'fa-bullhorn', cls: 'bg-rose-500/15 text-rose-600' },
+    submission: { icon: 'fa-clipboard-check', cls: 'bg-emerald-500/15 text-emerald-700' },
+    new_task: { icon: 'fa-book-open', cls: 'bg-[#0071e3]/15 text-[#0071e3]' },
+    task_reminder: { icon: 'fa-clock', cls: 'bg-amber-500/15 text-amber-700' },
+    grade: { icon: 'fa-star', cls: 'bg-indigo-500/15 text-indigo-700' }
+  };
+  listEl.innerHTML = adminNotificationsCache.map(n => {
+    const meta = iconMap[n.type] || { icon: 'fa-bell', cls: 'bg-sky-500/15 text-sky-700' };
+    const unreadCls = n.is_read ? 'bg-white/75 border-black/[0.06] opacity-80' : 'bg-white border-[#0071e3]/30 shadow-sm';
+    return `
+      <button type="button" onclick="onAdminNotificationClick(${n.id}, '${(n.link_hash || '').replace(/'/g, "\\'")}')"
+        class="card-interactive w-full text-left p-3.5 rounded-2xl border flex items-start gap-3 ${unreadCls}">
+        <div class="w-9 h-9 rounded-xl ${meta.cls} flex items-center justify-center text-xs shrink-0 mt-0.5">
+          <i class="fa-solid ${meta.icon}"></i>
+        </div>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center justify-between gap-2">
+            <p class="text-xs font-bold text-[#1d1d1f] truncate">${n.title}</p>
+            ${!n.is_read ? '<span class="w-2 h-2 rounded-full bg-[#0071e3] shrink-0"></span>' : ''}
+          </div>
+          <p class="text-[11px] text-[#424245] mt-0.5 leading-snug">${n.message}</p>
+          <span class="block text-[9px] text-[#6e6e73] mt-1">${new Date(n.created_at).toLocaleString('es-PE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+        </div>
+      </button>
+    `;
+  }).join('');
+}
+
+async function loadNotifications() {
+  try {
+    const res = await fetch('/intranet/api/notifications', { headers: authHeaders() });
+    if (!res.ok) return;
+    const data = await res.json();
+    adminNotificationsCache = data.notifications || [];
+    updateAdminNotifBadges(data.unread_count || 0);
+    renderAdminNotificationsList();
+  } catch {}
+}
+
+function openNotificationsModal() {
+  loadNotifications();
+  document.getElementById('notificationsModal').classList.remove('hidden');
+}
+
+function closeNotificationsModal() {
+  document.getElementById('notificationsModal').classList.add('hidden');
+}
+
+async function markAllNotificationsRead() {
+  await fetch('/intranet/api/notifications/read', {
+    method: 'POST', headers: authHeaders(), body: JSON.stringify({})
+  });
+  adminNotificationsCache = adminNotificationsCache.map(n => ({ ...n, is_read: 1 }));
+  updateAdminNotifBadges(0);
+  renderAdminNotificationsList();
+}
+
+async function onAdminNotificationClick(id, linkHash) {
+  await fetch('/intranet/api/notifications/read', {
+    method: 'POST', headers: authHeaders(), body: JSON.stringify({ id })
+  });
+  adminNotificationsCache = adminNotificationsCache.map(n => Number(n.id) === Number(id) ? { ...n, is_read: 1 } : n);
+  updateAdminNotifBadges(adminNotificationsCache.filter(n => !n.is_read).length);
+  renderAdminNotificationsList();
+  closeNotificationsModal();
+  if (linkHash) {
+    applyAdminRouteFromHash(linkHash);
+    syncAdminUrl(true);
+  }
+}
+
+window.addEventListener('DOMContentLoaded', loadNotifications);
 

@@ -322,6 +322,12 @@ function initAdminRealtimeChat() {
       const payload = JSON.parse(event.data);
       if (payload.type === 'chat_message' && payload.message) {
         appendRealtimeAdminConsulta(payload.message);
+      } else if (payload.type === 'notification' && payload.notification) {
+        if (typeof adminNotificationsCache !== 'undefined') {
+          adminNotificationsCache.unshift(payload.notification);
+          updateAdminNotifBadges(adminNotificationsCache.filter(n => !n.is_read).length);
+          renderAdminNotificationsList();
+        }
       }
     } catch {}
   };

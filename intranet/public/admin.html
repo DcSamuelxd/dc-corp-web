@@ -26,6 +26,10 @@
         <span id="mobileRoleBadge" class="px-2 py-0.5 rounded-full bg-sky-400/20 text-sky-200 text-[10px] font-semibold truncate">Admin</span>
       </div>
       <div class="flex items-center gap-2 shrink-0">
+        <button type="button" onclick="openNotificationsModal()" class="relative text-xs text-slate-200 hover:text-sky-300 transition p-1.5" title="Notificaciones">
+          <i class="fa-solid fa-bell"></i>
+          <span class="notif-unread-badge hidden absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center">0</span>
+        </button>
         <button onclick="downloadDatabaseBackup()" class="admin-only-tab text-xs text-slate-200 hover:text-emerald-300 transition p-1.5" title="Respaldo SQLite">
           <i class="fa-solid fa-database"></i>
         </button>
@@ -133,6 +137,13 @@
           </div>
 
           <div class="flex items-center gap-2.5">
+            <button type="button" onclick="openNotificationsModal()"
+              class="btn-interactive relative px-3.5 py-2 rounded-full bg-white/90 hover:bg-white border border-black/[0.08] text-[#1d1d1f] text-xs font-semibold shadow-sm inline-flex items-center gap-2"
+              title="Notificaciones">
+              <i class="fa-solid fa-bell text-amber-500"></i>
+              <span>Notificaciones</span>
+              <span class="notif-unread-badge hidden px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-bold leading-none">0</span>
+            </button>
             <button type="button" onclick="downloadDatabaseBackup()"
               class="admin-only-tab btn-interactive px-3.5 py-2 rounded-full bg-white/90 hover:bg-white border border-black/[0.08] text-[#1d1d1f] text-xs font-semibold shadow-sm inline-flex items-center gap-2"
               title="Descargar copia de seguridad (Base de datos SQLite)">
@@ -402,6 +413,8 @@
                 <option value="Todos">Todos los estudiantes (Particulares y Sol Music)</option>
                 <option value="Sol Music">Solo Sol Music (Academia)</option>
                 <option value="Particulares">Solo Particulares</option>
+                <option value="Solo Profesores">Solo Profesores (Sol Music)</option>
+                <option value="Profesores y Alumnos">Profesores y Todos los Alumnos</option>
               </select>
             </div>
 
@@ -1324,11 +1337,39 @@
     </div>
   </div>
 
+  <!-- ==================== MODAL NOTIFICACIONES ==================== -->
+  <div id="notificationsModal" class="hidden fixed inset-0 z-50 bg-[#071826]/65 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 overflow-y-auto" onclick="if(event.target===this) closeNotificationsModal()">
+    <div class="modal-panel-anim aurora-shell rounded-[28px] overflow-hidden max-w-lg w-full my-auto relative">
+      <div class="aurora-sidebar px-6 py-5 text-white border-b border-white/10 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white shadow-lg shadow-amber-500/25 shrink-0">
+            <i class="fa-solid fa-bell"></i>
+          </div>
+          <div>
+            <span class="inline-block px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-200 border border-amber-300/25 text-[10px] font-semibold">Centro de Avisos</span>
+            <h3 class="text-lg font-bold tracking-tight text-white mt-0.5">Notificaciones</h3>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="markAllNotificationsRead()" class="btn-interactive px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-[11px] font-semibold">
+            Marcar leídas
+          </button>
+          <button type="button" onclick="closeNotificationsModal()" class="btn-interactive w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+      <div class="aurora-canvas p-5 max-h-[70vh] overflow-y-auto aurora-scroll">
+        <div id="notificationsList" class="space-y-2.5"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== SCRIPTS ==================== -->
-  <script src="/intranet/js/admin-core.js?v=20261125-6"></script>
-  <script src="/intranet/js/admin-attendance.js?v=20261125-6"></script>
-  <script src="/intranet/js/admin-users.js?v=20261125-6"></script>
-  <script src="/intranet/js/admin-materials.js?v=20261125-6"></script>
+  <script src="/intranet/js/admin-core.js?v=20261125-8"></script>
+  <script src="/intranet/js/admin-attendance.js?v=20261125-8"></script>
+  <script src="/intranet/js/admin-users.js?v=20261125-8"></script>
+  <script src="/intranet/js/admin-materials.js?v=20261125-8"></script>
 
   <!-- Barra de Navegación Inferior Tipo App Nativa (Solo Móvil Android / iOS) -->
   <nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bottom-dock">
