@@ -6,6 +6,7 @@ const { JWT_SECRET, dataDir, uploadsDir, avatarsDir, upload, uploadAvatar } = re
 const { db, verifyGroupAccess, attachFilesToMaterials, attachFilesToSubmissions } = require("../lib/db");
 const { authMiddleware, adminOnly, staffOnly } = require("../lib/auth");
 const { broadcastChatEvent } = require("../lib/sse");
+const { notifyAnnouncement, notifyNewMaterial, notifySubmission, notifyGrade } = require("../lib/notifications");
 
 const router = express.Router();
 
@@ -162,7 +163,10 @@ router.post('/intranet/api/admin/materials', authMiddleware, staffOnly, upload.a
           const materialId = this.lastID;
           createdIds.push(materialId);
 
-          if (!uploadedFiles.length) return insertNext();
+          if (!uploadedFiles.length) {
+            notifyNewMaterial({ groupId: gid, materialId, title: title.trim(), targetGrade: tGrade, evaluationEnabled: evalFlag });
+            return insertNext();
+          }
 
           const stmt = db.prepare(
             `INSERT INTO material_files (material_id, label, file_name, original_name, file_type) VALUES (?, ?, ?, ?, ?)`
@@ -175,7 +179,10 @@ router.post('/intranet/api/admin/materials', authMiddleware, staffOnly, upload.a
             const lbl = (parsedLabels[idx] && parsedLabels[idx].trim()) ? parsedLabels[idx].trim() : 'General';
             stmt.run(materialId, lbl, f.filename, f.originalname, fType);
           });
-          stmt.finalize(() => insertNext());
+          stmt.finalize(() => {
+            notifyNewMaterial({ groupId: gid, materialId, title: title.trim(), targetGrade: tGrade, evaluationEnabled: evalFlag });
+            insertNext();
+          });
         }
       );
     }
@@ -306,7 +313,7 @@ router.get('/intranet/api/admin/announcements', authMiddleware, staffOnly, (req,
     db.all(`SELECT * FROM announcements ORDER BY created_at DESC`, [], (err, rows) => res.json(rows || []));
   } else {
     db.all(
-      `SELECT * FROM announcements WHERE target_category IN ('Todos', 'Sol Music') ORDER BY created_at DESC`,
+      `SELECT * FROM announcements WHERE target_category IN ('Todos', 'Sol Music', 'Solo Profesores', 'Profesores y Alumnos') ORDER BY created_at DESC`,
       [],
       (err, rows) => res.json(rows || [])
     );
@@ -317,8 +324,9 @@ router.post('/intranet/api/admin/announcements', authMiddleware, staffOnly, (req
   const { title, message, target_category, event_date } = req.body;
   if (!title || !message) return res.status(400).json({ error: 'Título y mensaje del aviso son obligatorios' });
 
+  const allowedAdminTargets = ['Todos', 'Particulares', 'Sol Music', 'Solo Profesores', 'Profesores y Alumnos'];
   const target = req.user.role === 'admin'
-    ? (['Todos', 'Particulares', 'Sol Music'].includes(target_category) ? target_category : 'Todos')
+    ? (allowedAdminTargets.includes(target_category) ? target_category : 'Todos')
     : 'Sol Music';
 
   db.run(
@@ -327,6 +335,13 @@ router.post('/intranet/api/admin/announcements', authMiddleware, staffOnly, (req
     [title.trim(), message.trim(), target, (event_date || '').trim(), req.user.full_name],
     function (err) {
       if (err) return res.status(500).json({ error: 'Error publicando anuncio' });
+      notifyAnnouncement({
+        title: title.trim(),
+        message: message.trim(),
+        targetCategory: target,
+        senderName: req.user.full_name,
+        senderRole: req.user.role
+      });
       res.json({ id: this.lastID });
     }
   );
