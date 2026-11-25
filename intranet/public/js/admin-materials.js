@@ -725,6 +725,8 @@ function openEditMaterialModal(matId) {
   document.getElementById('editMatDesc').value = mat.description || '';
   const editGradeSel = document.getElementById('editMatTargetGrade');
   if (editGradeSel) editGradeSel.value = mat.target_grade || 'Todos';
+  const editEvalCb = document.getElementById('editMatEvalEnabled');
+  if (editEvalCb) editEvalCb.checked = Number(mat.evaluation_enabled) === 1;
   document.getElementById('editNewFileRows').innerHTML = '';
 
   const listEl = document.getElementById('editExistingFilesList');
@@ -772,9 +774,10 @@ document.getElementById('editMaterialForm').addEventListener('submit', async (e)
   formData.append('external_url', document.getElementById('editMatUrl').value);
   formData.append('description', document.getElementById('editMatDesc').value);
   formData.append('target_grade', document.getElementById('editMatTargetGrade')?.value || 'Todos');
+  const editEvalCb = document.getElementById('editMatEvalEnabled');
+  formData.append('evaluation_enabled', editEvalCb && editEvalCb.checked ? '1' : '0');
   if (origMat) {
     formData.append('publish_format', origMat.publish_format || (origMat.category === 'Sol Music' ? 'music' : 'classroom'));
-    formData.append('evaluation_enabled', origMat.evaluation_enabled ? '1' : '0');
   }
   formData.append('deleted_file_ids', JSON.stringify(editDeletedFileIds));
 
