@@ -3,7 +3,7 @@ const bcrypt = require("bcryptjs");
 const path = require("path");
 const fs = require("fs");
 const { avatarsDir, uploadAvatar } = require("../lib/config");
-const { db, syncStudentGroups, attachGroupsToStudents } = require("../lib/db");
+const { db, verifyGroupAccess, syncStudentGroups, attachGroupsToStudents } = require("../lib/db");
 const { authMiddleware, adminOnly, staffOnly } = require("../lib/auth");
 
 const router = express.Router();
