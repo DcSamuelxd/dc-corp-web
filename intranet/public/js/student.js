@@ -33,7 +33,7 @@ function syncStudentUrl(push = true) {
 function applyStudentRouteFromHash(hashStr) {
   const clean = (hashStr || '').replace(/^#/, '');
   const parts = clean.split('/').filter(Boolean);
-  const validTabs = ['materiales', 'asistencia', 'companeros', 'perfil'];
+  const validTabs = ['materiales', 'asistencia', 'companeros', 'mensajes', 'perfil'];
   const tab = validTabs.includes(parts[0]) ? parts[0] : 'materiales';
   const temaId = (parts[1] === 'tema' && parts[2]) ? Number(parts[2]) : null;
 
@@ -64,13 +64,19 @@ function updateMobileStudentDockPill(tabName) {
 
 function switchStudentTab(tabName, pushHistory = true) {
   activeStudentTab = tabName;
-  ['materiales', 'asistencia', 'companeros', 'perfil'].forEach(t => {
+  if (tabName === 'mensajes' && typeof loadStudentPeers === 'function') {
+    loadStudentPeers();
+  }
+  ['materiales', 'asistencia', 'companeros', 'mensajes', 'perfil'].forEach(t => {
     const view = document.getElementById(`view-${t}`);
     if (view) {
       if (t === tabName) {
         view.classList.remove('hidden', 'section-enter');
         void view.offsetWidth;
         view.classList.add('section-enter');
+        if (t === 'companeros') {
+          requestAnimationFrame(() => updateCommunityPill());
+        }
       } else {
         view.classList.add('hidden');
         view.classList.remove('section-enter');
@@ -1006,32 +1012,82 @@ function renderAttendancesList() {
   }).join('');
 }
 
+let communityScope = 'grupo';
+
+function updateCommunityPill() {
+  const container = document.getElementById('communityScopeFilter');
+  const activeBtn = document.getElementById(`comm-scope-${communityScope}`);
+  if (!container || !activeBtn || activeBtn.classList.contains('hidden')) return;
+  const pill = container.querySelector('.segmented-pill');
+  if (!pill || !activeBtn.offsetWidth) return;
+  pill.style.width = `${activeBtn.offsetWidth}px`;
+  pill.style.transform = `translate3d(${activeBtn.offsetLeft}px, 0, 0)`;
+}
+
+function setCommunityScope(scope) {
+  communityScope = scope;
+  ['grupo', 'solmusic', 'profesores'].forEach(s => {
+    const btn = document.getElementById(`comm-scope-${s}`);
+    if (btn) {
+      btn.className = (btn.classList.contains('hidden') ? 'hidden ' : '') +
+        (s === scope
+          ? 'comm-scope-btn segmented-btn px-3 py-1.5 rounded-lg text-[#1d1d1f]'
+          : 'comm-scope-btn segmented-btn px-3 py-1.5 rounded-lg text-[#6e6e73] hover:text-[#1d1d1f]');
+    }
+  });
+  updateCommunityPill();
+  renderClassmatesSection();
+}
+
 function renderClassmatesSection() {
   if (!dashboardData) return;
-  const list = dashboardData.classmates || [];
   const myId = Number(dashboardData.student.id);
-  document.getElementById('classmatesGroupTitle').innerText = dashboardData.student.group_name || 'tu grupo';
-  document.getElementById('classmatesCountBadge').innerText = `${list.length} integrante(s)`;
+  const isSolStudent = (dashboardData.enrolledGroups || []).some(g => g.category === 'Sol Music') || dashboardData.student.category === 'Sol Music';
+  const solBtn = document.getElementById('comm-scope-solmusic');
+  if (solBtn) solBtn.classList.toggle('hidden', !isSolStudent);
+  if (!isSolStudent && communityScope === 'solmusic') communityScope = 'grupo';
+
+  let list = [];
+  let mode = 'student';
+  if (communityScope === 'profesores') {
+    list = dashboardData.teachers || [];
+    mode = 'teacher';
+    document.getElementById('classmatesCountBadge').innerText = `${list.length} docente(s)`;
+  } else if (communityScope === 'solmusic') {
+    list = dashboardData.solMusicCommunity || [];
+    document.getElementById('classmatesCountBadge').innerText = `${list.length} en Sol Music`;
+  } else {
+    list = dashboardData.classmates || [];
+    document.getElementById('classmatesGroupTitle').innerText = dashboardData.student.group_name || 'tu grupo';
+    document.getElementById('classmatesCountBadge').innerText = `${list.length} integrante(s)`;
+  }
+
+  requestAnimationFrame(() => updateCommunityPill());
 
   const grid = document.getElementById('classmatesGrid');
   if (!list.length) {
-    grid.innerHTML = '<p class="col-span-full text-xs text-[#6e6e73] text-center py-10">Aún no hay otros compañeros registrados en este grupo.</p>';
+    grid.innerHTML = `<p class="col-span-full text-xs text-[#6e6e73] text-center py-10">${mode === 'teacher' ? 'No hay docentes registrados todavía.' : 'Aún no hay otros compañeros registrados aquí.'}</p>`;
     return;
   }
 
-  const isSolGroup = dashboardData.student.category === 'Sol Music';
+  const isSolGroup = communityScope === 'solmusic' || dashboardData.student.category === 'Sol Music';
   grid.innerHTML = list.map(cm => {
-    const isMe = Number(cm.id) === myId;
+    const isMe = mode === 'student' && Number(cm.id) === myId;
     const avatarHtml = cm.avatar_file
       ? `<img src="/intranet/api/avatars/${cm.avatar_file}" alt="${cm.full_name}" class="w-14 h-14 rounded-2xl object-cover border border-black/10 shrink-0">`
-      : `<div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#0071e3]/85 to-indigo-600/85 text-white flex items-center justify-center text-lg font-bold shrink-0">${cm.full_name.charAt(0)}</div>`;
+      : `<div class="w-14 h-14 rounded-2xl bg-gradient-to-br ${mode === 'teacher' ? 'from-amber-500 to-orange-600' : 'from-[#0071e3]/85 to-indigo-600/85'} text-white flex items-center justify-center text-lg font-bold shrink-0">${cm.full_name.charAt(0)}</div>`;
 
-    const specialtyBadge = isSolGroup
-      ? (cm.instrument ? `<span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 font-semibold text-[10px]"><i class="fa-solid fa-guitar mr-1"></i>${cm.instrument}</span>` : '')
-      : (cm.grade ? `<span class="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 font-semibold text-[10px]"><i class="fa-solid fa-graduation-cap mr-1"></i>${cm.grade}</span>` : '');
+    let specialtyBadge = '';
+    if (mode === 'teacher') {
+      specialtyBadge = `<span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 font-semibold text-[10px]"><i class="fa-solid fa-chalkboard-user mr-1"></i>${cm.specialty || 'Docente'}</span>`;
+    } else if (isSolGroup) {
+      specialtyBadge = cm.instrument ? `<span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 font-semibold text-[10px]"><i class="fa-solid fa-guitar mr-1"></i>${cm.instrument}</span>` : '';
+    } else {
+      specialtyBadge = cm.grade ? `<span class="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 font-semibold text-[10px]"><i class="fa-solid fa-graduation-cap mr-1"></i>${cm.grade}</span>` : '';
+    }
 
     return `
-      <button type="button" onclick="openClassmateModal(${cm.id})"
+      <button type="button" onclick="openClassmateModal(${cm.id}, '${mode}')"
         class="card-interactive text-left p-4 rounded-2xl bg-white/95 hover:bg-white border ${isMe ? 'border-[#0071e3]/35 ring-1 ring-[#0071e3]/15' : 'border-black/[0.06]'} shadow-sm flex items-start gap-3.5">
         ${avatarHtml}
         <div class="min-w-0 flex-1 space-y-1">
@@ -1051,18 +1107,28 @@ function renderClassmatesSection() {
   }).join('');
 }
 
-function openClassmateModal(studentId) {
+function openClassmateModal(personId, mode = 'student') {
   if (!dashboardData) return;
-  const cm = (dashboardData.classmates || []).find(c => Number(c.id) === Number(studentId));
+  let cm = null;
+  if (mode === 'teacher') {
+    cm = (dashboardData.teachers || []).find(t => Number(t.id) === Number(personId));
+  } else {
+    cm = (dashboardData.classmates || []).find(c => Number(c.id) === Number(personId))
+      || (dashboardData.solMusicCommunity || []).find(c => Number(c.id) === Number(personId));
+  }
   if (!cm) return;
 
-  const isMe = Number(cm.id) === Number(dashboardData.student.id);
-  const isSolGroup = dashboardData.student.category === 'Sol Music';
+  const isMe = mode === 'student' && Number(cm.id) === Number(dashboardData.student.id);
+  const isSolGroup = communityScope === 'solmusic' || dashboardData.student.category === 'Sol Music';
   document.getElementById('cmModalName').innerText = cm.full_name;
-  document.getElementById('cmModalBadge').innerText = dashboardData.student.group_name || 'Grupo';
+  document.getElementById('cmModalBadge').innerText = mode === 'teacher' ? 'Plana Docente' : (communityScope === 'solmusic' ? 'Sol Music' : (dashboardData.student.group_name || 'Grupo'));
 
   const instBadge = document.getElementById('cmModalInstBadge');
-  if (isSolGroup) {
+  if (mode === 'teacher') {
+    instBadge.className = 'px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-800 text-[11px] font-bold';
+    instBadge.innerHTML = `<i class="fa-solid fa-chalkboard-user mr-1"></i><span>${cm.specialty || 'Docente'}</span>`;
+    instBadge.classList.remove('hidden');
+  } else if (isSolGroup) {
     if (cm.instrument) {
       instBadge.className = 'px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-800 text-[11px] font-bold';
       instBadge.innerHTML = `<i class="fa-solid fa-guitar mr-1"></i><span>${cm.instrument}</span>`;
@@ -1080,6 +1146,20 @@ function openClassmateModal(studentId) {
     }
   }
   document.getElementById('cmModalYouTag').classList.toggle('hidden', !isMe);
+
+  const msgBtn = document.getElementById('cmModalMsgBtn');
+  if (msgBtn) {
+    if (mode === 'student' && !isMe) {
+      msgBtn.classList.remove('hidden');
+      msgBtn.onclick = () => {
+        closeClassmateModal();
+        switchStudentTab('mensajes');
+        openStudentDmChat(cm.id, cm.full_name);
+      };
+    } else {
+      msgBtn.classList.add('hidden');
+    }
+  }
 
   const schEl = document.getElementById('cmModalSchedule');
   if (cm.schedule) {
@@ -1272,6 +1352,10 @@ function initRealtimeChat() {
         studentNotificationsCache.unshift(payload.notification);
         updateStudentNotifBadges(studentNotificationsCache.filter(n => !n.is_read).length);
         renderStudentNotificationsList();
+        return;
+      }
+      if (payload.type === 'student_dm' && payload.message) {
+        onIncomingStudentDm(payload.message);
         return;
       }
       if (payload.type === 'chat_message' && payload.message && dashboardData) {

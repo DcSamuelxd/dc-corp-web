@@ -847,3 +847,70 @@ async function downloadDatabaseBackup() {
   URL.revokeObjectURL(url);
 }
 
+// ==================== SUPERVISIÓN DE MENSAJES ENTRE ALUMNOS (ADMIN) ====================
+let activeAuditPair = null;
+
+async function loadAdminStudentMessages() {
+  if (!isAdmin) return;
+  const listEl = document.getElementById('adminDmConvList');
+  if (!listEl) return;
+  const res = await fetch('/intranet/api/admin/student-messages', { headers: authHeaders() });
+  if (!res.ok) return;
+  const convs = await res.json();
+  if (!convs.length) {
+    listEl.innerHTML = '<p class="text-xs text-[#6e6e73] py-6 text-center">Aún no hay mensajes entre estudiantes.</p>';
+    return;
+  }
+  listEl.innerHTML = convs.map(c => {
+    const active = activeAuditPair && activeAuditPair.userA === c.user_a_id && activeAuditPair.userB === c.user_b_id;
+    return `
+      <button type="button" onclick="openAdminDmThread(${c.user_a_id}, ${c.user_b_id}, '${c.user_a_name.replace(/'/g, "\\'")}', '${c.user_b_name.replace(/'/g, "\\'")}')"
+        class="card-interactive w-full text-left p-3.5 rounded-2xl border transition ${active ? 'bg-[#102e44] text-white border-[#0ea5e9]' : 'bg-white/95 hover:bg-white border-black/[0.07] text-[#1d1d1f]'}">
+        <div class="flex items-center justify-between gap-2">
+          <p class="text-xs font-bold truncate">${c.user_a_name} ↔ ${c.user_b_name}</p>
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${active ? 'bg-sky-400/20 text-sky-200' : 'bg-[#0071e3]/10 text-[#0071e3]'}">${c.total_messages}</span>
+        </div>
+        <p class="text-[11px] truncate mt-1 ${active ? 'text-slate-200' : 'text-[#6e6e73]'}"><strong>${c.last_sender_name}:</strong> ${c.last_message}</p>
+      </button>
+    `;
+  }).join('');
+}
+
+async function openAdminDmThread(userA, userB, nameA, nameB) {
+  activeAuditPair = { userA, userB, nameA, nameB };
+  loadAdminStudentMessages();
+  const headerEl = document.getElementById('adminDmThreadHeader');
+  const boxEl = document.getElementById('adminDmThreadMessages');
+  if (headerEl) headerEl.innerText = `Conversación: ${nameA} ↔ ${nameB}`;
+  if (!boxEl) return;
+
+  const res = await fetch(`/intranet/api/admin/student-messages/${userA}/${userB}`, { headers: authHeaders() });
+  const msgs = await res.json();
+  if (!msgs.length) {
+    boxEl.innerHTML = '<p class="text-xs text-[#6e6e73] text-center py-10">Sin mensajes.</p>';
+    return;
+  }
+  boxEl.innerHTML = msgs.map(m => {
+    const isA = Number(m.sender_id) === Number(userA);
+    return `
+      <div class="flex ${isA ? 'justify-start' : 'justify-end'}">
+        <div class="max-w-[82%] p-3 rounded-2xl text-xs ${isA ? 'bg-white border border-black/[0.06] text-[#1d1d1f]' : 'bg-[#0071e3] text-white'} shadow-sm">
+          <p class="text-[10px] font-bold ${isA ? 'text-[#0071e3]' : 'text-sky-100'} mb-0.5">${m.sender_name}</p>
+          <p class="leading-relaxed">${m.content}</p>
+          <span class="block text-[9px] mt-1 ${isA ? 'text-[#6e6e73]' : 'text-sky-100/80'}">${new Date(m.created_at).toLocaleString('es-PE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+  boxEl.scrollTop = boxEl.scrollHeight;
+}
+
+function onAdminAuditMessageEvent(msg) {
+  if (activeAdminTab === 'mensajes') {
+    loadAdminStudentMessages();
+    if (activeAuditPair && ((Number(msg.sender_id) === activeAuditPair.userA && Number(msg.receiver_id) === activeAuditPair.userB) || (Number(msg.sender_id) === activeAuditPair.userB && Number(msg.receiver_id) === activeAuditPair.userA))) {
+      openAdminDmThread(activeAuditPair.userA, activeAuditPair.userB, activeAuditPair.nameA, activeAuditPair.nameB);
+    }
+  }
+}
+
