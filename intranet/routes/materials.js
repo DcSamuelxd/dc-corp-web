@@ -531,14 +531,45 @@ router.get('/intranet/api/student/dashboard', authMiddleware, (req, res) => {
                              ORDER BY u.full_name ASC`,
                             [activeGroupId, activeGroupId],
                             (err6, classmates) => {
-                              res.json({
-                                student: activeStudentView,
-                                enrolledGroups: myGroups,
-                                classmates: classmates || [],
-                                announcements: anns || [],
-                                attendances: attendances || [],
-                                materials: matsWithNotes
-                              });
+                              const isSolStudent = myGroups.some(g => g.category === 'Sol Music');
+                              const finishCommunityAndTeachers = (solCommunity) => {
+                                db.all(
+                                  `SELECT id, full_name, role, specialty, bio, avatar_file
+                                   FROM users
+                                   WHERE role = 'teacher' OR is_faculty = 1
+                                   ORDER BY CASE WHEN role = 'admin' THEN 0 ELSE 1 END, full_name ASC`,
+                                  [],
+                                  (err7, teachers) => {
+                                    res.json({
+                                      student: activeStudentView,
+                                      enrolledGroups: myGroups,
+                                      classmates: classmates || [],
+                                      solMusicCommunity: solCommunity || [],
+                                      teachers: teachers || [],
+                                      announcements: anns || [],
+                                      attendances: attendances || [],
+                                      materials: matsWithNotes
+                                    });
+                                  }
+                                );
+                              };
+
+                              if (!isSolStudent) {
+                                return finishCommunityAndTeachers([]);
+                              }
+
+                              db.all(
+                                `SELECT DISTINCT u.id, u.full_name, u.schedule, u.bio, u.avatar_file, u.instrument, u.grade
+                                 FROM users u
+                                 LEFT JOIN student_groups sg ON sg.student_id = u.id
+                                 INNER JOIN groups g ON g.id = COALESCE(sg.group_id, u.group_id)
+                                 WHERE u.role = 'student' AND g.category = 'Sol Music'
+                                 ORDER BY u.full_name ASC`,
+                                [],
+                                (errSol, solRows) => {
+                                  finishCommunityAndTeachers(solRows || []);
+                                }
+                              );
                             }
                           );
                         }

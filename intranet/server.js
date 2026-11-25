@@ -8,6 +8,7 @@ const usersRoutes = require('./routes/users');
 const attendanceRoutes = require('./routes/attendance');
 const materialsRoutes = require('./routes/materials');
 const notificationsRoutes = require('./routes/notifications');
+const messagesRoutes = require('./routes/messages');
 const { startReminderScheduler } = require('./lib/notifications');
 
 const app = express();
@@ -25,6 +26,7 @@ app.use(usersRoutes);
 app.use(attendanceRoutes);
 app.use(materialsRoutes);
 app.use(notificationsRoutes);
+app.use(messagesRoutes);
 
 startReminderScheduler();
 
