@@ -12,7 +12,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="/intranet/css/styles.css?v=20261125-2">
+  <link rel="stylesheet" href="/intranet/css/styles.css?v=20261125-3">
 </head>
 <body class="page-admin min-h-screen">
 
@@ -334,22 +334,16 @@
           </div>
         </div>
 
-        <!-- Tarjetas de gestión rápida de subgrupos -->
-        <div class="space-y-2">
-          <span class="text-[11px] font-bold uppercase tracking-wider text-[#6e6e73]">Administrar subgrupos</span>
-          <div id="groupsCardsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5"></div>
-        </div>
-
-        <!-- Tarjetas de clases para filtrar alumnos -->
-        <div class="space-y-2 pt-2 border-t border-black/[0.06]">
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold uppercase tracking-wider text-[#6e6e73]">Filtrar directorio por tarjeta de clase</span>
+        <!-- Tarjetas unificadas de subgrupos (filtrar + editar/eliminar) -->
+        <div class="space-y-2.5">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <span class="text-[11px] font-bold uppercase tracking-wider text-[#6e6e73]">Subgrupos (toca una tarjeta para filtrar alumnos)</span>
             <button type="button" id="btnClearGroupCard" onclick="selectStudentGroupCard('')"
-              class="hidden text-[11px] font-semibold text-[#0071e3] hover:underline">
-              Ver todos los grupos
+              class="hidden btn-interactive px-3 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[11px] font-semibold">
+              <i class="fa-solid fa-filter-circle-xmark mr-1"></i> Ver todos los grupos
             </button>
           </div>
-          <div id="studentGroupCardsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5"></div>
+          <div id="studentGroupCardsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 max-h-[260px] overflow-y-auto aurora-scroll pr-1"></div>
         </div>
 
         <div class="relative">
@@ -1331,7 +1325,7 @@
   </div>
 
   <!-- ==================== SCRIPTS ==================== -->
-  <script src="/intranet/js/admin.js?v=20261125-2"></script>
+  <script src="/intranet/js/admin.js?v=20261125-3"></script>
 
   <!-- Barra de Navegación Inferior Tipo App Nativa (Solo Móvil Android / iOS) -->
   <nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bottom-dock">
