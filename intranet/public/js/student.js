@@ -1488,6 +1488,117 @@ async function onStudentNotificationClick(id, linkHash) {
 
 window.addEventListener('DOMContentLoaded', loadStudentNotifications);
 
+// ==================== MENSAJES DIRECTOS ENTRE ESTUDIANTES ====================
+let activeDmPeerId = null;
+let studentPeersCache = [];
+
+async function loadStudentPeers() {
+  const listEl = document.getElementById('studentDmPeersList');
+  if (!listEl) return;
+  try {
+    const res = await fetch('/intranet/api/student/messages/peers', { headers: authHeaders() });
+    if (!res.ok) return;
+    studentPeersCache = await res.json();
+    const totalUnread = studentPeersCache.reduce((acc, p) => acc + (p.unread_count || 0), 0);
+    const dmBadge = document.getElementById('studentDmBadge');
+    if (dmBadge) {
+      dmBadge.innerText = totalUnread > 9 ? '9+' : String(totalUnread);
+      dmBadge.classList.toggle('hidden', totalUnread === 0);
+    }
+
+    if (!studentPeersCache.length) {
+      listEl.innerHTML = '<p class="text-xs text-[#6e6e73] text-center py-8">No hay compañeros disponibles aún.</p>';
+      return;
+    }
+
+    listEl.innerHTML = studentPeersCache.map(p => {
+      const active = Number(activeDmPeerId) === Number(p.id);
+      const avatarHtml = p.avatar_file
+        ? `<img src="/intranet/api/avatars/${p.avatar_file}" alt="${p.full_name}" class="w-10 h-10 rounded-xl object-cover shrink-0">`
+        : `<div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0ea5e9] to-[#0071e3] text-white flex items-center justify-center text-xs font-bold shrink-0">${p.full_name.charAt(0)}</div>`;
+      return `
+        <button type="button" onclick="openStudentDmChat(${p.id}, '${p.full_name.replace(/'/g, "\\'")}')"
+          class="card-interactive w-full text-left p-3 rounded-2xl border flex items-center gap-3 ${active ? 'bg-[#102e44] text-white border-[#0ea5e9]' : 'bg-white/95 hover:bg-white border-black/[0.07] text-[#1d1d1f]'}">
+          ${avatarHtml}
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center justify-between gap-1.5">
+              <p class="text-xs font-bold truncate">${p.full_name}</p>
+              ${p.unread_count ? `<span class="px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-bold shrink-0">${p.unread_count}</span>` : ''}
+            </div>
+            <p class="text-[10px] truncate mt-0.5 ${active ? 'text-slate-200' : 'text-[#6e6e73]'}">${p.last_message || (p.category === 'Sol Music' ? (p.instrument || 'Sol Music') : (p.grade || 'Estudiante'))}</p>
+          </div>
+        </button>
+      `;
+    }).join('');
+  } catch {}
+}
+
+async function openStudentDmChat(peerId, peerName) {
+  activeDmPeerId = Number(peerId);
+  loadStudentPeers();
+  const headerEl = document.getElementById('studentDmHeader');
+  const boxEl = document.getElementById('studentDmMessages');
+  const formEl = document.getElementById('studentDmForm');
+  if (headerEl) headerEl.innerHTML = `<span><i class="fa-regular fa-comments mr-1.5 text-[#0071e3]"></i>Chat con ${peerName}</span>`;
+  if (formEl) formEl.classList.remove('hidden');
+  if (!boxEl) return;
+
+  const res = await fetch(`/intranet/api/student/messages/${peerId}`, { headers: authHeaders() });
+  const msgs = await res.json();
+  renderStudentDmThread(msgs);
+}
+
+function renderStudentDmThread(msgs) {
+  const boxEl = document.getElementById('studentDmMessages');
+  if (!boxEl || !dashboardData) return;
+  const myId = Number(dashboardData.student.id);
+  if (!msgs.length) {
+    boxEl.innerHTML = '<p class="text-xs text-[#6e6e73] text-center py-12">Saluda a tu compañero para iniciar la conversación.</p>';
+    return;
+  }
+  boxEl.innerHTML = msgs.map(m => {
+    const isMe = Number(m.sender_id) === myId;
+    return `
+      <div class="flex ${isMe ? 'justify-end' : 'justify-start'}">
+        <div class="max-w-[82%] p-3 rounded-2xl text-xs shadow-sm ${isMe ? 'bg-gradient-to-r from-[#0ea5e9] to-[#0071e3] text-white' : 'bg-white border border-black/[0.06] text-[#1d1d1f]'}">
+          <p class="leading-relaxed">${m.content}</p>
+          <span class="block text-[9px] mt-1 ${isMe ? 'text-sky-100/80' : 'text-[#6e6e73]'}">${new Date(m.created_at).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+  boxEl.scrollTop = boxEl.scrollHeight;
+}
+
+function onIncomingStudentDm(msg) {
+  loadStudentPeers();
+  if (activeDmPeerId && (Number(msg.sender_id) === Number(activeDmPeerId) || Number(msg.receiver_id) === Number(activeDmPeerId))) {
+    const peer = studentPeersCache.find(p => Number(p.id) === Number(activeDmPeerId));
+    openStudentDmChat(activeDmPeerId, peer ? peer.full_name : (msg.sender_name || 'Compañero'));
+  }
+}
+
+const dmFormEl = document.getElementById('studentDmForm');
+if (dmFormEl) {
+  dmFormEl.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!activeDmPeerId) return;
+    const input = document.getElementById('studentDmInput');
+    const content = input.value.trim();
+    if (!content) return;
+    input.value = '';
+    const res = await fetch(`/intranet/api/student/messages/${activeDmPeerId}`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ content })
+    });
+    if (res.ok) {
+      const peer = studentPeersCache.find(p => Number(p.id) === Number(activeDmPeerId));
+      openStudentDmChat(activeDmPeerId, peer ? peer.full_name : 'Compañero');
+    }
+  });
+}
+
 document.getElementById('bioInput').addEventListener('input', (e) => {
   document.getElementById('bioCharCount').innerText = `${e.target.value.length}/400`;
 });
