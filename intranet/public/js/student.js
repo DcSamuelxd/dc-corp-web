@@ -1149,7 +1149,7 @@ function openClassmateModal(personId, mode = 'student') {
 
   const msgBtn = document.getElementById('cmModalMsgBtn');
   if (msgBtn) {
-    if (mode === 'student' && !isMe) {
+    if (!isMe) {
       msgBtn.classList.remove('hidden');
       msgBtn.onclick = () => {
         closeClassmateModal();
@@ -1513,19 +1513,23 @@ async function loadStudentPeers() {
 
     listEl.innerHTML = studentPeersCache.map(p => {
       const active = Number(activeDmPeerId) === Number(p.id);
+      const isTeacher = p.peer_role === 'teacher';
       const avatarHtml = p.avatar_file
         ? `<img src="/intranet/api/avatars/${p.avatar_file}" alt="${p.full_name}" class="w-10 h-10 rounded-xl object-cover shrink-0">`
-        : `<div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0ea5e9] to-[#0071e3] text-white flex items-center justify-center text-xs font-bold shrink-0">${p.full_name.charAt(0)}</div>`;
+        : `<div class="w-10 h-10 rounded-xl bg-gradient-to-br ${isTeacher ? 'from-amber-500 to-orange-600' : 'from-[#0ea5e9] to-[#0071e3]'} text-white flex items-center justify-center text-xs font-bold shrink-0">${p.full_name.charAt(0)}</div>`;
       return `
         <button type="button" onclick="openStudentDmChat(${p.id}, '${p.full_name.replace(/'/g, "\\'")}')"
           class="card-interactive w-full text-left p-3 rounded-2xl border flex items-center gap-3 ${active ? 'bg-[#102e44] text-white border-[#0ea5e9]' : 'bg-white/95 hover:bg-white border-black/[0.07] text-[#1d1d1f]'}">
           ${avatarHtml}
           <div class="min-w-0 flex-1">
             <div class="flex items-center justify-between gap-1.5">
-              <p class="text-xs font-bold truncate">${p.full_name}</p>
+              <div class="flex items-center gap-1.5 min-w-0">
+                <p class="text-xs font-bold truncate">${p.full_name}</p>
+                ${isTeacher ? `<span class="px-1.5 py-0.5 rounded-full text-[8px] font-bold shrink-0 ${active ? 'bg-amber-400/20 text-amber-200' : 'bg-amber-500/15 text-amber-800'}">Docente</span>` : ''}
+              </div>
               ${p.unread_count ? `<span class="px-1.5 py-0.5 rounded-full bg-rose-500 text-white text-[9px] font-bold shrink-0">${p.unread_count}</span>` : ''}
             </div>
-            <p class="text-[10px] truncate mt-0.5 ${active ? 'text-slate-200' : 'text-[#6e6e73]'}">${p.last_message || (p.category === 'Sol Music' ? (p.instrument || 'Sol Music') : (p.grade || 'Estudiante'))}</p>
+            <p class="text-[10px] truncate mt-0.5 ${active ? 'text-slate-200' : 'text-[#6e6e73]'}">${p.last_message || (isTeacher ? (p.specialty || 'Docente') : (p.category === 'Sol Music' ? (p.instrument || 'Sol Music') : (p.grade || 'Estudiante')))}</p>
           </div>
         </button>
       `;

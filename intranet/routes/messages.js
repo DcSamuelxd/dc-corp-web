@@ -1,12 +1,12 @@
 const express = require('express');
 const { db } = require('../lib/db');
-const { authMiddleware, adminOnly } = require('../lib/auth');
+const { authMiddleware, adminOnly, staffOnly } = require('../lib/auth');
 const { broadcastToUser, broadcastToRole } = require('../lib/sse');
 const { createNotification } = require('../lib/notifications');
 
 const router = express.Router();
 
-// Lista de compañeros disponibles para chatear (del mismo grupo o toda la comunidad Sol Music)
+// Lista de compañeros y docentes disponibles para chatear
 router.get('/intranet/api/student/messages/peers', authMiddleware, (req, res) => {
   if (req.user.role !== 'student') return res.status(403).json({ error: 'Solo para estudiantes' });
   const myId = Number(req.user.id);
@@ -21,7 +21,63 @@ router.get('/intranet/api/student/messages/peers', authMiddleware, (req, res) =>
       const groupIds = (myGroups || []).map(g => g.id);
       const isSolMusic = (myGroups || []).some(g => g.category === 'Sol Music');
 
-      if (!groupIds.length && !isSolMusic) return res.json([]);
+      const loadTeachersAndMsgs = (uniquePeers) => {
+        db.all(
+          `SELECT id, full_name, avatar_file, specialty, role
+           FROM users
+           WHERE (role = 'teacher' OR is_faculty = 1) AND id != ?
+           ORDER BY CASE WHEN role = 'admin' THEN 0 ELSE 1 END, full_name ASC`,
+          [myId],
+          (errT, teacherRows) => {
+            const allPeers = [
+              ...(teacherRows || []).map(t => ({
+                id: t.id,
+                full_name: t.full_name,
+                avatar_file: t.avatar_file,
+                specialty: t.specialty || 'Docente',
+                peer_role: 'teacher',
+                category: 'Docente'
+              })),
+              ...uniquePeers.map(p => ({ ...p, peer_role: 'student' }))
+            ];
+
+            db.all(
+              `SELECT sender_id, receiver_id, content, is_read, created_at
+               FROM student_messages
+               WHERE sender_id = ? OR receiver_id = ?
+               ORDER BY created_at DESC, id DESC`,
+              [myId, myId],
+              (err3, msgs) => {
+                const metaByPeer = {};
+                (msgs || []).forEach(m => {
+                  const peerId = Number(m.sender_id) === myId ? Number(m.receiver_id) : Number(m.sender_id);
+                  if (!metaByPeer[peerId]) {
+                    metaByPeer[peerId] = { last_message: m.content, last_at: m.created_at, unread_count: 0 };
+                  }
+                  if (Number(m.receiver_id) === myId && !m.is_read) {
+                    metaByPeer[peerId].unread_count += 1;
+                  }
+                });
+
+                const enriched = allPeers.map(p => ({
+                  ...p,
+                  ...(metaByPeer[p.id] || { last_message: '', last_at: null, unread_count: 0 })
+                }));
+                enriched.sort((a, b) => {
+                  if (a.last_at && b.last_at) return new Date(b.last_at) - new Date(a.last_at);
+                  if (a.last_at) return -1;
+                  if (b.last_at) return 1;
+                  if (a.peer_role !== b.peer_role) return a.peer_role === 'teacher' ? -1 : 1;
+                  return a.full_name.localeCompare(b.full_name);
+                });
+                res.json(enriched);
+              }
+            );
+          }
+        );
+      };
+
+      if (!groupIds.length && !isSolMusic) return loadTeachersAndMsgs([]);
 
       let peerSql = '';
       let peerParams = [];
@@ -47,42 +103,9 @@ router.get('/intranet/api/student/messages/peers', authMiddleware, (req, res) =>
       }
 
       db.all(peerSql, peerParams, (err2, peers) => {
-        if (err2 || !peers) return res.json([]);
         const uniqueMap = new Map();
-        peers.forEach(p => { if (!uniqueMap.has(p.id)) uniqueMap.set(p.id, p); });
-        const uniquePeers = Array.from(uniqueMap.values());
-
-        db.all(
-          `SELECT sender_id, receiver_id, content, is_read, created_at
-           FROM student_messages
-           WHERE sender_id = ? OR receiver_id = ?
-           ORDER BY created_at DESC, id DESC`,
-          [myId, myId],
-          (err3, msgs) => {
-            const metaByPeer = {};
-            (msgs || []).forEach(m => {
-              const peerId = Number(m.sender_id) === myId ? Number(m.receiver_id) : Number(m.sender_id);
-              if (!metaByPeer[peerId]) {
-                metaByPeer[peerId] = { last_message: m.content, last_at: m.created_at, unread_count: 0 };
-              }
-              if (Number(m.receiver_id) === myId && !m.is_read) {
-                metaByPeer[peerId].unread_count += 1;
-              }
-            });
-
-            const enriched = uniquePeers.map(p => ({
-              ...p,
-              ...(metaByPeer[p.id] || { last_message: '', last_at: null, unread_count: 0 })
-            }));
-            enriched.sort((a, b) => {
-              if (a.last_at && b.last_at) return new Date(b.last_at) - new Date(a.last_at);
-              if (a.last_at) return -1;
-              if (b.last_at) return 1;
-              return a.full_name.localeCompare(b.full_name);
-            });
-            res.json(enriched);
-          }
-        );
+        (peers || []).forEach(p => { if (!uniqueMap.has(p.id)) uniqueMap.set(p.id, p); });
+        loadTeachersAndMsgs(Array.from(uniqueMap.values()));
       });
     }
   );
@@ -114,7 +137,7 @@ router.get('/intranet/api/student/messages/:peerId', authMiddleware, (req, res) 
   );
 });
 
-// Enviar mensaje a otro estudiante (tiempo real + visible para Admin)
+// Enviar mensaje a otro estudiante o profesor (tiempo real + visible para Admin)
 router.post('/intranet/api/student/messages/:peerId', authMiddleware, (req, res) => {
   if (req.user.role !== 'student') return res.status(403).json({ error: 'Solo para estudiantes' });
   const myId = Number(req.user.id);
@@ -123,8 +146,8 @@ router.post('/intranet/api/student/messages/:peerId', authMiddleware, (req, res)
   if (!peerId || !content) return res.status(400).json({ error: 'Escribe un mensaje válido' });
   if (peerId === myId) return res.status(400).json({ error: 'No puedes enviarte mensajes a ti mismo' });
 
-  db.get(`SELECT id, full_name FROM users WHERE id = ? AND role = 'student'`, [peerId], (err, peer) => {
-    if (err || !peer) return res.status(404).json({ error: 'Estudiante no encontrado' });
+  db.get(`SELECT id, full_name, role FROM users WHERE id = ?`, [peerId], (err, peer) => {
+    if (err || !peer) return res.status(404).json({ error: 'Destinatario no encontrado' });
 
     db.run(
       `INSERT INTO student_messages (sender_id, receiver_id, content) VALUES (?, ?, ?)`,
@@ -142,9 +165,13 @@ router.post('/intranet/api/student/messages/:peerId', authMiddleware, (req, res)
           created_at: new Date().toISOString()
         };
 
-        broadcastToUser(peerId, { type: 'student_dm', message: msgObj });
         broadcastToUser(myId, { type: 'student_dm', message: msgObj });
-        broadcastToRole('admin', { type: 'student_dm_audit', message: msgObj });
+        if (peer.role === 'student') {
+          broadcastToUser(peerId, { type: 'student_dm', message: msgObj });
+          broadcastToRole('admin', { type: 'student_dm_audit', message: msgObj });
+        } else {
+          broadcastToUser(peerId, { type: 'staff_dm', message: msgObj });
+        }
 
         createNotification({
           userId: peerId,
@@ -161,14 +188,124 @@ router.post('/intranet/api/student/messages/:peerId', authMiddleware, (req, res)
   });
 });
 
+// ================= MENSAJES DIRECTOS DE ALUMNOS A DOCENTES / ADMIN =================
+router.get('/intranet/api/staff/messages/students', authMiddleware, staffOnly, (req, res) => {
+  const myId = Number(req.user.id);
+  const stuSql = req.user.role === 'admin'
+    ? `SELECT id, full_name, avatar_file, instrument, grade FROM users WHERE role = 'student' ORDER BY full_name ASC`
+    : `SELECT DISTINCT u.id, u.full_name, u.avatar_file, u.instrument, u.grade
+       FROM users u
+       LEFT JOIN student_groups sg ON sg.student_id = u.id
+       INNER JOIN groups g ON g.id = COALESCE(sg.group_id, u.group_id)
+       WHERE u.role = 'student' AND g.category = 'Sol Music'
+       ORDER BY u.full_name ASC`;
+
+  db.all(stuSql, [], (err, students) => {
+    if (err || !students) return res.json([]);
+    db.all(
+      `SELECT sender_id, receiver_id, content, is_read, created_at
+       FROM student_messages
+       WHERE sender_id = ? OR receiver_id = ?
+       ORDER BY created_at DESC, id DESC`,
+      [myId, myId],
+      (err2, msgs) => {
+        const metaByStu = {};
+        (msgs || []).forEach(m => {
+          const stuId = Number(m.sender_id) === myId ? Number(m.receiver_id) : Number(m.sender_id);
+          if (!metaByStu[stuId]) {
+            metaByStu[stuId] = { last_message: m.content, last_at: m.created_at, unread_count: 0 };
+          }
+          if (Number(m.receiver_id) === myId && !m.is_read) {
+            metaByStu[stuId].unread_count += 1;
+          }
+        });
+
+        const enriched = students.map(s => ({
+          ...s,
+          ...(metaByStu[s.id] || { last_message: '', last_at: null, unread_count: 0 })
+        }));
+        enriched.sort((a, b) => {
+          if (a.last_at && b.last_at) return new Date(b.last_at) - new Date(a.last_at);
+          if (a.last_at) return -1;
+          if (b.last_at) return 1;
+          return a.full_name.localeCompare(b.full_name);
+        });
+        res.json(enriched);
+      }
+    );
+  });
+});
+
+router.get('/intranet/api/staff/messages/:studentId', authMiddleware, staffOnly, (req, res) => {
+  const myId = Number(req.user.id);
+  const stuId = Number(req.params.studentId);
+  db.run(
+    `UPDATE student_messages SET is_read = 1 WHERE sender_id = ? AND receiver_id = ? AND is_read = 0`,
+    [stuId, myId],
+    () => {
+      db.all(
+        `SELECT sm.*, u.full_name AS sender_name
+         FROM student_messages sm
+         INNER JOIN users u ON u.id = sm.sender_id
+         WHERE (sm.sender_id = ? AND sm.receiver_id = ?) OR (sm.sender_id = ? AND sm.receiver_id = ?)
+         ORDER BY sm.created_at ASC, sm.id ASC LIMIT 120`,
+        [myId, stuId, stuId, myId],
+        (err, rows) => {
+          res.json(rows || []);
+        }
+      );
+    }
+  );
+});
+
+router.post('/intranet/api/staff/messages/:studentId', authMiddleware, staffOnly, (req, res) => {
+  const myId = Number(req.user.id);
+  const stuId = Number(req.params.studentId);
+  const content = (req.body && req.body.content ? String(req.body.content) : '').trim();
+  if (!stuId || !content) return res.status(400).json({ error: 'Escribe un mensaje válido' });
+
+  db.get(`SELECT id, full_name FROM users WHERE id = ? AND role = 'student'`, [stuId], (err, stu) => {
+    if (err || !stu) return res.status(404).json({ error: 'Estudiante no encontrado' });
+    db.run(
+      `INSERT INTO student_messages (sender_id, receiver_id, content) VALUES (?, ?, ?)`,
+      [myId, stuId, content.slice(0, 800)],
+      function (err2) {
+        if (err2) return res.status(500).json({ error: 'Error enviando mensaje' });
+        const msgObj = {
+          id: this.lastID,
+          sender_id: myId,
+          receiver_id: stuId,
+          sender_name: req.user.full_name,
+          receiver_name: stu.full_name,
+          content: content.slice(0, 800),
+          is_read: 0,
+          created_at: new Date().toISOString()
+        };
+        broadcastToUser(stuId, { type: 'student_dm', message: msgObj });
+        broadcastToUser(myId, { type: 'staff_dm', message: msgObj });
+        createNotification({
+          userId: stuId,
+          type: 'student_dm',
+          title: `Mensaje de ${req.user.full_name}`,
+          message: content.slice(0, 120),
+          linkHash: '#mensajes',
+          referenceId: myId
+        });
+        res.json(msgObj);
+      }
+    );
+  });
+});
+
 // ================= SUPERVISIÓN DE MENSAJES ENTRE ALUMNOS (SOLO ADMIN) =================
 router.get('/intranet/api/admin/student-messages', authMiddleware, adminOnly, (req, res) => {
   db.all(
-    `SELECT sm.*, u1.full_name AS sender_name, u1.avatar_file AS sender_avatar,
-            u2.full_name AS receiver_name, u2.avatar_file AS receiver_avatar
+    `SELECT sm.*, u1.full_name AS sender_name, u1.avatar_file AS sender_avatar, u1.role AS sender_role,
+            u2.full_name AS receiver_name, u2.avatar_file AS receiver_avatar, u2.role AS receiver_role
      FROM student_messages sm
      INNER JOIN users u1 ON u1.id = sm.sender_id
      INNER JOIN users u2 ON u2.id = sm.receiver_id
+     WHERE u1.role = 'student' AND u2.role = 'student'
      ORDER BY sm.created_at DESC, sm.id DESC`,
     [],
     (err, rows) => {
