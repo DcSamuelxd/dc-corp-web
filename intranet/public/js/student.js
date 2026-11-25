@@ -11,6 +11,46 @@ function logout() {
 }
 
 let activeStudentTab = 'materiales';
+let isApplyingStudentRoute = false;
+
+function buildStudentHash() {
+  if (activeStudentTab === 'materiales' && selectedStudentMaterialId) {
+    return `#materiales/tema/${selectedStudentMaterialId}`;
+  }
+  return `#${activeStudentTab}`;
+}
+
+function syncStudentUrl(push = true) {
+  if (isApplyingStudentRoute) return;
+  const targetHash = buildStudentHash();
+  if (window.location.hash !== targetHash) {
+    const state = { tab: activeStudentTab, materialId: selectedStudentMaterialId };
+    if (push) history.pushState(state, '', targetHash);
+    else history.replaceState(state, '', targetHash);
+  }
+}
+
+function applyStudentRouteFromHash(hashStr) {
+  const clean = (hashStr || '').replace(/^#/, '');
+  const parts = clean.split('/').filter(Boolean);
+  const validTabs = ['materiales', 'asistencia', 'companeros', 'perfil'];
+  const tab = validTabs.includes(parts[0]) ? parts[0] : 'materiales';
+  const temaId = (parts[1] === 'tema' && parts[2]) ? Number(parts[2]) : null;
+
+  isApplyingStudentRoute = true;
+  try {
+    switchStudentTab(tab, false);
+    if (tab === 'materiales') {
+      selectStudentMaterial(temaId, false);
+    }
+  } finally {
+    isApplyingStudentRoute = false;
+  }
+}
+
+window.addEventListener('popstate', () => {
+  applyStudentRouteFromHash(window.location.hash);
+});
 
 function updateMobileStudentDockPill(tabName) {
   const container = document.getElementById('mobileStudentNavGrid');
@@ -22,7 +62,7 @@ function updateMobileStudentDockPill(tabName) {
   pill.style.transform = `translate3d(${activeBtn.offsetLeft}px, 0, 0)`;
 }
 
-function switchStudentTab(tabName) {
+function switchStudentTab(tabName, pushHistory = true) {
   activeStudentTab = tabName;
   ['materiales', 'asistencia', 'companeros', 'perfil'].forEach(t => {
     const view = document.getElementById(`view-${t}`);
@@ -50,6 +90,7 @@ function switchStudentTab(tabName) {
     }
   });
   updateMobileStudentDockPill(tabName);
+  syncStudentUrl(pushHistory);
   const mainEl = document.querySelector('main');
   if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
   if (window.innerWidth < 768) {
@@ -673,11 +714,12 @@ const expandedClassroomTopics = {};
 let selectedStudentMaterialId = null;
 const studentMaterialInnerTab = {};
 
-function selectStudentMaterial(matId) {
+function selectStudentMaterial(matId, pushHistory = true) {
   selectedStudentMaterialId = matId ? Number(matId) : null;
   if (dashboardData) {
     renderMaterialsSection(dashboardData.materials || []);
   }
+  syncStudentUrl(pushHistory);
 }
 
 function setStudentMaterialInnerTab(matId, tabKey) {
@@ -1327,4 +1369,11 @@ async function deleteStudentNote(noteId) {
   loadStudentPortal(activeGroupId);
 }
 
-loadStudentPortal().then(initRealtimeChat);
+loadStudentPortal().then(() => {
+  initRealtimeChat();
+  if (window.location.hash) {
+    applyStudentRouteFromHash(window.location.hash);
+  } else {
+    syncStudentUrl(false);
+  }
+});
