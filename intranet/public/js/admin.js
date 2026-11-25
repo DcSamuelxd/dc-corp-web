@@ -1534,9 +1534,15 @@ function openEditGroupModal(groupId) {
     listEl.innerHTML = '<p class="text-[#6e6e73] italic">Sin alumnos asignados en este subgrupo.</p>';
   } else {
     listEl.innerHTML = members.map(m => `
-      <div class="flex items-center justify-between bg-[#f5f5f7] px-3 py-1.5 rounded-xl">
-        <span class="font-semibold text-[#1d1d1f]">${m.full_name}</span>
-        <span class="text-[10px] font-semibold text-[#6e6e73]">${isMusicStudent(m) ? (m.instrument || 'Música') : (m.grade || 'Matemáticas')}</span>
+      <div class="card-interactive flex items-center justify-between gap-2 bg-white px-3 py-2 rounded-xl border border-black/[0.06]">
+        <div class="min-w-0">
+          <p class="font-semibold text-[#1d1d1f] truncate">${m.full_name}</p>
+          <span class="text-[10px] font-semibold text-[#6e6e73]">${isMusicStudent(m) ? (m.instrument || 'Música') : (m.grade || 'Matemáticas')}</span>
+        </div>
+        <button type="button" onclick="closeEditGroupModal(); openEditStudentModal(${m.id});"
+          class="btn-interactive shrink-0 px-3 py-1 rounded-full bg-[#0071e3]/10 hover:bg-[#0071e3]/20 text-[#0071e3] text-[11px] font-semibold inline-flex items-center gap-1">
+          <i class="fa-solid fa-pen-to-square text-[10px]"></i> Editar
+        </button>
       </div>
     `).join('');
   }
