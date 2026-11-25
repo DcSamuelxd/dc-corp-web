@@ -71,7 +71,8 @@ Documentación oficial de diseño, tokens visuales, componentes y navegación de
 ### Archivos de la Intranet
 - **Vistas HTML (`intranet/public/`)**: `login.html`, `admin.html`, `student.html` (organizadas con anclas `<!-- HEADER -->`, `<!-- CONTENIDO PRINCIPAL -->`, `<!-- MODALES -->`, `<!-- SCRIPTS -->`).
 - **Estilos externos**: `/intranet/css/styles.css` (`intranet/public/css/styles.css`).
-- **Scripts externos**: `/intranet/js/login.js`, `/intranet/js/admin.js`, `/intranet/js/student.js`.
+- **Scripts externos (`intranet/public/js/`)**: `login.js`, `student.js`, y módulos de administración (`admin-core.js`, `admin-attendance.js`, `admin-users.js`, `admin-materials.js`).
+- **Backend modular (`intranet/`)**: `server.js` (entrada), `lib/` (`config.js`, `db.js`, `auth.js`, `sse.js`), `routes/` (`auth.js`, `users.js`, `attendance.js`, `materials.js`) y `scripts/backup-db.sh`.
 
 ### Patrón de Navegación y Animaciones
 1. **Aurora Shell (`.aurora-shell`, `max-w-[1440px]`)**: Contenedor principal en desktop (`md+`) con `.aurora-sidebar` oscuro a la izquierda y `.aurora-canvas` claro a la derecha.
