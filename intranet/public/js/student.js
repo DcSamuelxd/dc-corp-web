@@ -1222,11 +1222,49 @@ async function loadStudentPortal(targetGroupId = null) {
   renderClassmatesSection();
 }
 
+let studentSseSource = null;
+let studentSseRetryMs = 3000;
+let studentSseTimer = null;
+
+function setStudentChatBadge(state) {
+  const el = document.getElementById('liveChatStatus');
+  if (!el) return;
+  if (state === 'live') {
+    el.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-400/15 text-emerald-300 border border-emerald-400/25 text-[10px] font-semibold';
+    el.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Chat en vivo';
+  } else {
+    el.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-200 border border-amber-300/25 text-[10px] font-semibold';
+    el.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span> Reconectando...';
+  }
+}
+
 function initRealtimeChat() {
+  if (studentSseSource) {
+    studentSseSource.close();
+    studentSseSource = null;
+  }
+  if (studentSseTimer) {
+    clearTimeout(studentSseTimer);
+    studentSseTimer = null;
+  }
+
   const evtSource = new EventSource(`/intranet/api/chat/stream?token=${encodeURIComponent(token)}`);
+  studentSseSource = evtSource;
+
   evtSource.onopen = () => {
-    document.getElementById('liveChatStatus').classList.remove('hidden');
+    studentSseRetryMs = 3000;
+    setStudentChatBadge('live');
   };
+
+  evtSource.onerror = () => {
+    setStudentChatBadge('reconnecting');
+    evtSource.close();
+    if (studentSseSource === evtSource) studentSseSource = null;
+    const wait = studentSseRetryMs;
+    studentSseRetryMs = Math.min(studentSseRetryMs * 2, 30000);
+    studentSseTimer = setTimeout(initRealtimeChat, wait);
+  };
+
   evtSource.onmessage = (event) => {
     try {
       const payload = JSON.parse(event.data);
@@ -1247,6 +1285,23 @@ function initRealtimeChat() {
     } catch {}
   };
 }
+
+window.addEventListener('online', () => {
+  if (!studentSseSource) {
+    studentSseRetryMs = 3000;
+    initRealtimeChat();
+  }
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  const pdfModal = document.getElementById('pdfViewerModal');
+  if (pdfModal && !pdfModal.classList.contains('hidden')) return closePdfModal();
+  const imgModal = document.getElementById('imageViewerModal');
+  if (imgModal && !imgModal.classList.contains('hidden')) return closeImageModal();
+  const cmModal = document.getElementById('classmateProfileModal');
+  if (cmModal && !cmModal.classList.contains('hidden')) return closeClassmateModal();
+});
 
 document.getElementById('bioInput').addEventListener('input', (e) => {
   document.getElementById('bioCharCount').innerText = `${e.target.value.length}/400`;
