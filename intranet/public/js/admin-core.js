@@ -93,9 +93,9 @@ function syncAdminUrl(push = true) {
 function applyAdminRouteFromHash(hashStr) {
   const clean = (hashStr || '').replace(/^#/, '');
   const parts = clean.split('/').filter(Boolean);
-  const validTabs = ['asistencia', 'materiales', 'alumnos', 'avisos', 'profesores'];
+  const validTabs = ['asistencia', 'materiales', 'alumnos', 'avisos', 'profesores', 'mensajes'];
   let tab = validTabs.includes(parts[0]) ? parts[0] : 'asistencia';
-  if (!isAdmin && tab === 'profesores') tab = 'asistencia';
+  if (!isAdmin && (tab === 'profesores' || tab === 'mensajes')) tab = 'asistencia';
   const aulaId = (parts[1] === 'aula' && parts[2]) ? Number(parts[2]) : null;
 
   isApplyingAdminRoute = true;
@@ -126,14 +126,17 @@ function updateSegmentedPill(containerId, activeBtnId, pillSelector = '.segmente
 }
 
 function switchTab(tab, pushHistory = true) {
-  if (!isAdmin && tab === 'profesores') return;
+  if (!isAdmin && (tab === 'profesores' || tab === 'mensajes')) return;
   activeAdminTab = tab;
+  if (tab === 'mensajes' && typeof loadAdminStudentMessages === 'function') {
+    loadAdminStudentMessages();
+  }
   if (tab === 'materiales') {
     document.getElementById('unreadChatDot').classList.add('hidden');
     const mDot = document.getElementById('mobileUnreadDot');
     if (mDot) mDot.classList.add('hidden');
   }
-  ['asistencia', 'materiales', 'alumnos', 'avisos', 'profesores'].forEach(t => {
+  ['asistencia', 'materiales', 'alumnos', 'avisos', 'profesores', 'mensajes'].forEach(t => {
     const panel = document.getElementById(`panel-${t}`);
     if (panel) {
       if (t === tab) {
