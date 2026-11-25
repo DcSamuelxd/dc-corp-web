@@ -367,6 +367,102 @@ body.page-login {
   transition: opacity 200ms ease, transform 200ms ease;
 }
 
+/* ==========================================================================
+   Modo Oscuro Aurora (Elegible o Automático por Sistema en Portal Estudiante)
+   ========================================================================== */
+
+body.theme-dark {
+  color: #f1f5f9;
+}
+
+body.theme-dark .aurora-canvas {
+  background: rgba(10, 25, 38, 0.88);
+  color: #f1f5f9;
+}
+
+body.theme-dark .glass-bento,
+body.theme-dark .glass-card {
+  background: rgba(18, 39, 57, 0.88);
+  border-color: rgba(255, 255, 255, 0.11);
+  box-shadow: 0 14px 36px rgba(2, 10, 18, 0.42);
+  color: #f1f5f9;
+}
+
+body.theme-dark .bottom-dock {
+  background: rgba(9, 24, 36, 0.94);
+  border-top-color: rgba(255, 255, 255, 0.12);
+}
+
+body.theme-dark .segmented-control {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+body.theme-dark .segmented-pill {
+  background: #1e3a52;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+body.theme-dark .segmented-btn {
+  color: #cbd5e1;
+}
+
+body.theme-dark .aurora-canvas .bg-white,
+body.theme-dark .aurora-canvas .bg-white\/95,
+body.theme-dark .aurora-canvas .bg-white\/90,
+body.theme-dark .aurora-canvas .bg-white\/85,
+body.theme-dark .aurora-canvas .bg-white\/80,
+body.theme-dark .aurora-canvas .bg-white\/75 {
+  background-color: rgba(22, 46, 67, 0.90) !important;
+  color: #f1f5f9;
+}
+
+body.theme-dark .aurora-canvas .bg-\[\#f5f5f7\],
+body.theme-dark .aurora-canvas .bg-\[\#f8fafc\] {
+  background-color: rgba(13, 30, 45, 0.85) !important;
+  color: #e2e8f0;
+}
+
+body.theme-dark .aurora-canvas .text-\[\#1d1d1f\] {
+  color: #f1f5f9 !important;
+}
+
+body.theme-dark .aurora-canvas .text-\[\#424245\] {
+  color: #cbd5e1 !important;
+}
+
+body.theme-dark .aurora-canvas .text-\[\#6e6e73\] {
+  color: #94a3b8 !important;
+}
+
+body.theme-dark .aurora-canvas .border-black\/\[0\.05\],
+body.theme-dark .aurora-canvas .border-black\/\[0\.06\],
+body.theme-dark .aurora-canvas .border-black\/\[0\.07\],
+body.theme-dark .aurora-canvas .border-black\/\[0\.08\],
+body.theme-dark .aurora-canvas .border-black\/10 {
+  border-color: rgba(255, 255, 255, 0.11) !important;
+}
+
+body.theme-dark .aurora-canvas input,
+body.theme-dark .aurora-canvas select,
+body.theme-dark .aurora-canvas textarea {
+  background-color: rgba(12, 29, 44, 0.92) !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  color: #f8fafc !important;
+}
+
+body.theme-dark .aurora-canvas input::placeholder,
+body.theme-dark .aurora-canvas textarea::placeholder {
+  color: #64748b !important;
+}
+
+body.theme-dark .aurora-scroll {
+  scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+}
+
+body.theme-dark .aurora-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(148, 163, 184, 0.32);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .btn-interactive,
   .btn-plus-icon,

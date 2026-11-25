@@ -5,6 +5,56 @@ const authHeaders = () => ({ 'Authorization': `Bearer ${token}`, 'Content-Type':
 let dashboardData = null;
 let activeGroupId = null;
 
+// ==================== MODO OSCURO (AUTO DEL SISTEMA O ELEGIBLE) ====================
+const systemDarkQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+
+function getStudentThemeMode() {
+  return localStorage.getItem('dc_theme_mode') || 'auto';
+}
+
+function applyStudentTheme() {
+  const mode = getStudentThemeMode();
+  const isDark = mode === 'dark' || (mode === 'auto' && systemDarkQuery && systemDarkQuery.matches);
+  document.body.classList.toggle('theme-dark', Boolean(isDark));
+
+  ['auto', 'light', 'dark'].forEach(m => {
+    const btn = document.getElementById(`themeBtn-${m}`);
+    if (btn) {
+      btn.className = (m === mode)
+        ? 'py-1.5 rounded-lg text-white bg-sky-500/35 shadow-sm transition'
+        : 'py-1.5 rounded-lg text-slate-300 hover:text-white transition';
+    }
+  });
+
+  const mobIcon = document.getElementById('mobileThemeIcon');
+  if (mobIcon) {
+    mobIcon.className = mode === 'dark'
+      ? 'fa-solid fa-moon text-sky-300'
+      : (mode === 'light' ? 'fa-solid fa-sun text-amber-300' : 'fa-solid fa-circle-half-stroke');
+  }
+}
+
+function setStudentThemeMode(mode) {
+  localStorage.setItem('dc_theme_mode', mode);
+  applyStudentTheme();
+}
+
+function cycleStudentThemeMode() {
+  const order = ['auto', 'light', 'dark'];
+  const cur = getStudentThemeMode();
+  const next = order[(order.indexOf(cur) + 1) % order.length];
+  setStudentThemeMode(next);
+  const labels = { auto: 'Tema automático (según tu equipo)', light: 'Modo claro activado', dark: 'Modo oscuro activado' };
+  showToast(labels[next], 'info');
+}
+
+if (systemDarkQuery && systemDarkQuery.addEventListener) {
+  systemDarkQuery.addEventListener('change', () => {
+    if (getStudentThemeMode() === 'auto') applyStudentTheme();
+  });
+}
+applyStudentTheme();
+
 function showToast(message, type = 'info') {
   let container = document.getElementById('auroraToastContainer');
   if (!container) {

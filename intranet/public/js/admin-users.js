@@ -44,11 +44,17 @@ function isMusicStudent(stu) {
   return false;
 }
 
-function getStudentAreaBadgeHtml(stu) {
+function getStudentAreaBadgeHtml(stu, darkSurface = false) {
   if (isMusicStudent(stu)) {
-    return `<span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-800 font-semibold text-[10px]"><i class="fa-solid fa-guitar mr-1"></i>${stu.instrument || 'Música'}</span>`;
+    const cls = darkSurface
+      ? 'bg-amber-400/20 text-amber-200 border border-amber-300/30'
+      : 'bg-amber-500/15 text-amber-800';
+    return `<span class="px-2.5 py-0.5 rounded-full ${cls} font-semibold text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-guitar"></i>${stu.instrument || 'Música'}</span>`;
   }
-  return `<span class="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-700 font-semibold text-[10px]"><i class="fa-solid fa-calculator mr-1"></i>Matemáticas${stu.grade ? ` • ${stu.grade}` : ''}</span>`;
+  const cls = darkSurface
+    ? 'bg-sky-400/20 text-sky-200 border border-sky-300/30'
+    : 'bg-indigo-500/10 text-indigo-700';
+  return `<span class="px-2.5 py-0.5 rounded-full ${cls} font-semibold text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-calculator"></i>Matemáticas${stu.grade ? ` • ${stu.grade}` : ''}</span>`;
 }
 
 function setStudentCategoryFilter(cat) {
@@ -539,7 +545,7 @@ function openStudentDetailModal(studentId) {
     fb.classList.remove('hidden');
   }
 
-  document.getElementById('sdAreaBadge').outerHTML = `<span id="sdAreaBadge">${getStudentAreaBadgeHtml(stu)}</span>`;
+  document.getElementById('sdAreaBadge').outerHTML = `<span id="sdAreaBadge">${getStudentAreaBadgeHtml(stu, true)}</span>`;
   document.getElementById('sdName').innerText = stu.full_name;
   document.getElementById('sdCode').innerText = `Usuario: ${stu.code} • Bloque: ${stu.monthly_quota || 8} clases/mes`;
 

@@ -11,7 +11,7 @@
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="/intranet/css/styles.css?v=20261125-16">
+  <link rel="stylesheet" href="/intranet/css/styles.css?v=20261125-17">
 </head>
 <body class="page-student min-h-screen">
 
@@ -34,6 +34,9 @@
         </span>
       </div>
       <div class="flex items-center gap-2">
+        <button type="button" onclick="cycleStudentThemeMode()" class="px-2.5 py-1 rounded-full bg-white/10 text-white text-xs font-medium" title="Cambiar tema (Auto / Claro / Oscuro)">
+          <i id="mobileThemeIcon" class="fa-solid fa-circle-half-stroke"></i>
+        </button>
         <button type="button" onclick="openNotificationsModal()" class="relative px-2.5 py-1 rounded-full bg-white/10 text-white text-xs font-medium" title="Notificaciones">
           <i class="fa-solid fa-bell"></i>
           <span class="notif-unread-badge hidden absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center">0</span>
@@ -102,6 +105,19 @@
 
         <!-- Pie del Sidebar -->
         <div class="pt-4 border-t border-white/10 space-y-2.5">
+          <!-- Selector de Tema (Auto / Claro / Oscuro) -->
+          <div class="p-1 rounded-xl bg-white/[0.07] border border-white/10 grid grid-cols-3 gap-1 text-[10px] font-semibold">
+            <button type="button" id="themeBtn-auto" onclick="setStudentThemeMode('auto')" class="py-1.5 rounded-lg text-white bg-sky-500/30 transition" title="Detectar del equipo">
+              <i class="fa-solid fa-circle-half-stroke mr-1"></i>Auto
+            </button>
+            <button type="button" id="themeBtn-light" onclick="setStudentThemeMode('light')" class="py-1.5 rounded-lg text-slate-300 hover:text-white transition" title="Modo Claro">
+              <i class="fa-solid fa-sun mr-1"></i>Claro
+            </button>
+            <button type="button" id="themeBtn-dark" onclick="setStudentThemeMode('dark')" class="py-1.5 rounded-lg text-slate-300 hover:text-white transition" title="Modo Oscuro">
+              <i class="fa-solid fa-moon mr-1"></i>Oscuro
+            </button>
+          </div>
+
           <button type="button" onclick="switchStudentTab('perfil')"
             class="w-full flex items-center gap-3 px-2.5 py-2 rounded-2xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/10 transition text-left">
             <img id="navAvatarImg" src="" alt="Foto" class="w-9 h-9 rounded-xl object-cover border border-white/20 hidden shrink-0">
@@ -556,7 +572,7 @@
   </div>
 
   <!-- ==================== SCRIPTS ==================== -->
-  <script src="/intranet/js/student.js?v=20261125-16"></script>
+  <script src="/intranet/js/student.js?v=20261125-17"></script>
 
   <!-- Barra de Navegación Inferior Tipo App Nativa (Solo Móvil Android / iOS) -->
   <nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bottom-dock">
