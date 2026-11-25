@@ -174,6 +174,20 @@ db.serialize(() => {
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
 
+  db.run(`CREATE TABLE IF NOT EXISTS notifications (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    type TEXT NOT NULL DEFAULT 'info',
+    title TEXT NOT NULL,
+    message TEXT NOT NULL,
+    link_hash TEXT DEFAULT '',
+    reference_id INTEGER,
+    is_read INTEGER NOT NULL DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+
+  db.run(`CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications (user_id, is_read, created_at DESC)`);
+
   db.all(`SELECT id, file_name, original_name FROM materials WHERE file_name IS NOT NULL AND file_name != ''`, [], (err, legacyRows) => {
     if (!err && Array.isArray(legacyRows)) {
       legacyRows.forEach(r => {

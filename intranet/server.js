@@ -7,6 +7,8 @@ const authRoutes = require('./routes/auth');
 const usersRoutes = require('./routes/users');
 const attendanceRoutes = require('./routes/attendance');
 const materialsRoutes = require('./routes/materials');
+const notificationsRoutes = require('./routes/notifications');
+const { startReminderScheduler } = require('./lib/notifications');
 
 const app = express();
 app.use(express.json());
@@ -22,6 +24,9 @@ app.use(authRoutes);
 app.use(usersRoutes);
 app.use(attendanceRoutes);
 app.use(materialsRoutes);
+app.use(notificationsRoutes);
+
+startReminderScheduler();
 
 app.get('/intranet', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'login.html'));
