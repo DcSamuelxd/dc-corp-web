@@ -68,6 +68,52 @@ async function changeAdminPassword() {
 }
 
 let activeAdminTab = 'asistencia';
+let isApplyingAdminRoute = false;
+
+function buildAdminHash() {
+  if (activeAdminTab === 'asistencia' && selectedAttGroupId) {
+    return `#asistencia/aula/${selectedAttGroupId}`;
+  }
+  if (activeAdminTab === 'materiales' && selectedClassroomCardId) {
+    return `#materiales/aula/${selectedClassroomCardId}`;
+  }
+  return `#${activeAdminTab}`;
+}
+
+function syncAdminUrl(push = true) {
+  if (isApplyingAdminRoute) return;
+  const targetHash = buildAdminHash();
+  if (window.location.hash !== targetHash) {
+    const state = { tab: activeAdminTab, attGroupId: selectedAttGroupId, classGroupId: selectedClassroomCardId };
+    if (push) history.pushState(state, '', targetHash);
+    else history.replaceState(state, '', targetHash);
+  }
+}
+
+function applyAdminRouteFromHash(hashStr) {
+  const clean = (hashStr || '').replace(/^#/, '');
+  const parts = clean.split('/').filter(Boolean);
+  const validTabs = ['asistencia', 'materiales', 'alumnos', 'avisos', 'profesores'];
+  let tab = validTabs.includes(parts[0]) ? parts[0] : 'asistencia';
+  if (!isAdmin && tab === 'profesores') tab = 'asistencia';
+  const aulaId = (parts[1] === 'aula' && parts[2]) ? Number(parts[2]) : null;
+
+  isApplyingAdminRoute = true;
+  try {
+    switchTab(tab, false);
+    if (tab === 'asistencia') {
+      selectAttendanceGroupCard(aulaId, false);
+    } else if (tab === 'materiales') {
+      selectClassroomCard(aulaId, false);
+    }
+  } finally {
+    isApplyingAdminRoute = false;
+  }
+}
+
+window.addEventListener('popstate', () => {
+  applyAdminRouteFromHash(window.location.hash);
+});
 
 function updateSegmentedPill(containerId, activeBtnId, pillSelector = '.segmented-pill') {
   const container = document.getElementById(containerId);
@@ -79,7 +125,7 @@ function updateSegmentedPill(containerId, activeBtnId, pillSelector = '.segmente
   pill.style.transform = `translate3d(${activeBtn.offsetLeft}px, 0, 0)`;
 }
 
-function switchTab(tab) {
+function switchTab(tab, pushHistory = true) {
   if (!isAdmin && tab === 'profesores') return;
   activeAdminTab = tab;
   if (tab === 'materiales') {
@@ -117,6 +163,7 @@ function switchTab(tab) {
     }
   });
   updateSegmentedPill('mobileAdminNavGrid', `mtab-${tab}`, '.dock-pill');
+  syncAdminUrl(pushHistory);
   const mainEl = document.querySelector('main');
   if (mainEl) mainEl.scrollTo({ top: 0, behavior: 'auto' });
   if (window.innerWidth < 768) {
