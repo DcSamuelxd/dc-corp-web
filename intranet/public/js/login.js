@@ -36,7 +36,7 @@ function togglePassVisibility() {
 const existingToken = localStorage.getItem('dc_token');
 const existingRole = localStorage.getItem('dc_role');
 if (existingToken && existingRole) {
-  window.location.replace((existingRole === 'admin' || existingRole === 'teacher') ? '/intranet/admin.html' : '/intranet/student.html');
+  window.location.replace((existingRole === 'admin' || existingRole === 'teacher') ? '/intranet/panel' : '/intranet/estudiante');
 }
 
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
