@@ -1071,7 +1071,7 @@ function previewInvoice(id) {
     <div class="ti-sheet">
       <div class="ti-sheet-header">
         <div class="ti-sheet-brand">
-          <div class="ti-sheet-logo">DC</div>
+          <img src="/favicon.svg" alt="DC CORP" style="width:46px;height:46px;border-radius:11px;flex-shrink:0;">
           <div>
             <div style="font-size:18px;font-weight:800;letter-spacing:-0.02em;color:#0f172a;">DC CORP</div>
             <div style="font-size:9.5px;font-weight:700;color:#0284c7;text-transform:uppercase;">SERVICIOS TECNOLÓGICOS &amp; INFRAESTRUCTURA DE REDES</div>
