@@ -11,7 +11,7 @@ const tiState = {
   invoices: [],
   nextNumbers: { REC: 'REC-2026-0001', EST: 'EST0001' },
   invoiceItems: [],
-  activeTab: 'orders',
+  activeTab: 'dashboard',
   isPublicShare: Boolean(shareToken)
 };
 
@@ -156,8 +156,9 @@ function setupPublicShareUI() {
     const el = document.getElementById(id);
     if (el) el.classList.add('hidden');
   });
-  document.querySelectorAll('[data-tab="clients"], [data-tab="invoices"]').forEach(el => el.classList.add('hidden'));
+  document.querySelectorAll('[data-tab="dashboard"], [data-tab="clients"], [data-tab="invoices"]').forEach(el => el.classList.add('hidden'));
   document.querySelectorAll('button[onclick*="openOrderModal"], button[onclick*="openAssetModal"], button[onclick*="openClientModal"], button[onclick*="openInvoiceModal"]').forEach(el => el.classList.add('hidden'));
+  switchTiTab('history');
 }
 
 async function loadTiOverview() {
@@ -177,7 +178,7 @@ async function loadTiOverview() {
 
 function switchTiTab(tab) {
   tiState.activeTab = tab;
-  ['orders', 'history', 'assets', 'clients', 'invoices'].forEach(t => {
+  ['dashboard', 'orders', 'history', 'assets', 'clients', 'invoices'].forEach(t => {
     const sec = document.getElementById(`tab-${t}`);
     if (sec) sec.classList.toggle('hidden', t !== tab);
   });
@@ -197,17 +198,85 @@ function switchTiTab(tab) {
   });
 
   if (tab === 'history') renderHistoryTab();
+  if (tab === 'dashboard') renderDashboard();
 }
 
 function renderAllTi() {
   populateClientSelects();
   onHistoryClientChange();
   renderKpis();
+  renderDashboard();
   renderOrders();
   renderHistoryTab();
   renderAssets();
   renderClients();
   renderInvoices();
+}
+
+function renderDashboard() {
+  const breakdownEl = document.getElementById('dashServiceBreakdown');
+  const activityEl = document.getElementById('dashRecentActivity');
+  const assetsEl = document.getElementById('dashRecentAssets');
+  const invoicesEl = document.getElementById('dashRecentInvoices');
+  if (!breakdownEl || !activityEl || !assetsEl || !invoicesEl) return;
+
+  const totalOrders = tiState.orders.length || 1;
+  const categories = [
+    { label: 'Reparación', color: 'bg-sky-500' },
+    { label: 'Mantenimiento', color: 'bg-indigo-500' },
+    { label: 'Instalación de Red', color: 'bg-emerald-500' },
+    { label: 'Reconstrucción', color: 'bg-amber-500' },
+    { label: 'Soporte / Licencias', color: 'bg-violet-500' }
+  ];
+
+  breakdownEl.innerHTML = categories.map(cat => {
+    const count = tiState.orders.filter(o => o.order_type === cat.label).length;
+    const pct = tiState.orders.length ? Math.round((count / totalOrders) * 100) : 0;
+    return `
+      <div class="space-y-1">
+        <div class="flex justify-between text-xs">
+          <span class="font-bold text-slate-700">${escHtml(cat.label)}</span>
+          <span class="font-semibold text-slate-500">${count} (${pct}%)</span>
+        </div>
+        <div class="ti-dash-bar-track">
+          <div class="ti-dash-bar-fill ${cat.color}" style="width: ${pct}%"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  const recentOrders = tiState.orders.slice(0, 4);
+  activityEl.innerHTML = recentOrders.length ? recentOrders.map(o => `
+    <div class="p-2.5 rounded-xl bg-white/55 border border-white/75 flex items-center justify-between gap-2">
+      <div class="min-w-0">
+        <div class="text-xs font-extrabold text-slate-900 truncate">${escHtml(o.title)}</div>
+        <div class="text-[11px] text-slate-600 truncate">${escHtml(o.client_name || '')} • ${escHtml(o.service_date)}</div>
+      </div>
+      <span class="px-2 py-0.5 rounded-lg bg-sky-100/80 text-sky-800 text-[10px] font-bold shrink-0">${escHtml(o.order_type)}</span>
+    </div>
+  `).join('') : `<p class="text-xs text-slate-500">Sin trabajos recientes todavía.</p>`;
+
+  const recentAssets = tiState.assets.slice(0, 4);
+  assetsEl.innerHTML = recentAssets.length ? recentAssets.map(a => `
+    <button type="button" onclick="openAssetHistory(${a.id})" class="w-full text-left p-2.5 rounded-xl bg-white/55 hover:bg-white/80 border border-white/75 flex items-center justify-between gap-2 transition">
+      <div class="min-w-0">
+        <div class="text-xs font-extrabold text-slate-900 truncate">${escHtml(a.name)}</div>
+        <div class="text-[11px] text-slate-600 truncate">${escHtml(a.category)} • ${escHtml(a.client_name || '')}</div>
+      </div>
+      <span class="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold shrink-0">${escHtml(a.status)}</span>
+    </button>
+  `).join('') : `<p class="text-xs text-slate-500">Sin equipos ni redes registrados.</p>`;
+
+  const recentInvs = tiState.invoices.slice(0, 4);
+  invoicesEl.innerHTML = recentInvs.length ? recentInvs.map(inv => `
+    <div class="p-2.5 rounded-xl bg-white/55 border border-white/75 flex items-center justify-between gap-2">
+      <div class="min-w-0">
+        <div class="text-xs font-extrabold text-slate-900 truncate">${escHtml(inv.doc_number)} · ${escHtml(inv.client_name)}</div>
+        <div class="text-[11px] text-slate-600 truncate">${escHtml(inv.issue_date)}</div>
+      </div>
+      <button type="button" onclick="previewInvoice(${inv.id})" class="px-2.5 py-1 rounded-lg bg-emerald-600 text-white text-[11px] font-bold shrink-0">${moneyFmt(inv.total_amount)}</button>
+    </div>
+  `).join('') : `<p class="text-xs text-slate-500">Aún no has emitido recibos.</p>`;
 }
 
 function renderKpis() {
