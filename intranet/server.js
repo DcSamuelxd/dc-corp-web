@@ -10,7 +10,9 @@ const materialsRoutes = require('./routes/materials');
 const notificationsRoutes = require('./routes/notifications');
 const messagesRoutes = require('./routes/messages');
 const tiRoutes = require('./routes/ti');
+const whatsappRoutes = require('./routes/whatsapp');
 const { startReminderScheduler } = require('./lib/notifications');
+const { initWhatsAppIfLinked } = require('./lib/whatsapp');
 
 const app = express();
 app.use(express.json());
@@ -29,8 +31,10 @@ app.use(materialsRoutes);
 app.use(notificationsRoutes);
 app.use(messagesRoutes);
 app.use(tiRoutes);
+app.use(whatsappRoutes);
 
 startReminderScheduler();
+initWhatsAppIfLinked();
 
 app.get('/intranet', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'login.html'));

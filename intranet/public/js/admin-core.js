@@ -585,3 +585,122 @@ window.addEventListener('DOMContentLoaded', () => {
   runBrandIntroAnimation();
 });
 
+// ==================== BOT WHATSAPP (BAILEYS LIGERO) ====================
+let waPollTimer = null;
+
+function openWhatsAppModal() {
+  const modal = document.getElementById('whatsappModal');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+  refreshWhatsAppStatus();
+  if (waPollTimer) clearInterval(waPollTimer);
+  waPollTimer = setInterval(refreshWhatsAppStatus, 2500);
+}
+
+function closeWhatsAppModal() {
+  const modal = document.getElementById('whatsappModal');
+  if (modal) modal.classList.add('hidden');
+  if (waPollTimer) {
+    clearInterval(waPollTimer);
+    waPollTimer = null;
+  }
+}
+
+async function refreshWhatsAppStatus() {
+  try {
+    const res = await fetch('/intranet/api/admin/whatsapp/status', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    renderWhatsAppStatus(data);
+  } catch {}
+}
+
+function renderWhatsAppStatus(data) {
+  const badge = document.getElementById('waStatusBadge');
+  const phoneEl = document.getElementById('waPhoneInfo');
+  const errEl = document.getElementById('waErrorInfo');
+  const qrBox = document.getElementById('waQrBox');
+  const qrImg = document.getElementById('waQrImage');
+  if (!badge) return;
+
+  const map = {
+    connected: { text: 'Conectado', cls: 'bg-emerald-100 text-emerald-800' },
+    qr: { text: 'Esperando escaneo QR', cls: 'bg-amber-100 text-amber-800' },
+    connecting: { text: 'Conectando...', cls: 'bg-sky-100 text-sky-800' },
+    missing_dependency: { text: 'Falta npm install', cls: 'bg-rose-100 text-rose-800' },
+    disconnected: { text: 'Desconectado', cls: 'bg-slate-200 text-slate-700' }
+  };
+  const info = map[data.status] || map.disconnected;
+  badge.textContent = info.text;
+  badge.className = `px-2.5 py-0.5 rounded-full text-[11px] font-bold ${info.cls}`;
+
+  phoneEl.textContent = data.phoneNumber ? `Número vinculado: +${data.phoneNumber}` : '';
+  errEl.textContent = data.lastError || '';
+
+  if (data.status === 'qr' && data.qrDataUrl) {
+    qrImg.src = data.qrDataUrl;
+    qrBox.classList.remove('hidden');
+  } else {
+    qrBox.classList.add('hidden');
+  }
+}
+
+async function connectWhatsAppBot() {
+  try {
+    const res = await fetch('/intranet/api/admin/whatsapp/connect', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const data = await res.json();
+    renderWhatsAppStatus(data);
+  } catch {}
+}
+
+async function disconnectWhatsAppBot() {
+  if (!confirm('¿Desvincular la sesión de WhatsApp?')) return;
+  try {
+    const res = await fetch('/intranet/api/admin/whatsapp/disconnect', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const data = await res.json();
+    renderWhatsAppStatus(data);
+  } catch {}
+}
+
+async function sendParentRemindersNow() {
+  try {
+    const res = await fetch('/intranet/api/admin/whatsapp/send-reminders', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (!res.ok) return alert(data.error || 'No se pudo enviar');
+    alert(`Se pusieron en cola ${data.queued || 0} recordatorios para papitos con tareas pendientes.`);
+  } catch (e) {
+    alert('Error al enviar recordatorios');
+  }
+}
+
+async function sendWhatsAppTest() {
+  const phone = document.getElementById('waTestPhone')?.value?.trim();
+  if (!phone) return alert('Ingresa un número de prueba');
+  try {
+    const res = await fetch('/intranet/api/admin/whatsapp/test', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ phone })
+    });
+    const data = await res.json();
+    if (!res.ok) return alert(data.error || 'Error al enviar');
+    alert(`Mensaje de prueba enviado a +${data.to}`);
+  } catch {
+    alert('Error al enviar prueba');
+  }
+}
+

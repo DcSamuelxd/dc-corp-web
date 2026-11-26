@@ -132,11 +132,15 @@
             </div>
           </div>
 
-          <div class="admin-only mb-2">
+          <div class="admin-only mb-2 space-y-1.5">
             <a href="/intranet/ti"
               class="btn-interactive w-full px-3 py-2 rounded-xl bg-sky-500/20 hover:bg-sky-500/35 border border-sky-400/30 text-sky-100 text-[11px] font-bold flex items-center justify-center gap-1.5">
               <i class="fa-solid fa-screwdriver-wrench"></i> Portal TI, Redes &amp; Facturas
             </a>
+            <button type="button" onclick="openWhatsAppModal()"
+              class="btn-interactive w-full px-3 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/35 border border-emerald-400/30 text-emerald-100 text-[11px] font-bold flex items-center justify-center gap-1.5">
+              <i class="fa-brands fa-whatsapp text-sm"></i> Bot WhatsApp Padres
+            </button>
           </div>
           <div class="grid grid-cols-2 gap-2">
             <button type="button" onclick="openPassModal()"
@@ -1492,8 +1496,63 @@
     </div>
   </div>
 
+  <!-- ==================== MODAL BOT WHATSAPP PADRES ==================== -->
+  <div id="whatsappModal" class="hidden fixed inset-0 bg-slate-950/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-[28px] max-w-md w-full overflow-hidden shadow-2xl border border-white/60">
+      <div class="aurora-sidebar px-6 py-5 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/25 border border-emerald-400/35 flex items-center justify-center text-emerald-200 text-lg">
+            <i class="fa-brands fa-whatsapp"></i>
+          </div>
+          <div>
+            <span class="inline-block px-2 py-0.5 rounded-full bg-emerald-400/20 text-emerald-200 text-[10px] font-semibold">Baileys Ligero (VPS 1×1)</span>
+            <h3 class="text-base font-bold text-white mt-0.5">Recordatorios a Papitos</h3>
+          </div>
+        </div>
+        <button type="button" onclick="closeWhatsAppModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="p-5 space-y-4 text-sm">
+        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-600">Estado de conexión:</span>
+            <span id="waStatusBadge" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-200 text-slate-700">Verificando...</span>
+          </div>
+          <div id="waPhoneInfo" class="text-xs text-slate-500"></div>
+          <div id="waErrorInfo" class="text-xs text-rose-600 font-medium"></div>
+        </div>
+
+        <div id="waQrBox" class="hidden flex flex-col items-center gap-2 p-4 rounded-2xl bg-white border border-slate-200">
+          <img id="waQrImage" src="" alt="QR WhatsApp" class="w-52 h-52 rounded-xl border border-slate-100">
+          <p class="text-[11px] text-slate-500 text-center">Abre WhatsApp en tu celular secundario → Dispositivos vinculados → Vincular dispositivo.</p>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <button type="button" onclick="connectWhatsAppBot()" class="flex-1 px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">
+            Conectar / Generar QR
+          </button>
+          <button type="button" onclick="disconnectWhatsAppBot()" class="px-3.5 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold">
+            Desconectar
+          </button>
+        </div>
+
+        <div class="pt-3 border-t border-slate-100 space-y-2.5">
+          <button type="button" onclick="sendParentRemindersNow()" class="w-full px-3.5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold">
+            📲 Enviar recordatorios ahora (Particulares pendientes)
+          </button>
+          <div class="flex gap-2">
+            <input id="waTestPhone" placeholder="Número prueba (ej. 992507489)" class="flex-1 px-3 py-2 rounded-xl border border-slate-200 text-xs">
+            <button type="button" onclick="sendWhatsAppTest()" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold">Probar</button>
+          </div>
+          <p class="text-[11px] text-slate-500">Los recordatorios automáticos se envían solos a alumnos de <strong>Particulares</strong> con tareas pendientes y número de WhatsApp registrado.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== SCRIPTS ==================== -->
-  <script src="/intranet/js/admin-core.js?v=20261125-17"></script>
+  <script src="/intranet/js/admin-core.js?v=20261126-05"></script>
   <script src="/intranet/js/admin-attendance.js?v=20261125-17"></script>
   <script src="/intranet/js/admin-users.js?v=20261125-17"></script>
   <script src="/intranet/js/admin-materials.js?v=20261125-17"></script>
