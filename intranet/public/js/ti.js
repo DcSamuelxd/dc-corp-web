@@ -177,7 +177,7 @@ async function loadTiOverview() {
 
 function switchTiTab(tab) {
   tiState.activeTab = tab;
-  ['orders', 'assets', 'clients', 'invoices'].forEach(t => {
+  ['orders', 'history', 'assets', 'clients', 'invoices'].forEach(t => {
     const sec = document.getElementById(`tab-${t}`);
     if (sec) sec.classList.toggle('hidden', t !== tab);
   });
@@ -192,15 +192,19 @@ function switchTiTab(tab) {
   document.querySelectorAll('.ti-dock-btn').forEach(btn => {
     const active = btn.dataset.tab === tab;
     btn.className = active
-      ? 'ti-dock-btn flex flex-col items-center py-1 px-3 rounded-xl text-[11px] font-bold text-sky-700 bg-sky-50'
-      : 'ti-dock-btn flex flex-col items-center py-1 px-3 rounded-xl text-[11px] font-medium text-slate-600';
+      ? 'ti-dock-btn flex flex-col items-center py-1 px-2 rounded-xl text-[10px] font-bold text-sky-700 bg-white/70'
+      : 'ti-dock-btn flex flex-col items-center py-1 px-2 rounded-xl text-[10px] font-medium text-slate-600';
   });
+
+  if (tab === 'history') renderHistoryTab();
 }
 
 function renderAllTi() {
   populateClientSelects();
+  onHistoryClientChange();
   renderKpis();
   renderOrders();
+  renderHistoryTab();
   renderAssets();
   renderClients();
   renderInvoices();
@@ -216,7 +220,7 @@ function renderKpis() {
 
 function populateClientSelects() {
   const clientOpts = tiState.clients.map(c => `<option value="${c.id}">${escHtml(c.name)}</option>`).join('');
-  ['orderClientFilter', 'assetClientFilter'].forEach(id => {
+  ['orderClientFilter', 'assetClientFilter', 'historyClientFilter'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
     const prev = el.value;
@@ -241,7 +245,7 @@ function renderClients() {
   const container = document.getElementById('clientsGrid');
   if (!container) return;
   if (!tiState.clients.length) {
-    container.innerHTML = `<div class="col-span-full glass-bento rounded-2xl p-8 text-center text-sm text-slate-500">Aún no hay clientes registrados. Crea tu primer cliente o institución.</div>`;
+    container.innerHTML = `<div class="col-span-full ti-liquid-card rounded-2xl p-8 text-center text-sm text-slate-500">Aún no hay clientes registrados. Crea tu primer cliente o institución.</div>`;
     return;
   }
   container.innerHTML = tiState.clients.map(c => {
@@ -249,7 +253,7 @@ function renderClients() {
     const orderCount = tiState.orders.filter(o => Number(o.client_id) === Number(c.id)).length;
     const shareUrl = `${window.location.origin}/intranet/ti?share=${c.share_token}`;
     return `
-      <div class="glass-bento rounded-2xl p-4 sm:p-5 space-y-3">
+      <div class="ti-liquid-card rounded-2xl p-4 sm:p-5 space-y-3">
         <div class="flex items-start justify-between gap-2">
           <div class="min-w-0">
             <h3 class="font-extrabold text-slate-900 text-base truncate">${escHtml(c.name)}</h3>
@@ -341,7 +345,7 @@ function renderAssets() {
   });
 
   if (!filtered.length) {
-    container.innerHTML = `<div class="col-span-full glass-bento rounded-2xl p-8 text-center text-sm text-slate-500">No hay equipos o nodos de red que coincidan.</div>`;
+    container.innerHTML = `<div class="col-span-full ti-liquid-card rounded-2xl p-8 text-center text-sm text-slate-500">No hay equipos o nodos de red que coincidan.</div>`;
     return;
   }
 
@@ -351,7 +355,7 @@ function renderAssets() {
     const badgeColor = a.status === 'Operativo' ? 'bg-emerald-100 text-emerald-800'
       : (a.status === 'De baja' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800');
     return `
-      <div class="glass-bento rounded-2xl p-4 sm:p-5 space-y-2.5">
+      <div class="ti-liquid-card rounded-2xl p-4 sm:p-5 space-y-2.5">
         <div class="flex items-start justify-between gap-2">
           <div class="min-w-0">
             <div class="flex items-center gap-2 flex-wrap">
@@ -439,44 +443,120 @@ async function deleteAsset(id) {
 }
 
 function openAssetHistory(assetId) {
-  const a = tiState.assets.find(x => Number(x.id) === Number(assetId));
-  if (!a) return;
-  document.getElementById('ahTitle').textContent = `${a.name} (${a.category})`;
-  document.getElementById('ahSub').textContent = `${a.client_name || ''} ${a.asset_code ? '• ' + a.asset_code : ''} ${a.network_info ? '• ' + a.network_info : ''}`;
+  const sel = document.getElementById('historyAssetSelect');
+  if (sel) {
+    const cf = document.getElementById('historyClientFilter');
+    if (cf) cf.value = '';
+    onHistoryClientChange();
+    sel.value = String(assetId);
+    switchTiTab('history');
+    return;
+  }
+}
 
-  const ords = tiState.orders.filter(o => Number(o.asset_id) === Number(assetId));
-  const evs = tiState.evidences.filter(ev => Number(ev.asset_id) === Number(assetId));
+function onHistoryClientChange() {
+  const cf = document.getElementById('historyClientFilter')?.value || '';
+  const sel = document.getElementById('historyAssetSelect');
+  if (!sel) return;
+  const prev = sel.value;
+  const list = tiState.assets.filter(a => !cf || String(a.client_id) === String(cf));
+  sel.innerHTML = `<option value="">-- Selecciona una computadora, impresora o red --</option>` +
+    list.map(a => `<option value="${a.id}">${escHtml(a.name)} (${escHtml(a.category)})${a.client_name ? ' · ' + escHtml(a.client_name) : ''}</option>`).join('');
+  if (prev && list.some(a => String(a.id) === String(prev))) sel.value = prev;
+  else if (list.length && !prev) sel.value = String(list[0].id);
+  renderHistoryTab();
+}
 
-  let html = '';
-  if (a.specs) {
-    html += `<div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700"><strong>Especificaciones:</strong> ${escHtml(a.specs)}</div>`;
+function openOrderForSelectedHistory() {
+  const assetId = document.getElementById('historyAssetSelect')?.value;
+  const a = tiState.assets.find(x => String(x.id) === String(assetId));
+  openOrderModal();
+  if (a) {
+    document.getElementById('orderClientInput').value = a.client_id;
+    refreshOrderAssetOptions(a.id);
+    if (a.area_level) document.getElementById('orderAreaInput').value = a.area_level;
+  }
+}
+
+function renderHistoryTab() {
+  const summaryEl = document.getElementById('historyAssetSummary');
+  const timelineEl = document.getElementById('historyTimelineContainer');
+  if (!summaryEl || !timelineEl) return;
+
+  const assetId = document.getElementById('historyAssetSelect')?.value;
+  const a = tiState.assets.find(x => String(x.id) === String(assetId));
+
+  if (!a) {
+    summaryEl.innerHTML = `<div class="ti-liquid-card rounded-2xl p-6 text-center text-sm text-slate-600">Registra o selecciona una computadora / nodo de red para ver su historial completo de reparaciones y evidencias.</div>`;
+    timelineEl.innerHTML = '';
+    return;
   }
 
-  html += `<div><h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-2">Línea de Tiempo de Intervenciones (${ords.length})</h4>`;
-  if (!ords.length) {
-    html += `<p class="text-xs text-slate-500">Sin reparaciones ni instalaciones registradas aún para este equipo.</p>`;
-  } else {
-    html += `<div class="space-y-2.5">` + ords.map(o => `
-      <div class="p-3 rounded-xl border border-slate-200 bg-white space-y-1">
-        <div class="flex items-center justify-between gap-2">
-          <span class="text-xs font-bold text-sky-700">${escHtml(o.service_date)} • ${escHtml(o.order_type)} ${o.ref_code ? `(${escHtml(o.ref_code)})` : ''}</span>
-          <span class="text-xs font-bold text-slate-800">${!tiState.isPublicShare ? moneyFmt(o.subtotal) : escHtml(o.status)}</span>
+  const ords = tiState.orders.filter(o => Number(o.asset_id) === Number(a.id));
+  const directEvs = tiState.evidences.filter(ev => Number(ev.asset_id) === Number(a.id) && !ev.order_id);
+  const badgeColor = a.status === 'Operativo' ? 'bg-emerald-100/90 text-emerald-800'
+    : (a.status === 'De baja' ? 'bg-rose-100/90 text-rose-800' : 'bg-amber-100/90 text-amber-800');
+
+  summaryEl.innerHTML = `
+    <div class="ti-liquid-card rounded-2xl p-5 space-y-3">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="px-2.5 py-0.5 rounded-lg bg-slate-900 text-white text-[11px] font-bold">${escHtml(a.category)}</span>
+            ${a.asset_code ? `<span class="px-2.5 py-0.5 rounded-lg bg-sky-100 text-sky-800 text-[11px] font-bold">${escHtml(a.asset_code)}</span>` : ''}
+            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold ${badgeColor}">${escHtml(a.status)}</span>
+          </div>
+          <h3 class="text-lg font-extrabold text-slate-900 mt-1.5">${escHtml(a.name)}</h3>
+          <p class="text-xs text-slate-600">${escHtml(a.client_name || '')} ${a.area_level ? '• ' + escHtml(a.area_level) : ''}</p>
         </div>
-        <div class="text-sm font-bold text-slate-900">${escHtml(o.title)}</div>
-        ${o.diagnosis ? `<div class="text-xs text-slate-600"><strong>Diagnóstico:</strong> ${escHtml(o.diagnosis)}</div>` : ''}
-        ${o.work_done ? `<div class="text-xs text-slate-700 whitespace-pre-line">${escHtml(o.work_done)}</div>` : ''}
-        ${o.parts_used ? `<div class="text-xs text-indigo-700"><strong>Materiales/Repuestos:</strong> ${escHtml(o.parts_used)}</div>` : ''}
+        <div class="flex flex-wrap gap-2">
+          ${!tiState.isPublicShare ? `
+            <button type="button" onclick="openEvidenceModal(${a.client_id}, ${a.id}, null)" class="px-3.5 py-2 rounded-xl bg-white/80 hover:bg-white text-indigo-700 border border-white text-xs font-bold shadow-sm">📷 Subir Foto al Equipo</button>
+          ` : ''}
+          <div class="px-3.5 py-2 rounded-xl bg-sky-500/15 text-sky-900 text-xs font-extrabold">${ords.length} intervenciones</div>
+        </div>
       </div>
-    `).join('') + `</div>`;
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs text-slate-700">
+        <div class="p-2.5 rounded-xl bg-white/55 border border-white/70"><strong>Marca / Modelo:</strong> ${escHtml(a.brand_model || '—')}</div>
+        <div class="p-2.5 rounded-xl bg-white/55 border border-white/70"><strong>N.° Serie:</strong> ${escHtml(a.serial_number || '—')}</div>
+        <div class="p-2.5 rounded-xl bg-white/55 border border-white/70"><strong>Red / IP:</strong> ${escHtml(a.network_info || '—')}</div>
+      </div>
+      ${a.specs ? `<div class="p-3 rounded-xl bg-white/55 border border-white/70 text-xs text-slate-700"><strong>Hardware / Especificaciones:</strong> ${escHtml(a.specs)}</div>` : ''}
+      ${directEvs.length ? `<div><div class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 mb-1.5">Fotos generales del equipo</div>${renderEvidenceGalleryHtml(directEvs)}</div>` : ''}
+    </div>
+  `;
+
+  if (!ords.length) {
+    timelineEl.innerHTML = `<div class="ti-liquid-card rounded-2xl p-6 text-center text-sm text-slate-500">Este equipo aún no tiene reparaciones ni mantenimientos en su historial.</div>`;
+    return;
   }
-  html += `</div>`;
 
-  html += `<div><h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-500 mb-2">Galería de Fotos y Evidencias (${evs.length})</h4>`;
-  html += renderEvidenceGalleryHtml(evs);
-  html += `</div>`;
-
-  document.getElementById('ahContent').innerHTML = html;
-  openModal('assetHistoryModal');
+  timelineEl.innerHTML = `<div class="ti-timeline-line space-y-4">` + ords.map(o => {
+    const evs = tiState.evidences.filter(ev => Number(ev.order_id) === Number(o.id));
+    return `
+      <div class="relative">
+        <span class="ti-timeline-dot"></span>
+        <div class="ti-liquid-card rounded-2xl p-4 sm:p-5 space-y-2.5">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-xs font-extrabold text-sky-700">${escHtml(o.service_date)}</span>
+              <span class="px-2.5 py-0.5 rounded-full bg-sky-100/90 text-sky-800 text-[11px] font-bold">${escHtml(o.order_type)}</span>
+              ${o.ref_code ? `<span class="px-2 py-0.5 rounded-md bg-slate-900 text-white text-[10px] font-bold">${escHtml(o.ref_code)}</span>` : ''}
+            </div>
+            <div class="flex items-center gap-2">
+              ${!tiState.isPublicShare ? `<span class="text-sm font-extrabold text-emerald-700">${moneyFmt(o.subtotal)}</span>` : ''}
+              <span class="px-2.5 py-0.5 rounded-full bg-white/80 text-slate-700 text-[11px] font-bold border border-white">${escHtml(o.status)}</span>
+            </div>
+          </div>
+          <h4 class="text-base font-extrabold text-slate-900">${escHtml(o.title)}</h4>
+          ${o.diagnosis ? `<div class="text-xs text-slate-700 bg-white/55 p-2.5 rounded-xl border border-white/70"><strong>Diagnóstico:</strong> ${escHtml(o.diagnosis)}</div>` : ''}
+          ${o.work_done ? `<div class="text-xs text-slate-800 whitespace-pre-line pl-3 border-l-2 border-sky-400">${escHtml(o.work_done)}</div>` : ''}
+          ${o.parts_used ? `<div class="text-xs text-indigo-800 font-semibold"><strong>Repuestos / Materiales:</strong> ${escHtml(o.parts_used)}</div>` : ''}
+          ${evs.length ? `<div class="pt-1">${renderEvidenceGalleryHtml(evs)}</div>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('') + `</div>`;
 }
 
 // --- RENDER ÓRDENES / TRABAJOS ---
@@ -498,14 +578,14 @@ function renderOrders() {
   });
 
   if (!filtered.length) {
-    container.innerHTML = `<div class="glass-bento rounded-2xl p-8 text-center text-sm text-slate-500">No hay trabajos o servicios registrados todavía.</div>`;
+    container.innerHTML = `<div class="ti-liquid-card rounded-2xl p-8 text-center text-sm text-slate-500">No hay trabajos o servicios registrados todavía.</div>`;
     return;
   }
 
   container.innerHTML = filtered.map(o => {
     const evs = tiState.evidences.filter(ev => Number(ev.order_id) === Number(o.id));
     return `
-      <div class="glass-bento rounded-2xl p-4 sm:p-5 space-y-3">
+      <div class="ti-liquid-card rounded-2xl p-4 sm:p-5 space-y-3">
         <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
           <div class="space-y-1">
             <div class="flex items-center gap-2 flex-wrap">
@@ -692,11 +772,11 @@ function renderInvoices() {
   const container = document.getElementById('invoicesList');
   if (!container) return;
   if (!tiState.invoices.length) {
-    container.innerHTML = `<div class="glass-bento rounded-2xl p-8 text-center text-sm text-slate-500">Aún no has emitido recibos ni cotizaciones.</div>`;
+    container.innerHTML = `<div class="ti-liquid-card rounded-2xl p-8 text-center text-sm text-slate-500">Aún no has emitido recibos ni cotizaciones.</div>`;
     return;
   }
   container.innerHTML = tiState.invoices.map(inv => `
-    <div class="glass-bento rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div class="ti-liquid-card rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div class="space-y-1">
         <div class="flex items-center gap-2 flex-wrap">
           <span class="px-2.5 py-0.5 rounded-md bg-slate-900 text-white text-xs font-bold">${escHtml(inv.doc_number)}</span>
