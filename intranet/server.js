@@ -9,6 +9,7 @@ const attendanceRoutes = require('./routes/attendance');
 const materialsRoutes = require('./routes/materials');
 const notificationsRoutes = require('./routes/notifications');
 const messagesRoutes = require('./routes/messages');
+const tiRoutes = require('./routes/ti');
 const { startReminderScheduler } = require('./lib/notifications');
 
 const app = express();
@@ -27,6 +28,7 @@ app.use(attendanceRoutes);
 app.use(materialsRoutes);
 app.use(notificationsRoutes);
 app.use(messagesRoutes);
+app.use(tiRoutes);
 
 startReminderScheduler();
 
@@ -40,6 +42,10 @@ app.get('/intranet/panel', (req, res) => {
 
 app.get('/intranet/estudiante', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'student.html'));
+});
+
+app.get('/intranet/ti', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'ti.html'));
 });
 
 app.listen(PORT, '127.0.0.1', () => {

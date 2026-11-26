@@ -9,10 +9,12 @@ const rootDir = path.join(__dirname, '..');
 const dataDir = path.join(rootDir, 'data');
 const uploadsDir = path.join(rootDir, 'uploads');
 const avatarsDir = path.join(uploadsDir, 'avatars');
+const tiDir = path.join(uploadsDir, 'ti');
 
 if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 if (!fs.existsSync(avatarsDir)) fs.mkdirSync(avatarsDir, { recursive: true });
+if (!fs.existsSync(tiDir)) fs.mkdirSync(tiDir, { recursive: true });
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadsDir),
@@ -41,6 +43,23 @@ const uploadAvatar = multer({
   }
 });
 
+const tiStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, tiDir),
+  filename: (req, file, cb) => {
+    const safeName = Date.now() + '-' + Math.round(Math.random() * 1e6) + '-' + file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+    cb(null, safeName);
+  }
+});
+const uploadTi = multer({
+  storage: tiStorage,
+  limits: { fileSize: 25 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.pdf'];
+    const ext = path.extname(file.originalname || '').toLowerCase();
+    cb(null, allowed.includes(ext));
+  }
+});
+
 module.exports = {
   PORT,
   JWT_SECRET,
@@ -48,6 +67,8 @@ module.exports = {
   dataDir,
   uploadsDir,
   avatarsDir,
+  tiDir,
   upload,
-  uploadAvatar
+  uploadAvatar,
+  uploadTi
 };

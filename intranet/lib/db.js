@@ -229,6 +229,95 @@ db.serialize(() => {
       db.run(`UPDATE users SET is_faculty = 1 WHERE role = 'admin'`, () => {});
     }
   });
+
+  // --- Módulo DC CORP TI, Redes & Facturación ---
+  db.run(`CREATE TABLE IF NOT EXISTS ti_clients (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    subtitle TEXT DEFAULT '',
+    ruc_dni TEXT DEFAULT '',
+    location TEXT DEFAULT '',
+    contact_name TEXT DEFAULT '',
+    phone TEXT DEFAULT '',
+    notes TEXT DEFAULT '',
+    share_token TEXT UNIQUE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+
+  db.run(`CREATE TABLE IF NOT EXISTS ti_assets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    client_id INTEGER NOT NULL,
+    asset_code TEXT DEFAULT '',
+    category TEXT NOT NULL DEFAULT 'PC',
+    name TEXT NOT NULL,
+    brand_model TEXT DEFAULT '',
+    serial_number TEXT DEFAULT '',
+    area_level TEXT DEFAULT '',
+    network_info TEXT DEFAULT '',
+    specs TEXT DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'Operativo',
+    notes TEXT DEFAULT '',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+
+  db.run(`CREATE TABLE IF NOT EXISTS ti_orders (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    client_id INTEGER NOT NULL,
+    asset_id INTEGER,
+    order_type TEXT NOT NULL DEFAULT 'Reparación',
+    ref_code TEXT DEFAULT '',
+    act_code TEXT DEFAULT '',
+    area_level TEXT DEFAULT '',
+    title TEXT NOT NULL,
+    diagnosis TEXT DEFAULT '',
+    work_done TEXT DEFAULT '',
+    parts_used TEXT DEFAULT '',
+    warranty_months INTEGER DEFAULT 6,
+    subtotal REAL DEFAULT 0,
+    status TEXT NOT NULL DEFAULT 'Completado',
+    service_date TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+
+  db.run(`CREATE TABLE IF NOT EXISTS ti_evidences (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    client_id INTEGER NOT NULL,
+    asset_id INTEGER,
+    order_id INTEGER,
+    stage TEXT NOT NULL DEFAULT 'Después',
+    caption TEXT DEFAULT '',
+    file_name TEXT NOT NULL,
+    original_name TEXT NOT NULL,
+    file_type TEXT NOT NULL DEFAULT 'image',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+
+  db.run(`CREATE TABLE IF NOT EXISTS ti_invoices (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    doc_type TEXT NOT NULL DEFAULT 'RECIBO DE CAJA / EGRESO',
+    doc_number TEXT UNIQUE NOT NULL,
+    issue_date TEXT NOT NULL,
+    currency TEXT NOT NULL DEFAULT 'Soles Peruanos (S/)',
+    client_id INTEGER,
+    client_name TEXT NOT NULL,
+    client_subtitle TEXT DEFAULT '',
+    client_location TEXT DEFAULT '',
+    general_concept TEXT NOT NULL,
+    concept_subtitle TEXT DEFAULT '',
+    actas_ref TEXT DEFAULT '',
+    items_json TEXT NOT NULL DEFAULT '[]',
+    total_amount REAL NOT NULL DEFAULT 0,
+    amount_words TEXT DEFAULT '',
+    payment_method TEXT DEFAULT 'Pago al contado / Transferencia contra entrega de conformidad.',
+    warranty_text TEXT DEFAULT '',
+    conformity_text TEXT DEFAULT '',
+    sign_client_title TEXT DEFAULT 'POR CLIENTE / ENTIDAD (ENTREGUÉ CONFORME)',
+    sign_client_sub TEXT DEFAULT 'Representante / Solicitante',
+    sign_vb_title TEXT DEFAULT 'V.° B.° DIRECCIÓN / CONFORMIDAD',
+    sign_vb_sub TEXT DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'Emitido',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
 });
 
 function verifyGroupAccess(user, groupId, cb) {

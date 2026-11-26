@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DC CORP | Soporte TI, Redes & Facturación</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="manifest" href="/intranet/manifest.json">
+  <meta name="theme-color" content="#0f172a">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/intranet/css/styles.css?v=20261126-01">
+  <link rel="stylesheet" href="/intranet/css/ti-print.css?v=20261126-01">
+</head>
+<body class="text-slate-900 min-h-screen antialiased">
+  <div class="aurora-canvas min-h-screen flex flex-col lg:flex-row">
+
+    <!-- Cabecera Móvil -->
+    <header class="no-print lg:hidden sticky top-0 z-30 bg-slate-900/95 backdrop-blur-md text-white px-4 py-3 flex items-center justify-between border-b border-white/10">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-9 h-9 rounded-xl bg-sky-500/20 border border-sky-400/30 flex items-center justify-center shrink-0">
+          <img src="/logo.svg" alt="DC CORP" class="w-6 h-6">
+        </div>
+        <div class="min-w-0">
+          <div class="text-sm font-bold tracking-tight truncate">DC CORP · TI & Redes</div>
+          <div id="mobileTiSubtitle" class="text-[11px] text-sky-300 truncate">Soporte Técnico y Facturación</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <a id="mobileBackEdu" href="/intranet/panel" class="px-2.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-medium">Educativa</a>
+        <button id="mobileLogoutBtn" type="button" onclick="logoutTi()" class="px-2.5 py-1.5 rounded-lg bg-rose-500/20 text-rose-200 text-xs font-semibold">Salir</button>
+      </div>
+    </header>
+
+    <!-- Sidebar Escritorio -->
+    <aside class="no-print hidden lg:flex lg:w-72 lg:flex-col lg:fixed lg:inset-y-0 aurora-sidebar text-white p-5 z-20">
+      <div class="flex items-center gap-3 pb-5 border-b border-white/10">
+        <div class="w-11 h-11 rounded-2xl bg-sky-500/20 border border-sky-400/30 flex items-center justify-center shrink-0">
+          <img src="/logo.svg" alt="DC CORP" class="w-7 h-7">
+        </div>
+        <div class="min-w-0">
+          <h1 class="font-extrabold text-base tracking-tight truncate">DC CORP · TI</h1>
+          <p class="text-[11px] text-sky-300 truncate">Equipos, Redes & Facturación</p>
+        </div>
+      </div>
+
+      <nav id="tiSidebarNav" class="mt-6 space-y-1.5 flex-1">
+        <button type="button" onclick="switchTiTab('orders')" data-tab="orders" class="ti-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-left transition bg-sky-500/20 text-white border border-sky-400/30">
+          <span>🛠️</span><span>Trabajos & Evidencias</span>
+        </button>
+        <button type="button" onclick="switchTiTab('assets')" data-tab="assets" class="ti-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left transition text-slate-300 hover:bg-white/10">
+          <span>🖥️</span><span>Equipos & Redes</span>
+        </button>
+        <button type="button" onclick="switchTiTab('clients')" data-tab="clients" class="ti-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left transition text-slate-300 hover:bg-white/10">
+          <span>🏢</span><span>Clientes / Sedes</span>
+        </button>
+        <button type="button" onclick="switchTiTab('invoices')" data-tab="invoices" class="ti-nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium text-left transition text-slate-300 hover:bg-white/10">
+          <span>🧾</span><span>Facturación & Recibos</span>
+        </button>
+      </nav>
+
+      <div id="tiSidebarFooter" class="pt-4 border-t border-white/10 space-y-2">
+        <a href="/intranet/panel" class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-semibold text-slate-200 transition">
+          <span>←</span><span>Volver a Intranet Educativa</span>
+        </a>
+        <button type="button" onclick="logoutTi()" class="w-full px-3 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 text-xs font-semibold transition">
+          Cerrar Sesión
+        </button>
+      </div>
+    </aside>
+
+    <!-- Contenido Principal -->
+    <main class="flex-1 lg:pl-72 pb-24 lg:pb-10">
+      <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+
+        <!-- Banner Modo Público (solo si ?share=...) -->
+        <div id="publicShareBanner" class="hidden glass-bento rounded-2xl p-4 border-l-4 border-sky-500">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <span class="text-xs font-bold uppercase tracking-wider text-sky-700">Portal de Seguimiento Técnico · DC CORP</span>
+              <h2 id="publicClientTitle" class="text-lg font-extrabold text-slate-900"></h2>
+              <p id="publicClientSub" class="text-xs text-slate-600"></p>
+            </div>
+            <span class="text-xs font-semibold px-3 py-1 rounded-full bg-sky-100 text-sky-800 self-start">Vista de Solo Lectura</span>
+          </div>
+        </div>
+
+        <!-- KPIs -->
+        <section id="tiKpiGrid" class="no-print grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div class="glass-bento rounded-2xl p-4">
+            <div class="text-xs font-semibold text-slate-500">Clientes / Sedes</div>
+            <div id="kpiClients" class="text-2xl font-extrabold text-slate-900 mt-1">0</div>
+          </div>
+          <div class="glass-bento rounded-2xl p-4">
+            <div class="text-xs font-semibold text-slate-500">Equipos y Nodos Red</div>
+            <div id="kpiAssets" class="text-2xl font-extrabold text-sky-700 mt-1">0</div>
+          </div>
+          <div class="glass-bento rounded-2xl p-4">
+            <div class="text-xs font-semibold text-slate-500">Trabajos / Órdenes</div>
+            <div id="kpiOrders" class="text-2xl font-extrabold text-indigo-700 mt-1">0</div>
+          </div>
+          <div class="glass-bento rounded-2xl p-4">
+            <div class="text-xs font-semibold text-slate-500">Total Facturado</div>
+            <div id="kpiInvoiced" class="text-2xl font-extrabold text-emerald-700 mt-1">S/ 0.00</div>
+          </div>
+        </section>
+
+        <!-- TAB 1: TRABAJOS & EVIDENCIAS -->
+        <section id="tab-orders" class="no-print space-y-4">
+          <div class="glass-bento rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 class="text-lg font-extrabold text-slate-900">Historial de Reparaciones e Instalaciones de Red</h2>
+              <p class="text-xs text-slate-600">Registra cada servicio técnico, adjunta fotos antes/después y úsalos para facturar.</p>
+            </div>
+            <button type="button" onclick="openOrderModal()" class="px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs sm:text-sm font-bold shadow-sm transition">
+              + Nuevo Trabajo / Servicio
+            </button>
+          </div>
+
+          <div class="glass-bento rounded-2xl p-4 flex flex-col sm:flex-row gap-3">
+            <input id="orderSearchInput" type="text" oninput="renderOrders()" placeholder="Buscar por título, código EST/ACT, diagnóstico o repuesto..." class="flex-1 px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-sm">
+            <select id="orderClientFilter" onchange="renderOrders()" class="px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-sm">
+              <option value="">Todos los clientes</option>
+            </select>
+            <select id="orderTypeFilter" onchange="renderOrders()" class="px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-sm">
+              <option value="">Todos los tipos</option>
+              <option value="Reparación">Reparación</option>
+              <option value="Mantenimiento">Mantenimiento</option>
+              <option value="Instalación de Red">Instalación de Red</option>
+              <option value="Reconstrucción">Reconstrucción</option>
+              <option value="Soporte / Licencias">Soporte / Licencias</option>
+            </select>
+          </div>
+
+          <div id="ordersList" class="space-y-3"></div>
+        </section>
+
+        <!-- TAB 2: EQUIPOS & REDES -->
+        <section id="tab-assets" class="no-print hidden space-y-4">
+          <div class="glass-bento rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 class="text-lg font-extrabold text-slate-900">Equipos & Nodos de Red Local</h2>
+              <p class="text-xs text-slate-600">Inventario técnico con IPs, series, especificaciones e historial completo por equipo o red.</p>
+            </div>
+            <button type="button" onclick="openAssetModal()" class="px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs sm:text-sm font-bold shadow-sm transition">
+              + Registrar Equipo / Red
+            </button>
+          </div>
+
+          <div class="glass-bento rounded-2xl p-4 flex flex-col sm:flex-row gap-3">
+            <input id="assetSearchInput" type="text" oninput="renderAssets()" placeholder="Buscar por código, serie, IP, modelo o área..." class="flex-1 px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-sm">
+            <select id="assetClientFilter" onchange="renderAssets()" class="px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-sm">
+              <option value="">Todos los clientes</option>
+            </select>
+            <select id="assetCatFilter" onchange="renderAssets()" class="px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-sm">
+              <option value="">Todas las categorías</option>
+              <option value="PC">PC</option>
+              <option value="Laptop">Laptop</option>
+              <option value="Impresora">Impresora</option>
+              <option value="Red / Cableado">Red / Cableado</option>
+              <option value="Router / Switch">Router / Switch</option>
+              <option value="Servidor">Servidor</option>
+              <option value="CCTV / Cámaras">CCTV / Cámaras</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+
+          <div id="assetsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </section>
+
+        <!-- TAB 3: CLIENTES / SEDES -->
+        <section id="tab-clients" class="no-print hidden space-y-4">
+          <div class="glass-bento rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 class="text-lg font-extrabold text-slate-900">Clientes e Instituciones</h2>
+              <p class="text-xs text-slate-600">Administra colegios, empresas o particulares y comparte su enlace de seguimiento técnico.</p>
+            </div>
+            <button type="button" onclick="openClientModal()" class="px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs sm:text-sm font-bold shadow-sm transition">
+              + Nuevo Cliente
+            </button>
+          </div>
+
+          <div id="clientsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </section>
+
+        <!-- TAB 4: FACTURACIÓN & RECIBOS -->
+        <section id="tab-invoices" class="no-print hidden space-y-4">
+          <div class="glass-bento rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 class="text-lg font-extrabold text-slate-900">Comprobantes, Recibos & Cotizaciones</h2>
+              <p class="text-xs text-slate-600">Genera recibos idénticos a tu formato oficial DC CORP e imprímelos o guárdalos en PDF A4.</p>
+            </div>
+            <button type="button" onclick="openInvoiceModal()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold shadow-sm transition">
+              + Nuevo Recibo / Cotización
+            </button>
+          </div>
+
+          <div id="invoicesList" class="space-y-3"></div>
+        </section>
+
+      </div>
+    </main>
+
+    <!-- Bottom Dock Móvil -->
+    <nav id="tiBottomDock" class="no-print lg:hidden fixed bottom-3 inset-x-3 z-30 bottom-dock rounded-2xl px-2 py-1.5 flex justify-around items-center shadow-xl">
+      <button type="button" onclick="switchTiTab('orders')" data-tab="orders" class="ti-dock-btn flex flex-col items-center py-1 px-3 rounded-xl text-[11px] font-bold text-sky-700 bg-sky-50">
+        <span class="text-base">🛠️</span><span>Trabajos</span>
+      </button>
+      <button type="button" onclick="switchTiTab('assets')" data-tab="assets" class="ti-dock-btn flex flex-col items-center py-1 px-3 rounded-xl text-[11px] font-medium text-slate-600">
+        <span class="text-base">🖥️</span><span>Equipos</span>
+      </button>
+      <button type="button" onclick="switchTiTab('clients')" data-tab="clients" class="ti-dock-btn flex flex-col items-center py-1 px-3 rounded-xl text-[11px] font-medium text-slate-600">
+        <span class="text-base">🏢</span><span>Clientes</span>
+      </button>
+      <button type="button" onclick="switchTiTab('invoices')" data-tab="invoices" class="ti-dock-btn flex flex-col items-center py-1 px-3 rounded-xl text-[11px] font-medium text-slate-600">
+        <span class="text-base">🧾</span><span>Facturar</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- MODAL CLIENTE -->
+  <div id="clientModal" class="no-print hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between">
+        <h3 id="clientModalTitle" class="text-lg font-extrabold text-slate-900">Nuevo Cliente</h3>
+        <button type="button" onclick="closeModal('clientModal')" class="text-slate-400 hover:text-slate-700 text-xl font-bold">&times;</button>
+      </div>
+      <form id="clientForm" onsubmit="saveClient(event)" class="space-y-3">
+        <input type="hidden" id="clientIdInput">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Nombre / Entidad Pagadora *</label>
+          <input id="clientNameInput" required placeholder='Ej. APAFA - I.E. N.° 7263-668 "Roxanita Castro Witting"' class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Subtítulo / Razón o Comité</label>
+          <input id="clientSubtitleInput" placeholder="Ej. Asociación de Padres de Familia • Comité de Recursos" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">RUC / DNI</label>
+            <input id="clientRucInput" placeholder="Ej. 20123456789" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Teléfono / WhatsApp</label>
+            <input id="clientPhoneInput" placeholder="Ej. 999888777" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Ubicación / Sede</label>
+            <input id="clientLocationInput" placeholder="Ej. Manchay, Pachacámac, Lima" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Persona de Contacto</label>
+            <input id="clientContactInput" placeholder="Ej. Prof. Encargado AIP" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Notas internas</label>
+          <textarea id="clientNotesInput" rows="2" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm"></textarea>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('clientModal')" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold">Guardar Cliente</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL EQUIPO / RED -->
+  <div id="assetModal" class="no-print hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-xl w-full p-5 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between">
+        <h3 id="assetModalTitle" class="text-lg font-extrabold text-slate-900">Registrar Equipo / Nodo de Red</h3>
+        <button type="button" onclick="closeModal('assetModal')" class="text-slate-400 hover:text-slate-700 text-xl font-bold">&times;</button>
+      </div>
+      <form id="assetForm" onsubmit="saveAsset(event)" class="space-y-3">
+        <input type="hidden" id="assetIdInput">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Cliente *</label>
+            <select id="assetClientInput" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Categoría *</label>
+            <select id="assetCategoryInput" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+              <option value="PC">PC</option>
+              <option value="Laptop">Laptop</option>
+              <option value="Impresora">Impresora</option>
+              <option value="Red / Cableado">Red / Cableado</option>
+              <option value="Router / Switch">Router / Switch</option>
+              <option value="Servidor">Servidor</option>
+              <option value="CCTV / Cámaras">CCTV / Cámaras</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Nombre del Equipo / Red *</label>
+            <input id="assetNameInput" required placeholder="Ej. Estación 03 AIP o Red Local Inicial" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Código Interno</label>
+            <input id="assetCodeInput" placeholder="Ej. PC-AIP-03" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Marca / Modelo</label>
+            <input id="assetBrandInput" placeholder="Ej. Gigabyte / Epson L3250" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">N.° Serie</label>
+            <input id="assetSerialInput" placeholder="S/N" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Área / Nivel</label>
+            <input id="assetAreaInput" placeholder="Ej. AIP Secundaria" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Datos de Red (IP / MAC / SSID)</label>
+            <input id="assetNetworkInput" placeholder="Ej. IP 192.168.1.50 | Red Cableada" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Estado</label>
+            <select id="assetStatusInput" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+              <option value="Operativo">Operativo</option>
+              <option value="En diagnóstico">En diagnóstico</option>
+              <option value="En reparación">En reparación</option>
+              <option value="En instalación">En instalación</option>
+              <option value="Listo para entrega">Listo para entrega</option>
+              <option value="De baja">De baja</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Especificaciones / Hardware</label>
+          <textarea id="assetSpecsInput" rows="2" placeholder="Ej. Ryzen 3 2200G, Placa A520M-K V2, SSD 120GB, Fuente Micronic 80+ Bronze" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm"></textarea>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('assetModal')" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold">Guardar Equipo</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL TRABAJO / ORDEN -->
+  <div id="orderModal" class="no-print hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between">
+        <h3 id="orderModalTitle" class="text-lg font-extrabold text-slate-900">Registrar Trabajo / Servicio</h3>
+        <button type="button" onclick="closeModal('orderModal')" class="text-slate-400 hover:text-slate-700 text-xl font-bold">&times;</button>
+      </div>
+      <form id="orderForm" onsubmit="saveOrder(event)" class="space-y-3">
+        <input type="hidden" id="orderIdInput">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Cliente *</label>
+            <select id="orderClientInput" required onchange="refreshOrderAssetOptions()" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Equipo / Nodo de Red (opcional)</label>
+            <select id="orderAssetInput" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm"></select>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Tipo de Servicio</label>
+            <select id="orderTypeInput" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+              <option value="Reparación">Reparación</option>
+              <option value="Mantenimiento">Mantenimiento</option>
+              <option value="Instalación de Red">Instalación de Red</option>
+              <option value="Reconstrucción">Reconstrucción</option>
+              <option value="Soporte / Licencias">Soporte / Licencias</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Ref. Cotiz. (EST)</label>
+            <input id="orderRefInput" placeholder="EST0010" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Ref. Acta (ACT)</label>
+            <input id="orderActInput" placeholder="ACT0010" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Fecha</label>
+            <input id="orderDateInput" type="date" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Título del Trabajo *</label>
+            <input id="orderTitleInput" required placeholder="Ej. Enlace de impresora en red local y activación" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Área / Nivel</label>
+            <input id="orderAreaInput" placeholder="Ej. Nivel Inicial" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Diagnóstico / Requerimiento</label>
+          <textarea id="orderDiagInput" rows="2" placeholder="Falla reportada o alcance de la instalación de red..." class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm"></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Trabajos y Suministros (una línea por viñeta para recibos)</label>
+          <textarea id="orderWorkInput" rows="3" placeholder="• Asignación de IP estática dedicada (S/ 30.00)&#10;• Cableado UTP Cat6 y ponchado RJ45..." class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm"></textarea>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Repuestos / Materiales usados</label>
+            <input id="orderPartsInput" placeholder="Ej. 25m Cat6, 4 RJ45, Fuente Micronic" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Subtotal (S/)</label>
+            <input id="orderSubtotalInput" type="number" step="0.01" min="0" value="0" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Estado</label>
+            <select id="orderStatusInput" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+              <option value="Pendiente">Pendiente</option>
+              <option value="En proceso">En proceso</option>
+              <option value="Completado">Completado</option>
+              <option value="Facturado">Facturado</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('orderModal')" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold">Guardar Trabajo</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL SUBIR EVIDENCIAS -->
+  <div id="evidenceModal" class="no-print hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg font-extrabold text-slate-900">Adjuntar Fotos / Evidencias</h3>
+        <button type="button" onclick="closeModal('evidenceModal')" class="text-slate-400 hover:text-slate-700 text-xl font-bold">&times;</button>
+      </div>
+      <form id="evidenceForm" onsubmit="uploadEvidences(event)" class="space-y-3">
+        <input type="hidden" id="evClientId">
+        <input type="hidden" id="evAssetId">
+        <input type="hidden" id="evOrderId">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Etapa de la evidencia</label>
+          <select id="evStageInput" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+            <option value="Antes">Antes (recepción / falla)</option>
+            <option value="Proceso">Proceso (reparación / cableado)</option>
+            <option value="Después" selected>Después (equipo operativo)</option>
+            <option value="Prueba de Red">Prueba de Red / Ping / IP</option>
+            <option value="Acta / Documento">Acta / Documento PDF</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Descripción corta</label>
+          <input id="evCaptionInput" placeholder="Ej. Rack ordenado y prueba de enlace LAN" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Fotos o PDFs (máx. 12 archivos)</label>
+          <input id="evFilesInput" type="file" multiple accept="image/*,.pdf" required class="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:bg-sky-50 file:text-sky-700 file:font-bold">
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('evidenceModal')" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold">Subir Evidencias</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL HISTORIAL DE EQUIPO / RED -->
+  <div id="assetHistoryModal" class="no-print hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-3xl w-full p-5 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div>
+          <h3 id="ahTitle" class="text-lg font-extrabold text-slate-900">Historial Técnico</h3>
+          <p id="ahSub" class="text-xs text-slate-500"></p>
+        </div>
+        <button type="button" onclick="closeModal('assetHistoryModal')" class="text-slate-400 hover:text-slate-700 text-xl font-bold">&times;</button>
+      </div>
+      <div id="ahContent" class="space-y-4"></div>
+    </div>
+  </div>
+
+  <!-- MODAL CONSTRUCTOR DE FACTURA / RECIBO -->
+  <div id="invoiceModal" class="no-print hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-4xl w-full p-5 sm:p-6 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 id="invoiceModalTitle" class="text-lg font-extrabold text-slate-900">Generar Recibo / Comprobante DC CORP</h3>
+        <button type="button" onclick="closeModal('invoiceModal')" class="text-slate-400 hover:text-slate-700 text-xl font-bold">&times;</button>
+      </div>
+      <form id="invoiceForm" onsubmit="saveInvoice(event)" class="space-y-4">
+        <input type="hidden" id="invIdInput">
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Tipo de Documento</label>
+            <select id="invDocTypeInput" onchange="suggestInvNumber()" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+              <option value="RECIBO DE CAJA / EGRESO">RECIBO DE CAJA / EGRESO</option>
+              <option value="COTIZACIÓN DE SERVICIOS">COTIZACIÓN DE SERVICIOS</option>
+              <option value="ACTA DE CONFORMIDAD">ACTA DE CONFORMIDAD</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">N.° Documento *</label>
+            <input id="invDocNumberInput" required placeholder="REC-2026-0013" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm font-bold">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Fecha de Emisión</label>
+            <input id="invDateInput" placeholder="26 de Noviembre de 2026" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Estado</label>
+            <select id="invStatusInput" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+              <option value="Emitido">Emitido</option>
+              <option value="Pagado">Pagado</option>
+              <option value="Borrador">Borrador</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Seleccionar Cliente guardado (autocompleta)</label>
+            <select id="invClientSelect" onchange="fillInvoiceClient()" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm"></select>
+          </div>
+          <div class="flex items-end">
+            <button type="button" onclick="importClientOrdersToInvoice()" class="w-full px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition">
+              ⬇ Importar Trabajos Completados de este Cliente
+            </button>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Entidad Pagadora / Cliente *</label>
+            <input id="invClientNameInput" required class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Subtítulo / Razón</label>
+            <input id="invClientSubInput" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm">
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Ubicación</label>
+            <input id="invClientLocInput" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white text-sm">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-bold text-slate-700 mb-1">Concepto General de la Liquidación *</label>
+            <input id="invConceptInput" required placeholder="Ej. Liquidación General de Servicios TI & Redes" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Respaldo Actas (opcional)</label>
+            <input id="invActasInput" placeholder="Ej. ACT0006, ACT0007" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+          </div>
+        </div>
+
+        <!-- Ítems del comprobante -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-slate-700">Detalle de Cotizaciones y Servicios Ejecutados</span>
+            <button type="button" onclick="addInvoiceItemRow()" class="px-3 py-1.5 rounded-lg bg-sky-100 hover:bg-sky-200 text-sky-800 text-xs font-bold">+ Agregar Ítem</button>
+          </div>
+          <div id="invItemsContainer" class="space-y-2"></div>
+          <div class="flex justify-between items-center bg-slate-900 text-white px-4 py-2.5 rounded-xl text-sm font-extrabold">
+            <span>TOTAL A PAGAR</span>
+            <span id="invTotalDisplay">S/ 0.00</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Monto en Letras (SON:)</label>
+            <input id="invWordsInput" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Forma de Cancelación</label>
+            <input id="invPayMethodInput" value="Pago al contado / Transferencia contra entrega de conformidad." class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Respaldo de Garantía Técnica (una línea por punto)</label>
+            <textarea id="invWarrantyInput" rows="2" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">• 12 meses en componentes nuevos y hardware instalado.
+• 6 meses en licenciamiento, soporte de red y estabilidad del sistema.</textarea>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Constancia de Desembolso / Conformidad</label>
+            <textarea id="invConformityInput" rows="2" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm">Las partes hacen constar que el presente desembolso económico se efectúa habiendo recibido las actas de conformidad técnica y verificada la operatividad total.</textarea>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('invoiceModal')" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold">Cancelar</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">Guardar y Ver PDF</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL VISTA PREVIA / IMPRESIÓN A4 -->
+  <div id="invoicePreviewModal" class="hidden fixed inset-0 z-50 bg-slate-900/75 backdrop-blur-sm overflow-y-auto p-3 sm:p-6">
+    <div class="no-print max-w-[820px] mx-auto mb-3 flex items-center justify-between gap-2 bg-slate-800 text-white px-4 py-2.5 rounded-xl">
+      <span class="text-xs sm:text-sm font-bold">Vista Previa A4 · Comprobante DC CORP</span>
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="window.print()" class="px-4 py-1.5 rounded-lg bg-sky-500 hover:bg-sky-600 text-white text-xs font-bold">🖨️ Imprimir / Guardar PDF</button>
+        <button type="button" onclick="closeModal('invoicePreviewModal')" class="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-bold">Cerrar</button>
+      </div>
+    </div>
+    <div id="invoicePreviewInner"></div>
+  </div>
+
+  <!-- MODAL VISOR DE IMAGEN -->
+  <div id="imageLightboxModal" class="no-print hidden fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4" onclick="closeModal('imageLightboxModal')">
+    <img id="lightboxImg" src="" alt="Evidencia" class="max-w-full max-h-[90vh] rounded-xl shadow-2xl">
+  </div>
+
+  <script src="/intranet/js/ti.js?v=20261126-01"></script>
+</body>
+</html>
