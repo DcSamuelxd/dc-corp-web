@@ -11,7 +11,6 @@ const notificationsRoutes = require('./routes/notifications');
 const messagesRoutes = require('./routes/messages');
 const tiRoutes = require('./routes/ti');
 const whatsappRoutes = require('./routes/whatsapp');
-const paymentsRoutes = require('./routes/payments');
 const { startReminderScheduler } = require('./lib/notifications');
 const { initWhatsAppIfLinked } = require('./lib/whatsapp');
 
@@ -40,7 +39,6 @@ app.use(notificationsRoutes);
 app.use(messagesRoutes);
 app.use(tiRoutes);
 app.use(whatsappRoutes);
-app.use(paymentsRoutes);
 
 startReminderScheduler();
 initWhatsAppIfLinked();
