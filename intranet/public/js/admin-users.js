@@ -65,12 +65,38 @@ function isMusicStudent(stu) {
   return false;
 }
 
+function getInstrumentIconHtml(instrument) {
+  const inst = String(instrument || '').toLowerCase();
+  if (inst.includes('guitarra') || inst.includes('bajo') || inst.includes('ukelele')) {
+    return '<i class="fa-solid fa-guitar"></i>';
+  }
+  if (inst.includes('bateria') || inst.includes('batería') || inst.includes('percus')) {
+    return '<i class="fa-solid fa-drum"></i>';
+  }
+  if (inst.includes('piano') || inst.includes('melódica') || inst.includes('melodica') || inst.includes('teclado')) {
+    return '<span>🎹</span>';
+  }
+  if (inst.includes('canto') || inst.includes('voz')) {
+    return '<i class="fa-solid fa-microphone-lines"></i>';
+  }
+  if (inst.includes('viol') || inst.includes('chelo')) {
+    return '<span>🎻</span>';
+  }
+  if (inst.includes('tromp') || inst.includes('eufonio') || inst.includes('tromb')) {
+    return '<span>🎺</span>';
+  }
+  if (inst.includes('saxo') || inst.includes('clarinete') || inst.includes('flauta')) {
+    return '<span>🎷</span>';
+  }
+  return '<i class="fa-solid fa-music"></i>';
+}
+
 function getStudentAreaBadgeHtml(stu, darkSurface = false) {
   if (isMusicStudent(stu)) {
     const cls = darkSurface
       ? 'bg-amber-400/20 text-amber-200 border border-amber-300/30'
       : 'bg-amber-500/15 text-amber-800';
-    return `<span class="px-2.5 py-0.5 rounded-full ${cls} font-semibold text-[10px] inline-flex items-center gap-1"><i class="fa-solid fa-guitar"></i>${stu.instrument || 'Música'}</span>`;
+    return `<span class="px-2.5 py-0.5 rounded-full ${cls} font-semibold text-[10px] inline-flex items-center gap-1">${getInstrumentIconHtml(stu.instrument)}${stu.instrument || 'Música'}</span>`;
   }
   const cls = darkSurface
     ? 'bg-sky-400/20 text-sky-200 border border-sky-300/30'
