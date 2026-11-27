@@ -914,8 +914,12 @@ function renderInvoices() {
         <p class="text-xs text-slate-600">${escHtml(inv.general_concept)}</p>
       </div>
       <div class="flex flex-col sm:items-end gap-2">
-        <div class="text-lg font-extrabold text-emerald-700">${moneyFmt(inv.total_amount)}</div>
+        <div class="flex items-center gap-2">
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${inv.status === 'Pagado' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${escHtml(inv.status)}</span>
+          <div class="text-lg font-extrabold text-emerald-700">${moneyFmt(inv.total_amount)}</div>
+        </div>
         <div class="flex flex-wrap gap-2">
+          ${inv.status !== 'Pagado' ? `<button type="button" onclick="markInvoicePaid(${inv.id})" class="px-3 py-1.5 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-xs font-bold">✓ Marcar Pagado</button>` : ''}
           <button type="button" onclick="previewInvoice(${inv.id})" class="px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold">🖨️ Ver / PDF</button>
           <button type="button" onclick="openInvoiceModal(${inv.id})" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold">✏️ Editar</button>
           <button type="button" onclick="deleteInvoice(${inv.id})" class="px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold">🗑️</button>
@@ -1076,6 +1080,15 @@ async function saveInvoice(e) {
     closeModal('invoiceModal');
     await loadTiOverview();
     previewInvoice(saved.id);
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+async function markInvoicePaid(id) {
+  try {
+    await apiTi(`/intranet/api/ti/invoices/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status: 'Pagado' }) });
+    await loadTiOverview();
   } catch (err) {
     alert(err.message);
   }
