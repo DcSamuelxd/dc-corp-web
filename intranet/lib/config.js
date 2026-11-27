@@ -10,11 +10,13 @@ const dataDir = path.join(rootDir, 'data');
 const uploadsDir = path.join(rootDir, 'uploads');
 const avatarsDir = path.join(uploadsDir, 'avatars');
 const tiDir = path.join(uploadsDir, 'ti');
+const waStickersDir = path.join(uploadsDir, 'wa-stickers');
 
 if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 if (!fs.existsSync(avatarsDir)) fs.mkdirSync(avatarsDir, { recursive: true });
 if (!fs.existsSync(tiDir)) fs.mkdirSync(tiDir, { recursive: true });
+if (!fs.existsSync(waStickersDir)) fs.mkdirSync(waStickersDir, { recursive: true });
 
 function loadJwtSecret() {
   if (process.env.JWT_SECRET && process.env.JWT_SECRET.length >= 16) {
