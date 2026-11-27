@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DC CORP | Centro WhatsApp &amp; Bot</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="manifest" href="/intranet/manifest.json">
+  <meta name="theme-color" content="#0d2638">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="/intranet/css/styles.css?v=20261127-02">
+  <link rel="stylesheet" href="/intranet/css/ti-liquid.css?v=20261127-02">
+</head>
+<body class="min-h-screen antialiased text-slate-900">
+  <div class="ti-liquid-canvas min-h-screen flex flex-col p-3 sm:p-5 gap-3 sm:gap-4 relative">
+    <div class="ti-liquid-orb ti-liquid-orb-a"></div>
+    <div class="ti-liquid-orb ti-liquid-orb-b"></div>
+
+    <!-- Topbar -->
+    <header class="relative z-10 max-w-7xl w-full mx-auto ti-liquid-card rounded-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3 min-w-0">
+        <a href="/intranet/hub" class="px-3 py-1.5 rounded-xl bg-white/80 hover:bg-white text-slate-700 text-xs font-bold border border-white inline-flex items-center gap-1.5 shrink-0">
+          <i class="fa-solid fa-arrow-left"></i> Hub
+        </a>
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center text-lg shrink-0">
+          <i class="fa-brands fa-whatsapp"></i>
+        </div>
+        <div class="min-w-0">
+          <h1 class="text-sm sm:text-base font-extrabold text-slate-900 truncate">Centro WhatsApp DC CORP</h1>
+          <div class="flex items-center gap-2">
+            <span id="waTopBadge" class="text-[11px] font-bold text-slate-600">Verificando...</span>
+            <span id="waTopPhone" class="text-[11px] font-semibold text-emerald-700"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <button type="button" onclick="openQrSetupModal()" class="px-3 py-1.5 rounded-xl bg-white/80 hover:bg-white text-slate-800 text-xs font-bold border border-white inline-flex items-center gap-1.5">
+          <i class="fa-solid fa-qrcode"></i> Vincular / QR
+        </button>
+        <button type="button" onclick="triggerParticularesReminders()" class="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold inline-flex items-center gap-1.5">
+          <i class="fa-solid fa-bell"></i> Recordatorios Particulares
+        </button>
+        <button type="button" onclick="logoutWaCenter()" class="px-3 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-700 text-xs font-bold">
+          Salir
+        </button>
+      </div>
+    </header>
+
+    <!-- Layout tipo WhatsApp Web Liquid Glass -->
+    <main class="relative z-10 max-w-7xl w-full mx-auto flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 min-h-[75vh]">
+      <!-- Columna Izquierda: Chats, Contactos y Nuevo Número -->
+      <aside class="lg:col-span-4 ti-liquid-card rounded-3xl p-4 flex flex-col gap-3 max-h-[80vh]">
+        <!-- Nuevo chat por número -->
+        <form onsubmit="startNewNumberChat(event)" class="flex gap-2">
+          <input id="waNewPhoneInput" type="text" placeholder="Escribir a número (ej. 992507489)" class="ti-liquid-input flex-1 px-3 py-2 rounded-xl text-xs font-medium">
+          <button type="submit" class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shrink-0">
+            Abrir
+          </button>
+        </form>
+
+        <!-- Pestañas Chats / Contactos -->
+        <div class="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-white/50 border border-white/70">
+          <button type="button" id="waSideTabChats" onclick="switchWaSideTab('chats')" class="py-1.5 rounded-lg bg-white text-slate-900 text-xs font-bold shadow-sm">
+            Chats recientes
+          </button>
+          <button type="button" id="waSideTabContacts" onclick="switchWaSideTab('contacts')" class="py-1.5 rounded-lg text-slate-600 text-xs font-semibold">
+            Contactos
+          </button>
+        </div>
+
+        <input id="waSearchInput" type="text" oninput="renderWaSidebarList()" placeholder="Buscar chat o contacto..." class="ti-liquid-input w-full px-3 py-2 rounded-xl text-xs">
+
+        <div id="waSidebarList" class="flex-1 overflow-y-auto aurora-scroll space-y-1.5 pr-1"></div>
+      </aside>
+
+      <!-- Columna Derecha: Conversación -->
+      <section class="lg:col-span-8 ti-liquid-card rounded-3xl flex flex-col overflow-hidden max-h-[80vh]">
+        <div id="waChatHeader" class="px-5 py-3.5 border-b border-white/60 bg-white/40 flex items-center justify-between gap-3">
+          <div class="min-w-0">
+            <h2 id="waActiveTitle" class="text-sm sm:text-base font-extrabold text-slate-900 truncate">Selecciona un chat o contacto</h2>
+            <p id="waActiveSub" class="text-[11px] text-slate-500 truncate">Aquí verás los mensajes entrantes y salientes en tiempo real.</p>
+          </div>
+          <button type="button" onclick="refreshActiveThread()" class="px-3 py-1.5 rounded-xl bg-white/75 hover:bg-white text-slate-700 text-xs font-bold border border-white shrink-0">
+            <i class="fa-solid fa-rotate-right"></i>
+          </button>
+        </div>
+
+        <div id="waMessagesBox" class="flex-1 overflow-y-auto aurora-scroll p-4 sm:p-5 space-y-2.5">
+          <div class="h-full flex flex-col items-center justify-center text-center text-slate-500 text-xs py-16">
+            <i class="fa-brands fa-whatsapp text-4xl text-emerald-500/60 mb-2"></i>
+            <p>Elige una conversación de la izquierda o ingresa un número para iniciar un chat.</p>
+          </div>
+        </div>
+
+        <form id="waSendForm" onsubmit="sendWaChatMessage(event)" class="p-3 sm:p-4 border-t border-white/60 bg-white/45 flex items-center gap-2">
+          <input id="waMessageInput" type="text" placeholder="Escribe un mensaje..." disabled class="ti-liquid-input flex-1 px-4 py-2.5 rounded-2xl text-sm disabled:opacity-50">
+          <button id="waSendBtn" type="submit" disabled class="px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white text-xs sm:text-sm font-bold inline-flex items-center gap-1.5 transition">
+            <span>Enviar</span>
+            <i class="fa-solid fa-paper-plane"></i>
+          </button>
+        </form>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal Vincular QR -->
+  <div id="waQrSetupModal" class="hidden fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="ti-liquid-modal rounded-3xl max-w-md w-full p-6 space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-extrabold text-slate-900">Vincular Instancia WhatsApp</h3>
+        <button type="button" onclick="closeQrSetupModal()" class="text-slate-500 hover:text-slate-900 text-xl font-bold">&times;</button>
+      </div>
+      <div class="p-3.5 rounded-2xl bg-white/75 border border-white text-xs space-y-1">
+        <div><strong>Estado:</strong> <span id="waModalStatusText">-</span></div>
+        <div id="waModalPhoneText" class="text-emerald-700 font-semibold"></div>
+        <div id="waModalErrText" class="text-rose-600 font-medium"></div>
+      </div>
+      <div id="waModalQrBox" class="hidden flex flex-col items-center gap-2 p-4 rounded-2xl bg-white">
+        <img id="waModalQrImg" src="" alt="QR WhatsApp" class="w-52 h-52 rounded-xl">
+        <p class="text-[11px] text-slate-500 text-center">WhatsApp → Dispositivos vinculados → Vincular un dispositivo.</p>
+      </div>
+      <div class="flex gap-2">
+        <button type="button" onclick="connectWaFromCenter()" class="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">Conectar / Generar QR</button>
+        <button type="button" onclick="disconnectWaFromCenter()" class="px-4 py-2.5 rounded-xl bg-rose-100 hover:bg-rose-200 text-rose-700 text-xs font-bold">Desconectar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/intranet/js/whatsapp.js?v=20261127-02"></script>
+</body>
+</html>

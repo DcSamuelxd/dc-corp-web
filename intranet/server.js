@@ -59,6 +59,14 @@ app.get('/intranet/ti', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'ti.html'));
 });
 
+app.get('/intranet/hub', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'hub.html'));
+});
+
+app.get('/intranet/whatsapp', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'whatsapp.html'));
+});
+
 app.listen(PORT, '127.0.0.1', () => {
   console.log(`Intranet DC CORP corriendo en http://127.0.0.1:${PORT}/intranet`);
 });
