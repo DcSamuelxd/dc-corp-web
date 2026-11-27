@@ -127,7 +127,8 @@ router.get('/intranet/api/admin/whatsapp/chats', authMiddleware, adminOnly, (req
           const tiPhoneSet = new Set();
           (uRows || []).forEach(u => {
             const p = normalizePeruPhone(u.whatsapp);
-            if (p) nameMap[p] = `${u.full_name} (${u.role === 'teacher' ? 'Docente' : 'Apoderado'})`;
+            const roleLabel = u.role === 'admin' ? 'Dirección / Admin' : (u.role === 'teacher' ? 'Docente' : 'Apoderado');
+            if (p) nameMap[p] = `${u.full_name} (${roleLabel})`;
           });
           (cRows || []).forEach(c => {
             const p = normalizePeruPhone(c.phone);
@@ -199,10 +200,11 @@ router.get('/intranet/api/admin/whatsapp/contacts', authMiddleware, adminOnly, (
         const p = normalizePeruPhone(u.whatsapp);
         if (p && !seen.has(p)) {
           seen.add(p);
+          const roleTag = u.role === 'admin' ? 'Dirección / Admin' : (u.role === 'teacher' ? 'Docente' : 'Apoderado / Alumno');
           contacts.push({
             phone: p,
             name: u.full_name,
-            tag: u.role === 'teacher' ? 'Docente' : 'Apoderado / Alumno',
+            tag: roleTag,
             category: u.role === 'student' ? 'tareas' : 'libre'
           });
         }
