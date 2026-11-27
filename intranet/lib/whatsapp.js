@@ -392,6 +392,13 @@ async function sendWhatsAppNow(phone, text) {
 
   const sent = await sock.sendMessage(targetJid, { text });
   cacheSentMessage(sent);
+  saveWaChatMessage({
+    peerPhone: normalized,
+    direction: 'out',
+    body: text,
+    waMsgId: (sent && sent.key && sent.key.id) || '',
+    isRead: 1
+  });
   return { ok: true, to: normalized };
 }
 
@@ -428,5 +435,6 @@ module.exports = {
   disconnectWhatsApp,
   sendWhatsAppNow,
   enqueueWhatsAppMessage,
-  initWhatsAppIfLinked
+  initWhatsAppIfLinked,
+  normalizePeruPhone
 };
