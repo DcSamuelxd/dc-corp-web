@@ -1,0 +1,126 @@
+/* Widget Global: Círculo Flotante Superior + Ventana Desplegable WhatsApp Liquid Glass */
+.wa-fab-root {
+  position: fixed;
+  top: 14px;
+  right: 16px;
+  z-index: 80;
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+}
+
+.wa-fab-trigger {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  background: linear-gradient(140deg, rgba(16, 185, 129, 0.94) 0%, rgba(13, 148, 136, 0.92) 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  cursor: pointer;
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  box-shadow:
+    0 10px 28px rgba(16, 185, 129, 0.36),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  transition: transform 0.24s cubic-bezier(0.22, 1.08, 0.36, 1), box-shadow 0.24s ease;
+}
+
+.wa-fab-trigger:hover {
+  transform: scale(1.07);
+  box-shadow:
+    0 14px 34px rgba(16, 185, 129, 0.48),
+    inset 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+.wa-fab-trigger:active {
+  transform: scale(0.95);
+}
+
+.wa-fab-status-dot {
+  position: absolute;
+  bottom: 1px;
+  right: 1px;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  border: 2px solid #ffffff;
+  background: #94a3b8;
+}
+
+.wa-fab-status-dot.is-online {
+  background: #22c55e;
+}
+
+.wa-fab-status-dot.is-qr {
+  background: #f59e0b;
+}
+
+.wa-fab-unread {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #e11d48;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ffffff;
+  box-shadow: 0 4px 10px rgba(225, 29, 72, 0.4);
+}
+
+.wa-fab-window {
+  position: absolute;
+  top: 58px;
+  right: 0;
+  width: 370px;
+  max-width: calc(100vw - 24px);
+  height: 520px;
+  max-height: calc(100dvh - 86px);
+  border-radius: 26px;
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.90) 0%, rgba(241, 246, 250, 0.86) 100%);
+  backdrop-filter: blur(28px) saturate(195%);
+  -webkit-backdrop-filter: blur(28px) saturate(195%);
+  border: 1px solid rgba(255, 255, 255, 0.92);
+  box-shadow:
+    0 24px 60px rgba(15, 23, 42, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform-origin: top right;
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.4) translateY(-14px);
+  transition: opacity 0.22s ease, transform 0.28s cubic-bezier(0.22, 1.08, 0.36, 1);
+}
+
+.wa-fab-window.is-open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1) translateY(0);
+}
+
+.wa-fab-head {
+  background: linear-gradient(145deg, rgba(13, 38, 56, 0.92) 0%, rgba(15, 118, 110, 0.88) 100%);
+  color: #ffffff;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+@media print {
+  .wa-fab-root {
+    display: none !important;
+  }
+}
