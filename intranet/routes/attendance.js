@@ -111,7 +111,9 @@ router.post('/intranet/api/admin/attendance/cell', authMiddleware, staffOnly, (r
       return;
     }
 
-    const finalArrival = (notify_arrival && !arrival_time) ? formatNowLima() : (arrival_time || '');
+    const isEntranceStatus = ['Presente', 'Tardanza', 'Reforzamiento'].includes(status);
+    const shouldNotifyArrival = notify_arrival !== false && isEntranceStatus;
+    const finalArrival = (shouldNotifyArrival && !arrival_time) ? formatNowLima() : (arrival_time || '');
 
     db.run(
       `INSERT INTO attendance (student_id, group_id, date, status, note, session_type, arrival_time, recorded_by_id, recorded_by_name)
@@ -136,7 +138,7 @@ router.post('/intranet/api/admin/attendance/cell', authMiddleware, staffOnly, (r
       ],
       function (err) {
         if (err) return res.status(500).json({ error: 'Error guardando asistencia' });
-        if (notify_arrival) {
+        if (shouldNotifyArrival) {
           sendSolMusicAttendanceWhatsApp(
             { studentId: student_id, groupId: group_id, date, timeStr: finalArrival, mode: 'arrival' },
             (waRes) => res.json({ ok: true, recorded_by_name: req.user.full_name, arrival_time: finalArrival, wa: waRes })
