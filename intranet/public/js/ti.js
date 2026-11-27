@@ -272,11 +272,69 @@ function renderDashboard() {
     <div class="p-2.5 rounded-xl bg-white/55 border border-white/75 flex items-center justify-between gap-2">
       <div class="min-w-0">
         <div class="text-xs font-extrabold text-slate-900 truncate">${escHtml(inv.doc_number)} · ${escHtml(inv.client_name)}</div>
-        <div class="text-[11px] text-slate-600 truncate">${escHtml(inv.issue_date)}</div>
+        <div class="text-[11px] text-slate-600 truncate">${escHtml(inv.issue_date)} • <strong>${escHtml(inv.status)}</strong></div>
       </div>
       <button type="button" onclick="previewInvoice(${inv.id})" class="px-2.5 py-1 rounded-lg bg-emerald-600 text-white text-[11px] font-bold shrink-0">${moneyFmt(inv.total_amount)}</button>
     </div>
   `).join('') : `<p class="text-xs text-slate-500">Aún no has emitido recibos.</p>`;
+
+  renderMonthlyRevenueWidget();
+}
+
+function renderMonthlyRevenueWidget() {
+  const box = document.getElementById('dashMonthlyRevenue');
+  if (!box) return;
+  const paidTotal = tiState.invoices.filter(i => i.status === 'Pagado').reduce((a, b) => a + Number(b.total_amount || 0), 0);
+  const pendingInvTotal = tiState.invoices.filter(i => i.status === 'Emitido' || i.status === 'Borrador').reduce((a, b) => a + Number(b.total_amount || 0), 0);
+  const unbilledOrdersTotal = tiState.orders.filter(o => o.status !== 'Facturado').reduce((a, b) => a + Number(b.subtotal || 0), 0);
+
+  const byMonth = {};
+  tiState.invoices.forEach(inv => {
+    if (inv.status === 'Anulado') return;
+    const mk = String(inv.created_at || new Date().toISOString()).slice(0, 7);
+    if (!byMonth[mk]) byMonth[mk] = { paid: 0, pending: 0 };
+    if (inv.status === 'Pagado') byMonth[mk].paid += Number(inv.total_amount || 0);
+    else byMonth[mk].pending += Number(inv.total_amount || 0);
+  });
+
+  const months = Object.keys(byMonth).sort().slice(-4);
+  const maxVal = Math.max(1, ...months.map(m => byMonth[m].paid + byMonth[m].pending));
+
+  box.innerHTML = `
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <div class="p-3 rounded-xl bg-emerald-500/15 border border-emerald-400/30">
+        <div class="text-[11px] font-bold text-emerald-800">Cobrado (Pagado)</div>
+        <div class="text-lg font-extrabold text-emerald-900">${moneyFmt(paidTotal)}</div>
+      </div>
+      <div class="p-3 rounded-xl bg-sky-500/15 border border-sky-400/30">
+        <div class="text-[11px] font-bold text-sky-800">Emitido por Cobrar</div>
+        <div class="text-lg font-extrabold text-sky-900">${moneyFmt(pendingInvTotal)}</div>
+      </div>
+      <div class="p-3 rounded-xl bg-amber-500/15 border border-amber-400/30">
+        <div class="text-[11px] font-bold text-amber-800">Trabajos sin Facturar</div>
+        <div class="text-lg font-extrabold text-amber-900">${moneyFmt(unbilledOrdersTotal)}</div>
+      </div>
+    </div>
+    ${months.length ? `
+      <div class="space-y-2 pt-1">
+        ${months.map(m => {
+          const totalM = byMonth[m].paid + byMonth[m].pending;
+          const pctPaid = Math.round((byMonth[m].paid / maxVal) * 100);
+          return `
+            <div class="space-y-1">
+              <div class="flex justify-between text-xs">
+                <span class="font-bold text-slate-700">${escHtml(m)}</span>
+                <span class="font-semibold text-slate-600">Pagado: ${moneyFmt(byMonth[m].paid)} / Total: ${moneyFmt(totalM)}</span>
+              </div>
+              <div class="ti-dash-bar-track">
+                <div class="ti-dash-bar-fill bg-emerald-500" style="width: ${pctPaid}%"></div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    ` : ''}
+  `;
 }
 
 function renderKpis() {
