@@ -261,7 +261,7 @@ function runParentWhatsAppReminders(manualTrigger = false, cb) {
                   `• *${m.title}* (${m.group_name})\n\n` +
                   `Por favor, subir la foto o archivo ingresando a la intranet. ¡Muchas gracias!`;
 
-                if (enqueueWhatsAppMessage(s.whatsapp, text)) {
+                if (enqueueWhatsAppMessage(s.whatsapp, text, 'tareas')) {
                   queued++;
                   db.run(
                     `INSERT INTO notifications (user_id, type, title, message, link_hash, reference_id, is_read)

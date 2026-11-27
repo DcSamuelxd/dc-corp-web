@@ -39,7 +39,7 @@ function sendSolMusicAttendanceWhatsApp({ studentId, groupId, date, timeStr, mod
         ? `🎵 *SOL MUSIC · Aviso de Salida*\n\nEstimado padre/madre de familia, le informamos que *${row.full_name}* ha *finalizado su clase y salido* de *${row.group_name}*.\n• Fecha: ${date}\n• Hora de salida: *${timeStr}*\n\n¡Gracias por su confianza! — *Sol Music*`
         : `🎵 *SOL MUSIC · Aviso de Ingreso*\n\nEstimado padre/madre de familia, le informamos que *${row.full_name}* acaba de *ingresar a su clase* en *${row.group_name}*.\n• Fecha: ${date}\n• Hora de llegada: *${timeStr}*\n\n— *Sol Music*`;
 
-      const queued = enqueueWhatsAppMessage(row.whatsapp, msg);
+      const queued = enqueueWhatsAppMessage(row.whatsapp, msg, 'tareas');
       if (cb) cb({ queued, to: row.whatsapp });
     }
   );
