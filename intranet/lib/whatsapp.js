@@ -124,6 +124,44 @@ function getWhatsAppStatus() {
   };
 }
 
+function extractWaText(msg) {
+  if (!msg || !msg.message) return '';
+  const m = msg.message;
+  if (m.conversation) return m.conversation;
+  if (m.extendedTextMessage && m.extendedTextMessage.text) return m.extendedTextMessage.text;
+  if (m.imageMessage) return m.imageMessage.caption ? `[Imagen] ${m.imageMessage.caption}` : '[Imagen]';
+  if (m.videoMessage) return m.videoMessage.caption ? `[Video] ${m.videoMessage.caption}` : '[Video]';
+  if (m.documentMessage) return `[Documento: ${m.documentMessage.fileName || 'archivo'}]`;
+  if (m.audioMessage) return '[Audio]';
+  if (m.stickerMessage) return '[Sticker]';
+  return '';
+}
+
+function saveWaChatMessage({ peerPhone, peerName = '', direction = 'in', body = '', waMsgId = '', isRead = 0 }) {
+  const phone = normalizePeruPhone(peerPhone) || String(peerPhone || '').replace(/\D/g, '');
+  if (!phone || !body) return;
+  db.run(
+    `INSERT INTO wa_messages (peer_phone, peer_name, direction, body, wa_msg_id, is_read) VALUES (?, ?, ?, ?, ?, ?)`,
+    [phone, String(peerName || '').trim(), direction, String(body), String(waMsgId || ''), isRead ? 1 : 0],
+    function (err) {
+      if (!err) {
+        broadcastToRole('admin', {
+          type: 'wa_message',
+          message: {
+            id: this.lastID,
+            peer_phone: phone,
+            peer_name: String(peerName || '').trim(),
+            direction,
+            body: String(body),
+            is_read: isRead ? 1 : 0,
+            created_at: new Date().toISOString()
+          }
+        });
+      }
+    }
+  );
+}
+
 async function connectWhatsApp() {
   const libs = loadBaileys();
   if (!libs) {
@@ -230,44 +268,6 @@ async function connectWhatsApp() {
 
     waState.sock = sock;
     sock.ev.on('creds.update', saveCreds);
-
-function extractWaText(msg) {
-  if (!msg || !msg.message) return '';
-  const m = msg.message;
-  if (m.conversation) return m.conversation;
-  if (m.extendedTextMessage && m.extendedTextMessage.text) return m.extendedTextMessage.text;
-  if (m.imageMessage) return m.imageMessage.caption ? `[Imagen] ${m.imageMessage.caption}` : '[Imagen]';
-  if (m.videoMessage) return m.videoMessage.caption ? `[Video] ${m.videoMessage.caption}` : '[Video]';
-  if (m.documentMessage) return `[Documento: ${m.documentMessage.fileName || 'archivo'}]`;
-  if (m.audioMessage) return '[Audio]';
-  if (m.stickerMessage) return '[Sticker]';
-  return '';
-}
-
-function saveWaChatMessage({ peerPhone, peerName = '', direction = 'in', body = '', waMsgId = '', isRead = 0 }) {
-  const phone = normalizePeruPhone(peerPhone) || String(peerPhone || '').replace(/\D/g, '');
-  if (!phone || !body) return;
-  db.run(
-    `INSERT INTO wa_messages (peer_phone, peer_name, direction, body, wa_msg_id, is_read) VALUES (?, ?, ?, ?, ?, ?)`,
-    [phone, String(peerName || '').trim(), direction, String(body), String(waMsgId || ''), isRead ? 1 : 0],
-    function (err) {
-      if (!err) {
-        broadcastToRole('admin', {
-          type: 'wa_message',
-          message: {
-            id: this.lastID,
-            peer_phone: phone,
-            peer_name: String(peerName || '').trim(),
-            direction,
-            body: String(body),
-            is_read: isRead ? 1 : 0,
-            created_at: new Date().toISOString()
-          }
-        });
-      }
-    }
-  );
-}
 
     // Pre-cachear salientes y guardar entrantes individuales en wa_messages
     sock.ev.on('messages.upsert', ({ messages }) => {
