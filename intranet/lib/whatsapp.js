@@ -14,6 +14,16 @@ const waState = {
 
 const messageQueue = [];
 let processingQueue = false;
+const sentMessagesCache = new Map();
+
+function cacheSentMessage(msgObj) {
+  if (!msgObj || !msgObj.key || !msgObj.key.id || !msgObj.message) return;
+  sentMessagesCache.set(msgObj.key.id, msgObj.message);
+  if (sentMessagesCache.size > 250) {
+    const firstKey = sentMessagesCache.keys().next().value;
+    sentMessagesCache.delete(firstKey);
+  }
+}
 
 function loadBaileys() {
   try {
@@ -94,7 +104,18 @@ async function connectWhatsApp() {
       logger: silentLogger,
       browser: ['DC CORP Intranet', 'Chrome', '1.0.0'],
       syncFullHistory: false,
-      markOnlineOnConnect: false
+      markOnlineOnConnect: true,
+      keepAliveIntervalMs: 25000,
+      connectTimeoutMs: 30000,
+      defaultQueryTimeoutMs: 30000,
+      retryRequestDelayMs: 350,
+      maxMsgRetryCount: 5,
+      getMessage: async (key) => {
+        if (key && key.id && sentMessagesCache.has(key.id)) {
+          return sentMessagesCache.get(key.id);
+        }
+        return undefined;
+      }
     });
 
     waState.sock = sock;
@@ -169,8 +190,16 @@ async function sendWhatsAppNow(phone, text) {
   if (!normalized) {
     throw new Error('Número de WhatsApp inválido');
   }
-  const jid = `${normalized}@s.whatsapp.net`;
-  await waState.sock.sendMessage(jid, { text });
+  let targetJid = `${normalized}@s.whatsapp.net`;
+  try {
+    const [exists] = await waState.sock.onWhatsApp(normalized);
+    if (exists && exists.exists && exists.jid) {
+      targetJid = exists.jid;
+    }
+  } catch {}
+
+  const sent = await waState.sock.sendMessage(targetJid, { text });
+  cacheSentMessage(sent);
   return { ok: true, to: normalized };
 }
 
