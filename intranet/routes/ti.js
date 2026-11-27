@@ -512,6 +512,18 @@ router.put('/intranet/api/ti/invoices/:id', authMiddleware, adminOnly, async (re
   }
 });
 
+router.patch('/intranet/api/ti/invoices/:id/status', authMiddleware, adminOnly, async (req, res) => {
+  try {
+    const allowed = ['Borrador', 'Emitido', 'Pagado', 'Anulado'];
+    const st = allowed.includes(req.body.status) ? req.body.status : 'Pagado';
+    await dbRun(`UPDATE ti_invoices SET status = ? WHERE id = ?`, [st, Number(req.params.id)]);
+    const updated = await dbGet(`SELECT * FROM ti_invoices WHERE id = ?`, [Number(req.params.id)]);
+    res.json(updated);
+  } catch {
+    res.status(500).json({ error: 'No se pudo actualizar estado' });
+  }
+});
+
 router.delete('/intranet/api/ti/invoices/:id', authMiddleware, adminOnly, async (req, res) => {
   try {
     await dbRun(`DELETE FROM ti_invoices WHERE id = ?`, [Number(req.params.id)]);
