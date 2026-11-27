@@ -370,6 +370,11 @@ db.serialize(() => {
     label TEXT DEFAULT '',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
+
+  db.run(`CREATE TABLE IF NOT EXISTS wa_auth_state (
+    k TEXT PRIMARY KEY,
+    v TEXT NOT NULL
+  )`);
 });
 
 function verifyGroupAccess(user, groupId, cb) {
