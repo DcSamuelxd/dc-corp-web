@@ -547,7 +547,7 @@ function openStudentDetailModal(studentId) {
 
   document.getElementById('sdAreaBadge').outerHTML = `<span id="sdAreaBadge">${getStudentAreaBadgeHtml(stu, true)}</span>`;
   document.getElementById('sdName').innerText = stu.full_name;
-  document.getElementById('sdCode').innerText = `Usuario: ${stu.code} • Bloque: ${stu.monthly_quota || 8} clases/mes`;
+  document.getElementById('sdCode').innerText = `Usuario: ${stu.code} • Bloque: ${stu.monthly_quota || 8} clases/mes${stu.whatsapp ? ` • WA Apoderado: ${stu.whatsapp}` : ''}`;
 
   const schRow = document.getElementById('sdScheduleRow');
   if (stu.schedule) {
@@ -598,6 +598,7 @@ function openEditStudentModal(studentId) {
   document.getElementById('editStuName').value = stu.full_name;
   document.getElementById('editStuSchedule').value = stu.schedule || '';
   document.getElementById('editStuQuota').value = stu.monthly_quota || 8;
+  document.getElementById('editStuWhatsapp').value = stu.whatsapp || '';
   document.getElementById('editStuInstrument').value = stu.instrument || 'Guitarra acustica';
   document.getElementById('editStuGrade').value = stu.grade || '1er Grado Primaria';
   document.getElementById('editStuPass').value = '';
@@ -658,6 +659,7 @@ document.getElementById('editStudentForm').addEventListener('submit', async (e) 
         grade: document.getElementById('editStuGrade').value,
         schedule: document.getElementById('editStuSchedule').value,
         monthly_quota: document.getElementById('editStuQuota').value,
+        whatsapp: document.getElementById('editStuWhatsapp').value,
         new_password: document.getElementById('editStuPass').value
       })
     });
@@ -746,7 +748,8 @@ document.getElementById('studentForm').addEventListener('submit', async (e) => {
       instrument: document.getElementById('stuInstrument').value,
       grade: document.getElementById('stuGrade').value,
       schedule: document.getElementById('stuSchedule').value,
-      monthly_quota: document.getElementById('stuQuota').value
+      monthly_quota: document.getElementById('stuQuota').value,
+      whatsapp: document.getElementById('stuWhatsapp').value
     })
   });
   if (res.ok) {

@@ -188,7 +188,7 @@ router.get('/intranet/api/admin/students', authMiddleware, staffOnly, (req, res)
   const { group_id, category } = req.query;
 
   let sql = `SELECT DISTINCT u.id, u.code, u.full_name, u.group_id, u.schedule, u.monthly_quota,
-                    u.bio, u.avatar_file, u.plain_hint, u.instrument, u.grade,
+                    u.bio, u.avatar_file, u.plain_hint, u.instrument, u.grade, u.whatsapp,
                     gMain.name AS group_name, gMain.category
              FROM users u
              LEFT JOIN groups gMain ON gMain.id = u.group_id
@@ -217,7 +217,7 @@ router.get('/intranet/api/admin/students', authMiddleware, staffOnly, (req, res)
 });
 
 router.post('/intranet/api/admin/students', authMiddleware, staffOnly, (req, res) => {
-  const { code, full_name, password, group_id, group_ids, schedule, monthly_quota, instrument, grade } = req.body;
+  const { code, full_name, password, group_id, group_ids, schedule, monthly_quota, instrument, grade, whatsapp } = req.body;
   const selectedIds = Array.isArray(group_ids) && group_ids.length
     ? group_ids.map(Number)
     : (group_id ? [Number(group_id)] : []);
@@ -234,9 +234,9 @@ router.post('/intranet/api/admin/students', authMiddleware, staffOnly, (req, res
       const hash = bcrypt.hashSync(password, 10);
       const primaryGid = selectedIds[0];
       db.run(
-        `INSERT INTO users (code, full_name, password_hash, role, group_id, schedule, monthly_quota, plain_hint, instrument, grade)
-         VALUES (?, ?, ?, 'student', ?, ?, ?, ?, ?, ?)`,
-        [code.trim(), full_name.trim(), hash, primaryGid, (schedule || '').trim(), quota, password.trim(), inst, (grade || '').trim()],
+        `INSERT INTO users (code, full_name, password_hash, role, group_id, schedule, monthly_quota, plain_hint, instrument, grade, whatsapp)
+         VALUES (?, ?, ?, 'student', ?, ?, ?, ?, ?, ?, ?)`,
+        [code.trim(), full_name.trim(), hash, primaryGid, (schedule || '').trim(), quota, password.trim(), inst, (grade || '').trim(), (whatsapp || '').trim()],
         function (err) {
           if (err) return res.status(400).json({ error: 'Ese código/usuario ya está registrado' });
           const newStudentId = this.lastID;
@@ -259,7 +259,7 @@ router.post('/intranet/api/admin/students', authMiddleware, staffOnly, (req, res
 
 router.put('/intranet/api/admin/students/:id', authMiddleware, staffOnly, (req, res) => {
   const studentId = req.params.id;
-  const { code, full_name, group_id, group_ids, schedule, monthly_quota, instrument, grade, new_password } = req.body;
+  const { code, full_name, group_id, group_ids, schedule, monthly_quota, instrument, grade, whatsapp, new_password } = req.body;
   const selectedIds = Array.isArray(group_ids) && group_ids.length
     ? group_ids.map(Number)
     : (group_id ? [Number(group_id)] : []);
@@ -289,14 +289,14 @@ router.put('/intranet/api/admin/students/:id', authMiddleware, staffOnly, (req, 
           if (new_password && new_password.trim().length >= 6) {
             const hash = bcrypt.hashSync(new_password.trim(), 10);
             db.run(
-              `UPDATE users SET code = ?, full_name = ?, group_id = ?, schedule = ?, monthly_quota = ?, instrument = ?, grade = ?, password_hash = ?, plain_hint = ? WHERE id = ?`,
-              [newCode, full_name.trim(), primaryGid, (schedule || '').trim(), quota, inst, (grade || '').trim(), hash, new_password.trim(), studentId],
+              `UPDATE users SET code = ?, full_name = ?, group_id = ?, schedule = ?, monthly_quota = ?, instrument = ?, grade = ?, whatsapp = ?, password_hash = ?, plain_hint = ? WHERE id = ?`,
+              [newCode, full_name.trim(), primaryGid, (schedule || '').trim(), quota, inst, (grade || '').trim(), (whatsapp || '').trim(), hash, new_password.trim(), studentId],
               doneUpdate
             );
           } else {
             db.run(
-              `UPDATE users SET code = ?, full_name = ?, group_id = ?, schedule = ?, monthly_quota = ?, instrument = ?, grade = ? WHERE id = ?`,
-              [newCode, full_name.trim(), primaryGid, (schedule || '').trim(), quota, inst, (grade || '').trim(), studentId],
+              `UPDATE users SET code = ?, full_name = ?, group_id = ?, schedule = ?, monthly_quota = ?, instrument = ?, grade = ?, whatsapp = ? WHERE id = ?`,
+              [newCode, full_name.trim(), primaryGid, (schedule || '').trim(), quota, inst, (grade || '').trim(), (whatsapp || '').trim(), studentId],
               doneUpdate
             );
           }
