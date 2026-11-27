@@ -6,7 +6,6 @@ const { db } = require('./db');
 const { broadcastToRole } = require('./sse');
 
 const waAuthDir = path.join(dataDir, 'wa-auth');
-const sentCacheFile = path.join(dataDir, 'wa-sent-cache.json');
 const lidMapFile = path.join(dataDir, 'wa-lid-map.json');
 
 const waState = {
@@ -21,21 +20,44 @@ let isConnectingLock = false;
 let reconnectTimer = null;
 const messageQueue = [];
 let processingQueue = false;
+let sendLockChain = Promise.resolve();
 
-const sentMessagesCache = new Map();
+function withSendLock(fn) {
+  const next = sendLockChain.then(() => fn(), () => fn());
+  sendLockChain = next.catch(() => {});
+  return next;
+}
+
+// Caché limpio de texto/contenido enviado (SIN messageContextInfo) para retry receipts
+const sentCleanPayloadCache = new Map();
 const lidToPhoneMap = new Map();
+const verifiedJidCache = new Map();
 const retryCounterStore = new Map();
+const signalMemoryStore = new Map();
 
 const msgRetryCounterCache = {
   get: (key) => retryCounterStore.get(key),
   set: (key, val) => {
     retryCounterStore.set(key, val);
-    if (retryCounterStore.size > 1000) {
+    if (retryCounterStore.size > 2000) {
       retryCounterStore.delete(retryCounterStore.keys().next().value);
     }
   },
   del: (key) => retryCounterStore.delete(key),
   flushAll: () => retryCounterStore.clear()
+};
+
+// CacheStore sin TTL de 5 minutos para makeCacheableSignalKeyStore (evita la desincronización a los 5 min)
+const signalKeyCacheStore = {
+  get: (key) => signalMemoryStore.get(key),
+  set: (key, val) => {
+    signalMemoryStore.set(key, val);
+    if (signalMemoryStore.size > 5000) {
+      signalMemoryStore.delete(signalMemoryStore.keys().next().value);
+    }
+  },
+  del: (key) => signalMemoryStore.delete(key),
+  flushAll: () => signalMemoryStore.clear()
 };
 
 function loadJsonMap(filePath, targetMap) {
@@ -51,15 +73,156 @@ function loadJsonMap(filePath, targetMap) {
   } catch {}
 }
 
-function saveJsonMap(filePath, sourceMap, maxEntries = 400) {
+function saveJsonMap(filePath, sourceMap, maxEntries = 800) {
   try {
     const entries = Array.from(sourceMap.entries()).slice(-maxEntries);
     fs.writeFileSync(filePath, JSON.stringify(entries), 'utf8');
   } catch {}
 }
 
-loadJsonMap(sentCacheFile, sentMessagesCache);
 loadJsonMap(lidMapFile, lidToPhoneMap);
+
+// --- Store Atómico de Autenticación y Llaves Signal en SQLite ---
+let authWriteChain = Promise.resolve();
+
+function sqlGet(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.get(sql, params, (err, row) => (err ? reject(err) : resolve(row)));
+  });
+}
+
+function sqlAll(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.all(sql, params, (err, rows) => (err ? reject(err) : resolve(rows || [])));
+  });
+}
+
+function sqlRun(sql, params = []) {
+  return new Promise((resolve, reject) => {
+    db.run(sql, params, function (err) {
+      if (err) reject(err);
+      else resolve(this);
+    });
+  });
+}
+
+async function migrateLegacyMultiFileIfNeeded() {
+  const existing = await sqlGet(`SELECT k FROM wa_auth_state WHERE k = 'creds'`);
+  if (existing) return;
+  const credsPath = path.join(waAuthDir, 'creds.json');
+  if (!fs.existsSync(credsPath)) return;
+
+  try {
+    const files = fs.readdirSync(waAuthDir).filter(f => f.endsWith('.json'));
+    for (const f of files) {
+      const raw = fs.readFileSync(path.join(waAuthDir, f), 'utf8');
+      const base = f.replace(/\.json$/, '');
+      const keyName = base === 'creds' ? 'creds' : base;
+      await sqlRun(`INSERT OR REPLACE INTO wa_auth_state (k, v) VALUES (?, ?)`, [keyName, raw]);
+    }
+  } catch {}
+}
+
+async function useSqliteAuthState(baileys) {
+  const { initAuthCreds, BufferJSON, proto } = baileys;
+  await migrateLegacyMultiFileIfNeeded();
+
+  const readItem = async (keyName) => {
+    const row = await sqlGet(`SELECT v FROM wa_auth_state WHERE k = ?`, [keyName]);
+    if (!row || !row.v) return null;
+    try {
+      return JSON.parse(row.v, BufferJSON.reviver);
+    } catch {
+      return null;
+    }
+  };
+
+  const enqueueWriteBatch = (ops) => {
+    const task = authWriteChain.then(async () => {
+      await sqlRun('BEGIN IMMEDIATE TRANSACTION');
+      try {
+        for (const op of ops) {
+          if (op.val === null || op.val === undefined) {
+            await sqlRun(`DELETE FROM wa_auth_state WHERE k = ?`, [op.key]);
+          } else {
+            const serialized = JSON.stringify(op.val, BufferJSON.replacer);
+            await sqlRun(`INSERT OR REPLACE INTO wa_auth_state (k, v) VALUES (?, ?)`, [op.key, serialized]);
+          }
+        }
+        await sqlRun('COMMIT');
+      } catch (e) {
+        await sqlRun('ROLLBACK').catch(() => {});
+      }
+    });
+    authWriteChain = task.catch(() => {});
+    return task;
+  };
+
+  const creds = (await readItem('creds')) || initAuthCreds();
+
+  return {
+    state: {
+      creds,
+      keys: {
+        get: async (type, ids) => {
+          const data = {};
+          if (!ids || !ids.length) return data;
+          const keyNames = ids.map(id => `${type}-${id}`);
+          const placeholders = keyNames.map(() => '?').join(',');
+          const rows = await sqlAll(`SELECT k, v FROM wa_auth_state WHERE k IN (${placeholders})`, keyNames);
+          const byKey = new Map(rows.map(r => [r.k, r.v]));
+
+          for (const id of ids) {
+            const raw = byKey.get(`${type}-${id}`);
+            if (!raw) continue;
+            try {
+              let parsed = JSON.parse(raw, BufferJSON.reviver);
+              if (type === 'app-state-sync-key' && parsed && proto?.Message?.AppStateSyncKeyData) {
+                parsed = proto.Message.AppStateSyncKeyData.fromObject(parsed);
+              }
+              data[id] = parsed;
+            } catch {}
+          }
+          return data;
+        },
+        set: async (data) => {
+          const ops = [];
+          for (const category of Object.keys(data || {})) {
+            const entries = data[category] || {};
+            for (const id of Object.keys(entries)) {
+              const value = entries[id];
+              ops.push({ key: `${category}-${id}`, val: value || null });
+            }
+          }
+          if (ops.length) {
+            await enqueueWriteBatch(ops);
+          }
+        }
+      }
+    },
+    saveCreds: async () => {
+      await enqueueWriteBatch([{ key: 'creds', val: creds }]);
+    }
+  };
+}
+
+async function hasSavedAuthCreds() {
+  try {
+    const row = await sqlGet(`SELECT k FROM wa_auth_state WHERE k = 'creds'`);
+    if (row) return true;
+  } catch {}
+  return fs.existsSync(path.join(waAuthDir, 'creds.json'));
+}
+
+async function wipeAllAuthState() {
+  signalMemoryStore.clear();
+  retryCounterStore.clear();
+  verifiedJidCache.clear();
+  await sqlRun(`DELETE FROM wa_auth_state`).catch(() => {});
+  if (fs.existsSync(waAuthDir)) {
+    fs.rmSync(waAuthDir, { recursive: true, force: true });
+  }
+}
 
 function recordLidMapping(lidRaw, pnRaw) {
   const lid = String(lidRaw || '').split('@')[0].split(':')[0].replace(/\D/g, '');
@@ -68,7 +231,6 @@ function recordLidMapping(lidRaw, pnRaw) {
     if (lidToPhoneMap.get(lid) !== pn) {
       lidToPhoneMap.set(lid, pn);
       saveJsonMap(lidMapFile, lidToPhoneMap, 1000);
-      // Migrar mensajes previos que hubieran quedado con el LID crudo al teléfono real
       db.run(
         `UPDATE wa_messages SET peer_phone = ?, peer_jid = ? WHERE peer_phone = ?`,
         [pn, `${pn}@s.whatsapp.net`, lid],
@@ -78,14 +240,15 @@ function recordLidMapping(lidRaw, pnRaw) {
   }
 }
 
-function cacheSentMessage(msgObj) {
-  if (!msgObj || !msgObj.key || !msgObj.key.id || !msgObj.message) return;
-  sentMessagesCache.set(msgObj.key.id, msgObj.message);
-  while (sentMessagesCache.size > 350) {
-    const firstKey = sentMessagesCache.keys().next().value;
-    sentMessagesCache.delete(firstKey);
+// Guarda una copia LIMPIA (sin messageContextInfo ni deviceListMetadata viejos) para que getMessage re-encripte perfecto
+function cacheCleanOutgoingMessage(msgId, cleanMessageObj) {
+  if (!msgId || !cleanMessageObj) return;
+  const copy = { ...cleanMessageObj };
+  delete copy.messageContextInfo;
+  sentCleanPayloadCache.set(String(msgId), copy);
+  while (sentCleanPayloadCache.size > 400) {
+    sentCleanPayloadCache.delete(sentCleanPayloadCache.keys().next().value);
   }
-  saveJsonMap(sentCacheFile, sentMessagesCache, 250);
 }
 
 function destroyCurrentSocket() {
@@ -246,9 +409,9 @@ function saveWaChatMessage({
 function lookupDbMessageByWaId(waId) {
   return new Promise((resolve) => {
     if (!waId) return resolve(undefined);
-    db.get(`SELECT body FROM wa_messages WHERE wa_msg_id = ? ORDER BY id DESC LIMIT 1`, [String(waId)], (err, row) => {
-      if (err || !row || !row.body) return resolve(undefined);
-      resolve({ conversation: row.body });
+    db.get(`SELECT body, media_type FROM wa_messages WHERE wa_msg_id = ? ORDER BY id DESC LIMIT 1`, [String(waId)], (err, row) => {
+      if (err || !row || !row.body || row.media_type === 'sticker') return resolve(undefined);
+      resolve({ conversation: String(row.body) });
     });
   });
 }
@@ -290,24 +453,24 @@ async function connectWhatsApp() {
 
   isConnectingLock = true;
   destroyCurrentSocket();
+  signalMemoryStore.clear();
 
   const { baileys, QRCode } = libs;
   const makeWASocket = baileys.default || baileys.makeWASocket;
   const {
-    useMultiFileAuthState,
     DisconnectReason,
     fetchLatestBaileysVersion,
     makeCacheableSignalKeyStore,
-    Browsers
+    Browsers,
+    proto
   } = baileys;
 
-  if (!fs.existsSync(waAuthDir)) fs.mkdirSync(waAuthDir, { recursive: true });
   waState.status = 'connecting';
   waState.lastError = '';
   waState.qrDataUrl = '';
 
   try {
-    const { state, saveCreds } = await useMultiFileAuthState(waAuthDir);
+    const { state, saveCreds } = await useSqliteAuthState(baileys);
     let version;
     try {
       const vInfo = await fetchLatestBaileysVersion();
@@ -328,7 +491,7 @@ async function connectWhatsApp() {
     const authConfig = {
       creds: state.creds,
       keys: typeof makeCacheableSignalKeyStore === 'function'
-        ? makeCacheableSignalKeyStore(state.keys, silentLogger)
+        ? makeCacheableSignalKeyStore(state.keys, silentLogger, signalKeyCacheStore)
         : state.keys
     };
 
@@ -351,35 +514,17 @@ async function connectWhatsApp() {
       retryRequestDelayMs: 250,
       maxMsgRetryCount: 5,
       msgRetryCounterCache,
-      patchMessageBeforeSending: (message) => {
-        const requiresPatch = Boolean(
-          message.buttonsMessage ||
-          message.templateMessage ||
-          message.listMessage
-        );
-        if (requiresPatch) {
-          return {
-            viewOnceMessage: {
-              message: {
-                messageContextInfo: {
-                  deviceListMetadataVersion: 2,
-                  deviceListMetadata: {}
-                },
-                ...message
-              }
-            }
-          };
-        }
-        return message;
-      },
       getMessage: async (key) => {
-        if (key && key.id) {
-          if (sentMessagesCache.has(key.id)) {
-            return sentMessagesCache.get(key.id);
-          }
-          return await lookupDbMessageByWaId(key.id);
+        if (!key || !key.id) return undefined;
+        let payload = sentCleanPayloadCache.get(String(key.id));
+        if (!payload) {
+          payload = await lookupDbMessageByWaId(key.id);
         }
-        return undefined;
+        if (!payload) return undefined;
+        if (proto && proto.Message && typeof proto.Message.fromObject === 'function') {
+          return proto.Message.fromObject(payload);
+        }
+        return payload;
       }
     });
 
@@ -406,7 +551,16 @@ async function connectWhatsApp() {
       for (const m of messages) {
         if (!m || !m.key) continue;
         if (m.key.fromMe) {
-          cacheSentMessage(m);
+          const innerOut = unwrapMessageContent(m.message);
+          if (innerOut && m.key.id) {
+            if (innerOut.conversation) {
+              cacheCleanOutgoingMessage(m.key.id, { conversation: innerOut.conversation });
+            } else if (innerOut.extendedTextMessage?.text) {
+              cacheCleanOutgoingMessage(m.key.id, { conversation: innerOut.extendedTextMessage.text });
+            } else {
+              cacheCleanOutgoingMessage(m.key.id, innerOut);
+            }
+          }
           continue;
         }
         const jid = String(m.key.remoteJid || '');
@@ -495,13 +649,13 @@ async function connectWhatsApp() {
           waState.status = 'disconnected';
           waState.phoneNumber = '';
           waState.lastError = 'Sesión cerrada o expirada. Vuelve a escanear el QR.';
-          fs.rmSync(waAuthDir, { recursive: true, force: true });
+          await wipeAllAuthState();
         } else {
           waState.status = 'disconnected';
           waState.lastError = 'Reconectando sesión de WhatsApp...';
-          reconnectTimer = setTimeout(() => {
+          reconnectTimer = setTimeout(async () => {
             reconnectTimer = null;
-            if (fs.existsSync(path.join(waAuthDir, 'creds.json'))) {
+            if (await hasSavedAuthCreds()) {
               connectWhatsApp().catch(() => {});
             }
           }, 3000);
@@ -526,9 +680,7 @@ async function disconnectWhatsApp() {
     }
   } catch {}
   destroyCurrentSocket();
-  if (fs.existsSync(waAuthDir)) {
-    fs.rmSync(waAuthDir, { recursive: true, force: true });
-  }
+  await wipeAllAuthState();
   waState.status = 'disconnected';
   waState.qrDataUrl = '';
   waState.phoneNumber = '';
@@ -565,7 +717,10 @@ async function resolveTargetJid(sock, rawTarget, hintJid = '') {
 
   const normalized = normalizePeruPhone(digits) || digits;
 
-  // Verificar si en BD este identificador era un @lid sin número telefónico revelado
+  if (verifiedJidCache.has(normalized)) {
+    return { phone: normalized, jid: verifiedJidCache.get(normalized) };
+  }
+
   const savedJid = hintJid || await lookupSavedJidForPeer(normalized);
   if (savedJid && savedJid.endsWith('@lid') && normalized.length > 11) {
     return { phone: normalized, jid: savedJid };
@@ -576,6 +731,7 @@ async function resolveTargetJid(sock, rawTarget, hintJid = '') {
     const [exists] = await sock.onWhatsApp(normalized);
     if (exists && exists.exists && exists.jid) {
       targetJid = exists.jid;
+      verifiedJidCache.set(normalized, targetJid);
     } else if (savedJid && savedJid.endsWith('@lid')) {
       targetJid = savedJid;
     }
@@ -589,79 +745,87 @@ async function resetPeerSignalSession(rawPeer) {
   if (!digits) return { removed: 0 };
   const normalized = normalizePeruPhone(digits) || digits;
   const short9 = normalized.length === 11 && normalized.startsWith('51') ? normalized.slice(2) : normalized;
+  const myPhone = waState.phoneNumber ? String(waState.phoneNumber).replace(/\D/g, '') : '';
 
-  let removed = 0;
-  if (fs.existsSync(waAuthDir)) {
-    const files = fs.readdirSync(waAuthDir);
-    for (const f of files) {
-      if (f.startsWith('session-') && (f.includes(normalized) || (short9.length >= 9 && f.includes(short9)))) {
-        try {
-          fs.unlinkSync(path.join(waAuthDir, f));
-          removed++;
-        } catch {}
-      }
+  // Limpiar sesiones Signal del contacto Y las sesiones DSM de dispositivos propios si estaban desincronizadas
+  const res1 = await sqlRun(
+    `DELETE FROM wa_auth_state WHERE (k LIKE 'session-%' OR k LIKE 'device-list-%') AND (k LIKE ? OR k LIKE ?${myPhone ? ` OR k LIKE ?` : ''})`,
+    myPhone
+      ? [`%${normalized}%`, `%${short9}%`, `%${myPhone}%`]
+      : [`%${normalized}%`, `%${short9}%`]
+  ).catch(() => ({ changes: 0 }));
+
+  for (const key of Array.from(signalMemoryStore.keys())) {
+    if ((key.startsWith('session-') || key.startsWith('device-list-')) &&
+        (key.includes(normalized) || key.includes(short9) || (myPhone && key.includes(myPhone)))) {
+      signalMemoryStore.delete(key);
     }
   }
+  verifiedJidCache.delete(normalized);
 
-  // Reiniciar el socket en caliente para limpiar también el caché en memoria de Signal sin perder el QR
-  if (waState.status === 'connected' && fs.existsSync(path.join(waAuthDir, 'creds.json'))) {
-    destroyCurrentSocket();
-    waState.status = 'disconnected';
-    await connectWhatsApp();
-  }
-
-  return { ok: true, removed };
+  return { ok: true, removed: res1.changes || 0 };
 }
 
 async function sendWhatsAppNow(phone, text, options = {}) {
-  if (waState.status !== 'connected' || !waState.sock) {
-    throw new Error('WhatsApp no está conectado');
-  }
-  const sock = waState.sock;
-  const { phone: cleanPhone, jid: targetJid } = await resolveTargetJid(sock, phone, options.peerJid || '');
+  return withSendLock(async () => {
+    if (waState.status !== 'connected' || !waState.sock) {
+      throw new Error('WhatsApp no está conectado');
+    }
+    const sock = waState.sock;
+    const cleanText = String(text);
+    const { phone: cleanPhone, jid: targetJid } = await resolveTargetJid(sock, phone, options.peerJid || '');
 
-  const sent = await sock.sendMessage(targetJid, { text: String(text) });
-  cacheSentMessage(sent);
-  saveWaChatMessage({
-    peerPhone: cleanPhone,
-    peerJid: targetJid,
-    direction: 'out',
-    category: options.category || '',
-    mediaType: 'text',
-    body: String(text),
-    waMsgId: (sent && sent.key && sent.key.id) || '',
-    isRead: 1
+    const sent = await sock.sendMessage(targetJid, { text: cleanText });
+    const msgId = (sent && sent.key && sent.key.id) || '';
+    if (msgId) {
+      cacheCleanOutgoingMessage(msgId, { conversation: cleanText });
+    }
+    saveWaChatMessage({
+      peerPhone: cleanPhone,
+      peerJid: targetJid,
+      direction: 'out',
+      category: options.category || '',
+      mediaType: 'text',
+      body: cleanText,
+      waMsgId: msgId,
+      isRead: 1
+    });
+    return { ok: true, to: cleanPhone };
   });
-  return { ok: true, to: cleanPhone };
 }
 
 async function sendWhatsAppSticker(phone, stickerFileName, options = {}) {
-  if (waState.status !== 'connected' || !waState.sock) {
-    throw new Error('WhatsApp no está conectado');
-  }
-  const safeFile = path.basename(String(stickerFileName || ''));
-  const fullPath = path.join(waStickersDir, safeFile);
-  if (!safeFile || !fs.existsSync(fullPath)) {
-    throw new Error('Archivo de sticker no encontrado');
-  }
-  const buf = fs.readFileSync(fullPath);
-  const sock = waState.sock;
-  const { phone: cleanPhone, jid: targetJid } = await resolveTargetJid(sock, phone, options.peerJid || '');
+  return withSendLock(async () => {
+    if (waState.status !== 'connected' || !waState.sock) {
+      throw new Error('WhatsApp no está conectado');
+    }
+    const safeFile = path.basename(String(stickerFileName || ''));
+    const fullPath = path.join(waStickersDir, safeFile);
+    if (!safeFile || !fs.existsSync(fullPath)) {
+      throw new Error('Archivo de sticker no encontrado');
+    }
+    const buf = fs.readFileSync(fullPath);
+    const sock = waState.sock;
+    const { phone: cleanPhone, jid: targetJid } = await resolveTargetJid(sock, phone, options.peerJid || '');
 
-  const sent = await sock.sendMessage(targetJid, { sticker: buf });
-  cacheSentMessage(sent);
-  saveWaChatMessage({
-    peerPhone: cleanPhone,
-    peerJid: targetJid,
-    direction: 'out',
-    category: options.category || '',
-    mediaType: 'sticker',
-    mediaFile: safeFile,
-    body: '[Sticker]',
-    waMsgId: (sent && sent.key && sent.key.id) || '',
-    isRead: 1
+    const sent = await sock.sendMessage(targetJid, { sticker: buf });
+    const msgId = (sent && sent.key && sent.key.id) || '';
+    if (msgId && sent?.message?.stickerMessage) {
+      cacheCleanOutgoingMessage(msgId, { stickerMessage: sent.message.stickerMessage });
+    }
+    saveWaChatMessage({
+      peerPhone: cleanPhone,
+      peerJid: targetJid,
+      direction: 'out',
+      category: options.category || '',
+      mediaType: 'sticker',
+      mediaFile: safeFile,
+      body: '[Sticker]',
+      waMsgId: msgId,
+      isRead: 1
+    });
+    return { ok: true, to: cleanPhone, file_name: safeFile };
   });
-  return { ok: true, to: cleanPhone, file_name: safeFile };
 }
 
 function enqueueWhatsAppMessage(phone, text, category = '') {
@@ -685,8 +849,8 @@ async function processQueue() {
   processingQueue = false;
 }
 
-function initWhatsAppIfLinked() {
-  if (fs.existsSync(path.join(waAuthDir, 'creds.json'))) {
+async function initWhatsAppIfLinked() {
+  if (await hasSavedAuthCreds()) {
     connectWhatsApp().catch(() => {});
   }
 }
