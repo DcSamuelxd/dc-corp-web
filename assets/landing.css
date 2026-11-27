@@ -1,0 +1,196 @@
+/* DC CORP · Diseño Aurora & Liquid Glass */
+:root {
+  --aurora-dark-1: #091526;
+  --aurora-dark-2: #0d2638;
+  --aurora-dark-3: #16465f;
+  --aurora-light: #f1f6fa;
+  --dc-cyan: #00e5ff;
+  --dc-blue: #0071e3;
+  --dc-indigo: #4f46e5;
+}
+
+body {
+  background-color: var(--aurora-light);
+  color: #1d1d1f;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+@keyframes orbDriftA {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(32px, -22px, 0) scale(1.08); }
+}
+
+@keyframes orbDriftB {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-28px, 24px, 0) scale(1.06); }
+}
+
+/* Navbar flotante Liquid Glass */
+.liquid-nav-wrap {
+  position: fixed;
+  top: 12px;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  padding: 0 16px;
+}
+
+.liquid-nav {
+  background: rgba(11, 21, 38, 0.72);
+  backdrop-filter: saturate(190%) blur(24px);
+  -webkit-backdrop-filter: saturate(190%) blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 14px 36px rgba(5, 12, 24, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  transition: all 0.3s ease;
+}
+
+/* Bandas Aurora */
+.aurora-hero-bg {
+  position: relative;
+  background:
+    radial-gradient(circle at 14% 20%, rgba(0, 229, 255, 0.18) 0px, transparent 42%),
+    radial-gradient(circle at 86% 24%, rgba(41, 121, 255, 0.22) 0px, transparent 45%),
+    radial-gradient(circle at 52% 85%, rgba(157, 78, 221, 0.16) 0px, transparent 48%),
+    linear-gradient(155deg, #07111f 0%, #0d2638 52%, #133c54 100%);
+}
+
+.aurora-deep-band {
+  position: relative;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(56, 189, 248, 0.20) 0px, transparent 42%),
+    radial-gradient(circle at 85% 75%, rgba(99, 102, 241, 0.18) 0px, transparent 46%),
+    linear-gradient(155deg, #0b192c 0%, #0d2638 50%, #16465f 100%);
+}
+
+.aurora-canvas-bg {
+  background-color: #f1f6fa;
+  background-image:
+    radial-gradient(circle at 12% 14%, rgba(14, 165, 233, 0.15) 0px, transparent 46%),
+    radial-gradient(circle at 88% 18%, rgba(0, 113, 227, 0.12) 0px, transparent 48%),
+    radial-gradient(circle at 52% 88%, rgba(16, 185, 129, 0.10) 0px, transparent 52%);
+}
+
+.aurora-orb {
+  position: absolute;
+  border-radius: 999px;
+  pointer-events: none;
+  filter: blur(65px);
+  z-index: 1;
+}
+
+.aurora-orb-1 {
+  width: 340px;
+  height: 340px;
+  top: 8%;
+  left: -60px;
+  background: rgba(0, 229, 255, 0.20);
+  animation: orbDriftA 14s ease-in-out infinite;
+}
+
+.aurora-orb-2 {
+  width: 380px;
+  height: 380px;
+  bottom: 5%;
+  right: -60px;
+  background: rgba(157, 78, 221, 0.20);
+  animation: orbDriftB 17s ease-in-out infinite;
+}
+
+/* Tarjetas Liquid Glass (claras y oscuras) */
+.glass-bento {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.88) 0%, rgba(255, 255, 255, 0.68) 100%);
+  backdrop-filter: saturate(190%) blur(24px);
+  -webkit-backdrop-filter: saturate(190%) blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.92);
+  box-shadow: 0 12px 36px rgba(13, 38, 56, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  border-radius: 28px;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease, border-color 0.35s ease;
+}
+
+.glass-bento::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 32%, rgba(255, 255, 255, 0.35) 50%, transparent 68%);
+  transform: translateX(-115%);
+  transition: transform 0.7s ease;
+  pointer-events: none;
+}
+
+.glass-bento:hover::after {
+  transform: translateX(115%);
+}
+
+.glass-bento:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 22px 48px rgba(14, 165, 233, 0.12), inset 0 1px 0 rgba(255, 255, 255, 1);
+  border-color: rgba(14, 165, 233, 0.32);
+}
+
+.glass-dark-card {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.05) 100%);
+  backdrop-filter: saturate(180%) blur(24px);
+  -webkit-backdrop-filter: saturate(180%) blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.24);
+  border-radius: 26px;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.35s ease, background 0.35s ease;
+}
+
+.glass-dark-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(56, 189, 248, 0.45);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.07) 100%);
+}
+
+.aurora-gradient-text {
+  background: linear-gradient(135deg, #38bdf8 0%, #60a5fa 48%, #c084fc 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.aurora-gradient-text-dark {
+  background: linear-gradient(135deg, #0071e3 0%, #0ea5e9 50%, #4f46e5 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+#webgl-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  opacity: 0.82;
+}
+
+/* Animación suave al hacer scroll */
+.reveal-up {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1), transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reveal-up.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-up {
+    opacity: 1;
+    transform: none;
+  }
+  .aurora-orb-1,
+  .aurora-orb-2 {
+    animation: none;
+  }
+}
