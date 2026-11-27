@@ -15,6 +15,18 @@ const waState = {
 const messageQueue = [];
 let processingQueue = false;
 const sentMessagesCache = new Map();
+const retryCounterStore = new Map();
+const msgRetryCounterCache = {
+  get: (key) => retryCounterStore.get(key),
+  set: (key, val) => {
+    retryCounterStore.set(key, val);
+    if (retryCounterStore.size > 500) {
+      retryCounterStore.delete(retryCounterStore.keys().next().value);
+    }
+  },
+  del: (key) => retryCounterStore.delete(key),
+  flushAll: () => retryCounterStore.clear()
+};
 
 function cacheSentMessage(msgObj) {
   if (!msgObj || !msgObj.key || !msgObj.key.id || !msgObj.message) return;
@@ -110,6 +122,7 @@ async function connectWhatsApp() {
       defaultQueryTimeoutMs: 30000,
       retryRequestDelayMs: 350,
       maxMsgRetryCount: 5,
+      msgRetryCounterCache,
       getMessage: async (key) => {
         if (key && key.id && sentMessagesCache.has(key.id)) {
           return sentMessagesCache.get(key.id);
