@@ -1,9 +1,9 @@
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const multer = require('multer');
 
 const PORT = process.env.PORT || 3001;
-const JWT_SECRET = process.env.JWT_SECRET || 'DCCORP_INTRANET_SECRET_2026_VSC';
 
 const rootDir = path.join(__dirname, '..');
 const dataDir = path.join(rootDir, 'data');
@@ -16,6 +16,26 @@ if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 if (!fs.existsSync(avatarsDir)) fs.mkdirSync(avatarsDir, { recursive: true });
 if (!fs.existsSync(tiDir)) fs.mkdirSync(tiDir, { recursive: true });
 
+function loadJwtSecret() {
+  if (process.env.JWT_SECRET && process.env.JWT_SECRET.length >= 16) {
+    return process.env.JWT_SECRET;
+  }
+  const secretFile = path.join(dataDir, '.jwt_secret');
+  try {
+    if (fs.existsSync(secretFile)) {
+      const saved = fs.readFileSync(secretFile, 'utf8').trim();
+      if (saved.length >= 32) return saved;
+    }
+    const generated = crypto.randomBytes(48).toString('hex');
+    fs.writeFileSync(secretFile, generated, { mode: 0o600 });
+    return generated;
+  } catch {
+    return crypto.randomBytes(48).toString('hex');
+  }
+}
+
+const JWT_SECRET = loadJwtSecret();
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadsDir),
   filename: (req, file, cb) => {
@@ -23,7 +43,19 @@ const storage = multer.diskStorage({
     cb(null, safeName);
   }
 });
-const upload = multer({ storage, limits: { fileSize: 100 * 1024 * 1024 } });
+const upload = multer({
+  storage,
+  limits: { fileSize: 100 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = [
+      '.pdf', '.jpg', '.jpeg', '.png', '.webp', '.gif',
+      '.mp3', '.wav', '.ogg', '.m4a', '.aac',
+      '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.txt', '.csv', '.zip', '.rar'
+    ];
+    const ext = path.extname(file.originalname || '').toLowerCase();
+    cb(null, allowed.includes(ext));
+  }
+});
 
 const avatarStorage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, avatarsDir),

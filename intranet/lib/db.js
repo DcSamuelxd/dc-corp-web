@@ -96,8 +96,10 @@ db.serialize(() => {
     arrival_time TEXT,
     recorded_by_id INTEGER,
     recorded_by_name TEXT,
+    departure_time TEXT DEFAULT '',
     UNIQUE(student_id, date, session_type)
   )`);
+  db.run(`ALTER TABLE attendance ADD COLUMN departure_time TEXT DEFAULT ''`, () => {});
 
   db.all(`PRAGMA table_info(attendance)`, [], (err, cols) => {
     if (!err && Array.isArray(cols)) {

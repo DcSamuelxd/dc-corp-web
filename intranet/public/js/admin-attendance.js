@@ -342,6 +342,25 @@ function openCellModal(studentId, dateISO, dateLabel) {
     markerEl.classList.add('hidden');
   }
 
+  const solBox = document.getElementById('cellSolMusicWaBox');
+  const waTimeEl = document.getElementById('cellWaTimeBadge');
+  const currentGroup = (typeof groupsCache !== 'undefined')
+    ? groupsCache.find(g => String(g.id) === String(activeCellContext.group_id))
+    : null;
+  if (solBox) {
+    if (currentGroup && currentGroup.category === 'Sol Music') {
+      solBox.classList.remove('hidden');
+      const arr = (mainRec && mainRec.arrival_time) || (refRec && refRec.arrival_time) || '';
+      const dep = (mainRec && mainRec.departure_time) || (refRec && refRec.departure_time) || '';
+      const parts = [];
+      if (arr) parts.push(`Llegada: ${arr}`);
+      if (dep) parts.push(`Salida: ${dep}`);
+      if (waTimeEl) waTimeEl.textContent = parts.join(' • ');
+    } else {
+      solBox.classList.add('hidden');
+    }
+  }
+
   document.getElementById('cellModal').classList.remove('hidden');
 }
 
@@ -377,6 +396,58 @@ async function saveCellAction(sessionType, status) {
   if (res.ok) {
     closeCellModal();
     loadWeeklyGrid();
+  }
+}
+
+async function saveCellArrivalNotice() {
+  if (!activeCellContext) return;
+  const note = document.getElementById('modalNoteInput').value.trim();
+  const res = await fetch('/intranet/api/admin/attendance/cell', {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify({
+      ...activeCellContext,
+      session_type: 'Regular',
+      status: 'Presente',
+      note,
+      notify_arrival: true
+    })
+  });
+  const data = await res.json().catch(() => ({}));
+  if (res.ok) {
+    if (data.wa && data.wa.queued) {
+      showToast(`Ingreso (${data.arrival_time}) y aviso WhatsApp enviados al apoderado`, 'success');
+    } else {
+      showToast(`Ingreso marcado (${data.arrival_time || ''}). ${data.wa?.reason || 'Sin envío WA'}`, 'info');
+    }
+    closeCellModal();
+    loadWeeklyGrid();
+  } else {
+    showToast(data.error || 'Error al registrar ingreso', 'error');
+  }
+}
+
+async function notifyCellExitAction() {
+  if (!activeCellContext) return;
+  const res = await fetch('/intranet/api/admin/attendance/notify-exit', {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify({
+      ...activeCellContext,
+      session_type: 'Regular'
+    })
+  });
+  const data = await res.json().catch(() => ({}));
+  if (res.ok) {
+    if (data.wa && data.wa.queued) {
+      showToast(`Salida (${data.departure_time}) y aviso WhatsApp enviados al apoderado`, 'success');
+    } else {
+      showToast(`Salida registrada (${data.departure_time || ''}). ${data.wa?.reason || 'Sin envío WA'}`, 'info');
+    }
+    closeCellModal();
+    loadWeeklyGrid();
+  } else {
+    showToast(data.error || 'Error al registrar salida', 'error');
   }
 }
 

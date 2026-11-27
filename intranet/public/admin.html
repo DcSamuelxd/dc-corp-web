@@ -1078,6 +1078,23 @@
         </div>
       </div>
 
+      <div id="cellSolMusicWaBox" class="hidden p-4 rounded-2xl bg-emerald-500/[0.08] border border-emerald-500/25 space-y-2.5">
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-xs font-bold text-emerald-900"><i class="fa-brands fa-whatsapp mr-1"></i> 3. Avisos a Apoderado (Sol Music)</span>
+          <span id="cellWaTimeBadge" class="text-[10px] font-semibold text-emerald-800"></span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <button type="button" onclick="saveCellArrivalNotice()"
+            class="py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition">
+            <span>🟢</span><span>Ingreso + Avisar WA</span>
+          </button>
+          <button type="button" onclick="notifyCellExitAction()"
+            class="py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition">
+            <span>🚪</span><span>Salida + Avisar WA</span>
+          </button>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -1562,10 +1579,10 @@
   </div>
 
   <!-- ==================== SCRIPTS ==================== -->
-  <script src="/intranet/js/admin-core.js?v=20261126-05"></script>
-  <script src="/intranet/js/admin-attendance.js?v=20261125-17"></script>
-  <script src="/intranet/js/admin-users.js?v=20261126-06"></script>
-  <script src="/intranet/js/admin-materials.js?v=20261125-17"></script>
+  <script src="/intranet/js/admin-core.js?v=20261126-07"></script>
+  <script src="/intranet/js/admin-attendance.js?v=20261126-07"></script>
+  <script src="/intranet/js/admin-users.js?v=20261126-07"></script>
+  <script src="/intranet/js/admin-materials.js?v=20261126-07"></script>
 
   <!-- Barra de Navegación Inferior Tipo App Nativa (Solo Móvil Android / iOS) -->
   <nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bottom-dock">

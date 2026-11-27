@@ -35,16 +35,47 @@ router.get('/intranet/api/chat/stream', authMiddleware, (req, res) => {
   });
 });
 
-// ================= AUTENTICACIÓN =================
+// ================= AUTENTICACIÓN (CON LÍMITE ANTI-FUERZA BRUTA) =================
+const loginAttempts = new Map();
+const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const LOGIN_MAX_FAILS = 10;
+
+function getClientIp(req) {
+  const fwd = req.headers['x-forwarded-for'];
+  if (typeof fwd === 'string' && fwd.trim()) return fwd.split(',')[0].trim();
+  return req.ip || req.socket?.remoteAddress || 'unknown';
+}
+
 router.post('/intranet/api/login', (req, res) => {
+  const ip = getClientIp(req);
+  const now = Date.now();
+  const rec = loginAttempts.get(ip);
+  if (rec && now < rec.resetAt && rec.count >= LOGIN_MAX_FAILS) {
+    return res.status(429).json({ error: 'Demasiados intentos fallidos. Espera 15 minutos.' });
+  }
+
   const { code, password } = req.body;
   if (!code || !password) return res.status(400).json({ error: 'Completa usuario y contraseña' });
 
   db.get(`SELECT * FROM users WHERE LOWER(code) = LOWER(?)`, [code.trim()], (err, user) => {
-    if (err || !user) return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
-    if (!bcrypt.compareSync(password, user.password_hash)) {
+    const recordFail = () => {
+      const current = loginAttempts.get(ip);
+      if (!current || now >= current.resetAt) {
+        loginAttempts.set(ip, { count: 1, resetAt: now + LOGIN_WINDOW_MS });
+      } else {
+        current.count += 1;
+      }
+    };
+
+    if (err || !user) {
+      recordFail();
       return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
     }
+    if (!bcrypt.compareSync(password, user.password_hash)) {
+      recordFail();
+      return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
+    }
+    loginAttempts.delete(ip);
     const token = jwt.sign(
       { id: user.id, code: user.code, full_name: user.full_name, role: user.role, group_id: user.group_id },
       JWT_SECRET,

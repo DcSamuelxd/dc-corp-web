@@ -1,4 +1,13 @@
 const token = localStorage.getItem('dc_token');
+
+function escapeHtml(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 const role = localStorage.getItem('dc_role');
 if (!token || (role !== 'admin' && role !== 'teacher')) {
   window.location.href = '/intranet';

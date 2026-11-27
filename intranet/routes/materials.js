@@ -683,6 +683,7 @@ router.get('/intranet/api/avatars/:filename', (req, res) => {
   const safeFile = path.basename(req.params.filename);
   const fullPath = path.join(avatarsDir, safeFile);
   if (!fs.existsSync(fullPath)) return res.status(404).send('Imagen no encontrada');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
   res.sendFile(fullPath);
 });
 
@@ -697,6 +698,7 @@ router.get('/intranet/api/files/:filename', (req, res) => {
   const safeFile = path.basename(req.params.filename);
   const fullPath = path.join(uploadsDir, safeFile);
   if (!fs.existsSync(fullPath)) return res.status(404).send('Archivo no encontrado');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
   res.sendFile(fullPath);
 });
 
