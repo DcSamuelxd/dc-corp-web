@@ -1,6 +1,8 @@
 const path = require('path');
 const fs = require('fs');
 const { dataDir } = require('./config');
+const { db } = require('./db');
+const { broadcastToRole } = require('./sse');
 
 const waAuthDir = path.join(dataDir, 'wa-auth');
 const sentCacheFile = path.join(dataDir, 'wa-sent-cache.json');
@@ -229,12 +231,66 @@ async function connectWhatsApp() {
     waState.sock = sock;
     sock.ev.on('creds.update', saveCreds);
 
-    // Pre-cachear cualquier mensaje saliente apenas se genera para que getMessage responda al instante
+function extractWaText(msg) {
+  if (!msg || !msg.message) return '';
+  const m = msg.message;
+  if (m.conversation) return m.conversation;
+  if (m.extendedTextMessage && m.extendedTextMessage.text) return m.extendedTextMessage.text;
+  if (m.imageMessage) return m.imageMessage.caption ? `[Imagen] ${m.imageMessage.caption}` : '[Imagen]';
+  if (m.videoMessage) return m.videoMessage.caption ? `[Video] ${m.videoMessage.caption}` : '[Video]';
+  if (m.documentMessage) return `[Documento: ${m.documentMessage.fileName || 'archivo'}]`;
+  if (m.audioMessage) return '[Audio]';
+  if (m.stickerMessage) return '[Sticker]';
+  return '';
+}
+
+function saveWaChatMessage({ peerPhone, peerName = '', direction = 'in', body = '', waMsgId = '', isRead = 0 }) {
+  const phone = normalizePeruPhone(peerPhone) || String(peerPhone || '').replace(/\D/g, '');
+  if (!phone || !body) return;
+  db.run(
+    `INSERT INTO wa_messages (peer_phone, peer_name, direction, body, wa_msg_id, is_read) VALUES (?, ?, ?, ?, ?, ?)`,
+    [phone, String(peerName || '').trim(), direction, String(body), String(waMsgId || ''), isRead ? 1 : 0],
+    function (err) {
+      if (!err) {
+        broadcastToRole('admin', {
+          type: 'wa_message',
+          message: {
+            id: this.lastID,
+            peer_phone: phone,
+            peer_name: String(peerName || '').trim(),
+            direction,
+            body: String(body),
+            is_read: isRead ? 1 : 0,
+            created_at: new Date().toISOString()
+          }
+        });
+      }
+    }
+  );
+}
+
+    // Pre-cachear salientes y guardar entrantes individuales en wa_messages
     sock.ev.on('messages.upsert', ({ messages }) => {
       if (!Array.isArray(messages)) return;
       for (const m of messages) {
-        if (m && m.key && m.key.fromMe) {
+        if (!m || !m.key) continue;
+        if (m.key.fromMe) {
           cacheSentMessage(m);
+          continue;
+        }
+        const jid = String(m.key.remoteJid || '');
+        if (!jid || jid === 'status@broadcast' || jid.endsWith('@g.us')) continue;
+        const phone = jid.split('@')[0].split(':')[0];
+        const body = extractWaText(m);
+        if (phone && body) {
+          saveWaChatMessage({
+            peerPhone: phone,
+            peerName: m.pushName || '',
+            direction: 'in',
+            body,
+            waMsgId: m.key.id || '',
+            isRead: 0
+          });
         }
       }
     });

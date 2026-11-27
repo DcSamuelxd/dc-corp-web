@@ -341,6 +341,19 @@ db.serialize(() => {
   db.run(`CREATE INDEX IF NOT EXISTS idx_sg_group ON student_groups (group_id)`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_sub_mat_stu ON submissions (material_id, student_id)`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_notif_user_type ON notifications (user_id, type, reference_id)`);
+
+  // --- Historial de Chats WhatsApp ---
+  db.run(`CREATE TABLE IF NOT EXISTS wa_messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    peer_phone TEXT NOT NULL,
+    peer_name TEXT DEFAULT '',
+    direction TEXT NOT NULL DEFAULT 'in',
+    body TEXT NOT NULL DEFAULT '',
+    wa_msg_id TEXT DEFAULT '',
+    is_read INTEGER NOT NULL DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_wa_messages_peer ON wa_messages (peer_phone, created_at DESC)`);
 });
 
 function verifyGroupAccess(user, groupId, cb) {
