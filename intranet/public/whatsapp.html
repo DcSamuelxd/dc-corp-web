@@ -12,21 +12,21 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="/intranet/css/styles.css?v=20261127-02">
-  <link rel="stylesheet" href="/intranet/css/ti-liquid.css?v=20261127-02">
+  <link rel="stylesheet" href="/intranet/css/styles.css?v=20261127-07">
+  <link rel="stylesheet" href="/intranet/css/ti-liquid.css?v=20261127-07">
 </head>
 <body class="min-h-screen antialiased text-slate-900">
-  <div class="ti-liquid-canvas min-h-screen flex flex-col p-3 sm:p-5 gap-3 sm:gap-4 relative">
+  <div class="ti-liquid-canvas min-h-screen flex flex-col p-2.5 sm:p-5 gap-3 relative">
     <div class="ti-liquid-orb ti-liquid-orb-a"></div>
     <div class="ti-liquid-orb ti-liquid-orb-b"></div>
 
     <!-- Topbar -->
-    <header class="relative z-10 max-w-7xl w-full mx-auto ti-liquid-card rounded-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-      <div class="flex items-center gap-3 min-w-0">
-        <a href="/intranet/hub" class="px-3 py-1.5 rounded-xl bg-white/80 hover:bg-white text-slate-700 text-xs font-bold border border-white inline-flex items-center gap-1.5 shrink-0">
-          <i class="fa-solid fa-arrow-left"></i> Hub
+    <header class="relative z-20 max-w-7xl w-full mx-auto ti-liquid-card rounded-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-2.5">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <a href="/intranet/hub" class="px-3 py-1.5 rounded-xl bg-white/85 hover:bg-white text-slate-800 text-xs font-bold border border-white inline-flex items-center gap-1.5 shrink-0 shadow-sm transition">
+          <i class="fa-solid fa-arrow-left"></i> <span>Hub</span>
         </a>
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center text-lg shrink-0">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center text-lg shadow-md shadow-emerald-500/20 shrink-0">
           <i class="fa-brands fa-whatsapp"></i>
         </div>
         <div class="min-w-0">
@@ -39,55 +39,98 @@
       </div>
 
       <div class="flex flex-wrap items-center gap-2">
-        <button type="button" onclick="openQrSetupModal()" class="px-3 py-1.5 rounded-xl bg-white/80 hover:bg-white text-slate-800 text-xs font-bold border border-white inline-flex items-center gap-1.5">
-          <i class="fa-solid fa-qrcode"></i> Vincular / QR
+        <button type="button" onclick="openQrSetupModal()" class="px-3 py-1.5 rounded-xl bg-white/85 hover:bg-white text-slate-800 text-xs font-bold border border-white inline-flex items-center gap-1.5 shadow-sm transition">
+          <i class="fa-solid fa-qrcode text-emerald-600"></i> <span>Vincular / QR</span>
         </button>
-        <button type="button" onclick="triggerParticularesReminders()" class="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold inline-flex items-center gap-1.5">
-          <i class="fa-solid fa-bell"></i> Recordatorios Particulares
+        <button type="button" onclick="triggerParticularesReminders()" class="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold inline-flex items-center gap-1.5 shadow-sm transition">
+          <i class="fa-solid fa-bell"></i> <span class="hidden sm:inline">Recordatorios</span><span>Particulares</span>
         </button>
-        <button type="button" onclick="logoutWaCenter()" class="px-3 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-700 text-xs font-bold">
+        <button type="button" onclick="logoutWaCenter()" class="px-3 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-700 text-xs font-bold transition">
           Salir
         </button>
       </div>
     </header>
 
-    <!-- Layout tipo WhatsApp Web Liquid Glass -->
-    <main class="relative z-10 max-w-7xl w-full mx-auto flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 min-h-[75vh]">
-      <!-- Columna Izquierda: Chats, Contactos y Nuevo Número -->
-      <aside class="lg:col-span-4 ti-liquid-card rounded-3xl p-4 flex flex-col gap-3 max-h-[80vh]">
-        <!-- Nuevo chat por número -->
-        <form onsubmit="startNewNumberChat(event)" class="flex gap-2">
-          <input id="waNewPhoneInput" type="text" placeholder="Escribir a número (ej. 992507489)" class="ti-liquid-input flex-1 px-3 py-2 rounded-xl text-xs font-medium">
-          <button type="submit" class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shrink-0">
+    <!-- Layout Principal -->
+    <main class="relative z-10 max-w-7xl w-full mx-auto flex-1 grid grid-cols-1 lg:grid-cols-12 gap-3.5 min-h-[78vh]">
+      <!-- Columna Izquierda: Segmentos, Chats y Contactos -->
+      <aside id="waSidebarPane" class="lg:col-span-4 ti-liquid-card rounded-3xl p-3.5 sm:p-4 flex flex-col gap-2.5 max-h-[82vh]">
+        <!-- Escribir a número nuevo -->
+        <form onsubmit="startNewNumberChat(event)" class="flex gap-1.5">
+          <input id="waNewPhoneInput" type="text" placeholder="Nuevo número (ej. 992507489)" class="ti-liquid-input flex-1 px-3 py-2 rounded-xl text-xs font-medium">
+          <select id="waNewCatSelect" class="ti-liquid-input px-2 py-2 rounded-xl text-[11px] font-bold text-slate-700">
+            <option value="libre">💬 Libre</option>
+            <option value="tareas">📚 Tareas</option>
+            <option value="ti">🛠️ TI</option>
+          </select>
+          <button type="submit" class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shrink-0 transition">
             Abrir
           </button>
         </form>
 
-        <!-- Pestañas Chats / Contactos -->
-        <div class="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-white/50 border border-white/70">
-          <button type="button" id="waSideTabChats" onclick="switchWaSideTab('chats')" class="py-1.5 rounded-lg bg-white text-slate-900 text-xs font-bold shadow-sm">
-            Chats recientes
+        <!-- Selector Chats vs Contactos -->
+        <div class="grid grid-cols-2 gap-1 p-1 rounded-xl bg-white/55 border border-white/80">
+          <button type="button" id="waSideTabChats" onclick="switchWaSideTab('chats')" class="py-1.5 rounded-lg bg-white text-slate-900 text-xs font-bold shadow-sm transition">
+            Conversaciones
           </button>
-          <button type="button" id="waSideTabContacts" onclick="switchWaSideTab('contacts')" class="py-1.5 rounded-lg text-slate-600 text-xs font-semibold">
-            Contactos
+          <button type="button" id="waSideTabContacts" onclick="switchWaSideTab('contacts')" class="py-1.5 rounded-lg text-slate-600 text-xs font-semibold transition">
+            Contactos Intranet
           </button>
         </div>
 
-        <input id="waSearchInput" type="text" oninput="renderWaSidebarList()" placeholder="Buscar chat o contacto..." class="ti-liquid-input w-full px-3 py-2 rounded-xl text-xs">
+        <!-- Píldoras de Segmentación -->
+        <div class="grid grid-cols-4 gap-1 text-[11px]">
+          <button type="button" onclick="setWaCategoryFilter('all')" id="waCatBtn-all" class="wa-cat-btn py-1.5 px-1.5 rounded-xl bg-slate-900 text-white font-bold truncate">
+            Todos
+          </button>
+          <button type="button" onclick="setWaCategoryFilter('tareas')" id="waCatBtn-tareas" class="wa-cat-btn py-1.5 px-1.5 rounded-xl bg-white/65 text-sky-800 font-semibold hover:bg-white truncate">
+            📚 Tareas
+          </button>
+          <button type="button" onclick="setWaCategoryFilter('libre')" id="waCatBtn-libre" class="wa-cat-btn py-1.5 px-1.5 rounded-xl bg-white/65 text-emerald-800 font-semibold hover:bg-white truncate">
+            💬 Libres
+          </button>
+          <button type="button" onclick="setWaCategoryFilter('ti')" id="waCatBtn-ti" class="wa-cat-btn py-1.5 px-1.5 rounded-xl bg-white/65 text-indigo-800 font-semibold hover:bg-white truncate">
+            🛠️ TI
+          </button>
+        </div>
+
+        <input id="waSearchInput" type="text" oninput="renderWaSidebarList()" placeholder="Buscar por nombre, teléfono o mensaje..." class="ti-liquid-input w-full px-3 py-2 rounded-xl text-xs">
 
         <div id="waSidebarList" class="flex-1 overflow-y-auto aurora-scroll space-y-1.5 pr-1"></div>
       </aside>
 
-      <!-- Columna Derecha: Conversación -->
-      <section class="lg:col-span-8 ti-liquid-card rounded-3xl flex flex-col overflow-hidden max-h-[80vh]">
-        <div id="waChatHeader" class="px-5 py-3.5 border-b border-white/60 bg-white/40 flex items-center justify-between gap-3">
-          <div class="min-w-0">
-            <h2 id="waActiveTitle" class="text-sm sm:text-base font-extrabold text-slate-900 truncate">Selecciona un chat o contacto</h2>
-            <p id="waActiveSub" class="text-[11px] text-slate-500 truncate">Aquí verás los mensajes entrantes y salientes en tiempo real.</p>
+      <!-- Columna Derecha: Hilo de Conversación -->
+      <section id="waThreadPane" class="hidden lg:flex lg:col-span-8 ti-liquid-card rounded-3xl flex-col overflow-hidden max-h-[82vh] relative">
+        <div id="waChatHeader" class="px-4 sm:px-5 py-3 border-b border-white/60 bg-white/45 flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <button type="button" onclick="backToMobileWaList()" class="lg:hidden w-8 h-8 rounded-xl bg-white/80 text-slate-700 flex items-center justify-center border border-white shrink-0">
+              <i class="fa-solid fa-chevron-left text-xs"></i>
+            </button>
+            <div id="waActiveAvatar" class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-800 font-extrabold text-xs flex items-center justify-center shrink-0">
+              WA
+            </div>
+            <div class="min-w-0">
+              <h2 id="waActiveTitle" class="text-sm sm:text-base font-extrabold text-slate-900 truncate">Selecciona un chat o contacto</h2>
+              <p id="waActiveSub" class="text-[11px] text-slate-500 truncate">Mensajes entrantes, salientes y stickers en vivo.</p>
+            </div>
           </div>
-          <button type="button" onclick="refreshActiveThread()" class="px-3 py-1.5 rounded-xl bg-white/75 hover:bg-white text-slate-700 text-xs font-bold border border-white shrink-0">
-            <i class="fa-solid fa-rotate-right"></i>
-          </button>
+
+          <div id="waActiveActions" class="hidden items-center gap-1.5 flex-wrap">
+            <select id="waActiveCatSelect" onchange="changeActiveChatCategory(this.value)" title="Segmento del chat" class="px-2.5 py-1.5 rounded-xl bg-white/85 border border-white text-[11px] font-bold text-slate-700">
+              <option value="tareas">📚 Recordatorios de tareas</option>
+              <option value="libre">💬 Mensajes libres</option>
+              <option value="ti">🛠️ Soporte TI</option>
+            </select>
+            <button type="button" onclick="repairActiveChatSignal()" title="Reparar sesión cifrada si sale 'Esperando el mensaje'" class="px-2.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-800 text-[11px] font-bold inline-flex items-center gap-1 transition">
+              <i class="fa-solid fa-wrench"></i> <span class="hidden sm:inline">Reparar cifrado</span>
+            </button>
+            <button type="button" onclick="deleteActiveChat()" title="Borrar este chat" class="px-2.5 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-700 text-[11px] font-bold inline-flex items-center gap-1 transition">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+            <button type="button" onclick="refreshActiveThread()" title="Recargar" class="px-2.5 py-1.5 rounded-xl bg-white/80 hover:bg-white text-slate-700 text-[11px] font-bold border border-white">
+              <i class="fa-solid fa-rotate-right"></i>
+            </button>
+          </div>
         </div>
 
         <div id="waMessagesBox" class="flex-1 overflow-y-auto aurora-scroll p-4 sm:p-5 space-y-2.5">
@@ -97,9 +140,27 @@
           </div>
         </div>
 
-        <form id="waSendForm" onsubmit="sendWaChatMessage(event)" class="p-3 sm:p-4 border-t border-white/60 bg-white/45 flex items-center gap-2">
+        <!-- Bandeja Desplegable de Stickers -->
+        <div id="waStickerPopover" class="hidden border-t border-white/70 bg-white/85 backdrop-blur-xl p-3 space-y-2.5">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-xs font-extrabold text-slate-800"><i class="fa-regular fa-note-sticky text-emerald-600 mr-1"></i>Mis Stickers de WhatsApp</span>
+            <div class="flex items-center gap-2">
+              <label class="cursor-pointer px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold inline-flex items-center gap-1">
+                <i class="fa-solid fa-plus"></i> Subir Sticker
+                <input id="waStickerUploadInput" type="file" accept=".webp,.png,.jpg,.jpeg,.gif" onchange="uploadNewWaSticker(event)" class="hidden">
+              </label>
+              <button type="button" onclick="toggleWaStickerPopover(false)" class="text-slate-400 hover:text-slate-700 text-sm font-bold px-1">&times;</button>
+            </div>
+          </div>
+          <div id="waStickerGrid" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 max-h-40 overflow-y-auto aurora-scroll p-1"></div>
+        </div>
+
+        <form id="waSendForm" onsubmit="sendWaChatMessage(event)" class="p-3 sm:p-3.5 border-t border-white/60 bg-white/50 flex items-center gap-2">
+          <button id="waStickerBtn" type="button" onclick="toggleWaStickerPopover()" disabled title="Enviar Sticker" class="w-10 h-10 rounded-2xl bg-white/85 hover:bg-white border border-white text-amber-600 disabled:opacity-40 flex items-center justify-center shrink-0 transition shadow-sm">
+            <i class="fa-regular fa-face-smile-wink text-lg"></i>
+          </button>
           <input id="waMessageInput" type="text" placeholder="Escribe un mensaje..." disabled class="ti-liquid-input flex-1 px-4 py-2.5 rounded-2xl text-sm disabled:opacity-50">
-          <button id="waSendBtn" type="submit" disabled class="px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white text-xs sm:text-sm font-bold inline-flex items-center gap-1.5 transition">
+          <button id="waSendBtn" type="submit" disabled class="px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white text-xs sm:text-sm font-bold inline-flex items-center gap-1.5 transition shadow-sm">
             <span>Enviar</span>
             <i class="fa-solid fa-paper-plane"></i>
           </button>
@@ -131,6 +192,6 @@
     </div>
   </div>
 
-  <script src="/intranet/js/whatsapp.js?v=20261127-02"></script>
+  <script src="/intranet/js/whatsapp.js?v=20261127-07"></script>
 </body>
 </html>

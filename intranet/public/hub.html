@@ -12,8 +12,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="/intranet/css/styles.css?v=20261127-01">
-  <link rel="stylesheet" href="/intranet/css/ti-liquid.css?v=20261127-01">
+  <link rel="stylesheet" href="/intranet/css/styles.css?v=20261127-07">
+  <link rel="stylesheet" href="/intranet/css/ti-liquid.css?v=20261127-07">
+  <link rel="stylesheet" href="/intranet/css/wa-floating.css?v=20261127-07">
 </head>
 <body class="min-h-screen antialiased text-slate-900">
   <div class="ti-liquid-canvas min-h-screen flex flex-col justify-between p-4 sm:p-8 relative">
@@ -21,17 +22,17 @@
     <div class="ti-liquid-orb ti-liquid-orb-b"></div>
 
     <!-- Header Hub -->
-    <header class="relative z-10 max-w-5xl w-full mx-auto ti-liquid-card rounded-3xl px-5 py-4 flex items-center justify-between gap-3">
+    <header class="relative z-10 max-w-5xl w-full mx-auto ti-liquid-card rounded-3xl px-5 py-4 flex items-center justify-between gap-3 pr-16 sm:pr-20">
       <div class="flex items-center gap-3.5 min-w-0">
         <img src="/favicon.svg" alt="DC CORP" class="w-11 h-11 rounded-2xl shadow-md ring-1 ring-white/80 shrink-0">
         <div class="min-w-0">
-          <span class="text-[10px] font-extrabold uppercase tracking-widest text-sky-700">Panel Maestro</span>
-          <h1 class="text-base sm:text-lg font-extrabold text-slate-900 truncate">Hola, <span id="hubAdminName">Administrador</span></h1>
+          <span class="text-[10px] font-extrabold uppercase tracking-widest text-sky-700">Centro Ejecutivo DC CORP</span>
+          <h1 class="text-base sm:text-lg font-extrabold text-slate-900 truncate">Bienvenido, <span id="hubAdminName">Administrador</span></h1>
         </div>
       </div>
       <div class="flex items-center gap-2 shrink-0">
-        <a href="/" class="px-3.5 py-2 rounded-full bg-white/75 hover:bg-white text-slate-700 text-xs font-bold border border-white transition hidden sm:inline-flex items-center gap-1.5">
-          <i class="fa-solid fa-globe"></i> Web Principal
+        <a href="/" class="px-3.5 py-2 rounded-full bg-white/80 hover:bg-white text-slate-700 text-xs font-bold border border-white transition hidden sm:inline-flex items-center gap-1.5 shadow-sm">
+          <i class="fa-solid fa-globe text-sky-600"></i> Web Principal
         </a>
         <button type="button" onclick="logoutHub()" class="px-4 py-2 rounded-full bg-rose-500/15 hover:bg-rose-500/25 text-rose-700 text-xs font-bold transition">
           Salir
@@ -42,22 +43,28 @@
     <!-- Selector de 3 Módulos -->
     <main class="relative z-10 max-w-5xl w-full mx-auto my-auto py-8 space-y-6 ti-glass-enter">
       <div class="text-center space-y-1.5">
-        <h2 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-slate-900">¿A qué módulo deseas ingresar?</h2>
-        <p class="text-xs sm:text-sm text-slate-600">Elige tu área de trabajo en DC CORP.</p>
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/70 border border-white text-[11px] font-bold text-slate-700 shadow-sm">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Ecosistema Unificado
+        </span>
+        <h2 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-slate-900">Selecciona tu espacio de trabajo</h2>
+        <p class="text-xs sm:text-sm text-slate-600">También puedes abrir WhatsApp rápido desde el círculo flotante superior en cualquier módulo.</p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
         <!-- 1. Intranet Educativa -->
         <a href="/intranet/panel" class="ti-liquid-card rounded-3xl p-6 sm:p-7 flex flex-col justify-between gap-5 group">
-          <div class="space-y-3">
-            <div class="w-13 h-13 w-14 h-14 rounded-2xl bg-gradient-to-br from-sky-500 to-blue-600 text-white flex items-center justify-center text-2xl shadow-lg shadow-sky-500/25">
-              <i class="fa-solid fa-graduation-cap"></i>
+          <div class="space-y-3.5">
+            <div class="flex items-start justify-between gap-2">
+              <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-sky-500 to-blue-600 text-white flex items-center justify-center text-2xl shadow-lg shadow-sky-500/25">
+                <i class="fa-solid fa-graduation-cap"></i>
+              </div>
+              <span id="hubEduStats" class="px-2.5 py-1 rounded-full bg-sky-100/90 text-sky-800 text-[10px] font-bold">Cargando...</span>
             </div>
             <div>
               <span class="inline-block px-2.5 py-0.5 rounded-full bg-sky-500/15 text-sky-800 text-[10px] font-bold uppercase tracking-wider">Academia &amp; Particulares</span>
               <h3 class="text-xl font-extrabold text-slate-900 mt-1.5">Intranet Educativa</h3>
               <p class="text-xs text-slate-600 mt-1 leading-relaxed">
-                Asistencia semanal, aulas y pistas, entregas, alumnado, plana docente, avisos y mensajes internos.
+                Asistencia semanal, aulas y pistas Sol Music, entregas calificadas, alumnado, docentes y avisos.
               </p>
             </div>
           </div>
@@ -69,9 +76,12 @@
 
         <!-- 2. TI y Facturación -->
         <a href="/intranet/ti" class="ti-liquid-card rounded-3xl p-6 sm:p-7 flex flex-col justify-between gap-5 group">
-          <div class="space-y-3">
-            <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center text-2xl shadow-lg shadow-indigo-500/25">
-              <i class="fa-solid fa-screwdriver-wrench"></i>
+          <div class="space-y-3.5">
+            <div class="flex items-start justify-between gap-2">
+              <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center text-2xl shadow-lg shadow-indigo-500/25">
+                <i class="fa-solid fa-screwdriver-wrench"></i>
+              </div>
+              <span id="hubTiStats" class="px-2.5 py-1 rounded-full bg-indigo-100/90 text-indigo-800 text-[10px] font-bold">Cargando...</span>
             </div>
             <div>
               <span class="inline-block px-2.5 py-0.5 rounded-full bg-indigo-500/15 text-indigo-800 text-[10px] font-bold uppercase tracking-wider">Soporte, Redes &amp; Recibos</span>
@@ -89,7 +99,7 @@
 
         <!-- 3. Bot y Centro WhatsApp -->
         <a href="/intranet/whatsapp" class="ti-liquid-card rounded-3xl p-6 sm:p-7 flex flex-col justify-between gap-5 group">
-          <div class="space-y-3">
+          <div class="space-y-3.5">
             <div class="flex items-start justify-between gap-2">
               <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center text-2xl shadow-lg shadow-emerald-500/25">
                 <i class="fa-brands fa-whatsapp"></i>
@@ -97,15 +107,15 @@
               <span id="hubWaBadge" class="px-2.5 py-1 rounded-full bg-slate-200/80 text-slate-700 text-[10px] font-bold">Verificando...</span>
             </div>
             <div>
-              <span class="inline-block px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-800 text-[10px] font-bold uppercase tracking-wider">Chats, Contactos &amp; Recordatorios</span>
+              <span class="inline-block px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-800 text-[10px] font-bold uppercase tracking-wider">Chats, Stickers &amp; Segmentos</span>
               <h3 class="text-xl font-extrabold text-slate-900 mt-1.5">Bot WhatsApp</h3>
               <p class="text-xs text-slate-600 mt-1 leading-relaxed">
-                Responde chats en vivo, escribe a contactos o números nuevos, vincula el QR y envía recordatorios.
+                Responde chats y stickers, segmenta por Tareas / Libres / TI, borra conversaciones y gestiona tu QR.
               </p>
             </div>
           </div>
           <div class="flex items-center justify-between pt-3 border-t border-white/60 text-xs font-bold text-emerald-700 group-hover:translate-x-1 transition">
-            <span>Abrir Centro WhatsApp</span>
+            <span id="hubWaFooterText">Abrir Centro WhatsApp</span>
             <i class="fa-solid fa-arrow-right"></i>
           </div>
         </a>
@@ -117,6 +127,7 @@
     </footer>
   </div>
 
-  <script src="/intranet/js/hub.js?v=20261127-01"></script>
+  <script src="/intranet/js/hub.js?v=20261127-07"></script>
+  <script src="/intranet/js/wa-floating.js?v=20261127-07"></script>
 </body>
 </html>
