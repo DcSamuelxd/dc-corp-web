@@ -589,6 +589,21 @@ function runBrandIntroAnimation() {
   }, 280);
 }
 
+function openMobileAdminDrawer() {
+  const drawer = document.getElementById('mobileAdminDrawer');
+  if (drawer) drawer.classList.remove('hidden');
+}
+
+function closeMobileAdminDrawer() {
+  const drawer = document.getElementById('mobileAdminDrawer');
+  if (drawer) drawer.classList.add('hidden');
+}
+
+function mobileDrawerGo(tabName) {
+  closeMobileAdminDrawer();
+  if (typeof switchTab === 'function') switchTab(tabName);
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   loadNotifications();
   runBrandIntroAnimation();
