@@ -1,7 +1,7 @@
 // ==================== ENVÍO RÁPIDO DE CREDENCIALES ====================
 let studentsCache = [];
 
-function sendCredentialsWhatsApp(studentId) {
+async function sendCredentialsWhatsApp(studentId) {
   const stu = studentsCache.find(s => Number(s.id) === Number(studentId));
   if (!stu) return;
   const passText = stu.plain_hint ? stu.plain_hint : '(clave asignada al registrar)';
@@ -16,7 +16,28 @@ function sendCredentialsWhatsApp(studentId) {
     `Desde tu portal podrás revisar tu asistencia, descargar separatas/partituras en PDF, ensayar con las pistas MP3 y escribir tus consultas directas al docente.`
   ].join('\n');
 
-  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+  if (stu.whatsapp && stu.whatsapp.trim()) {
+    try {
+      const res = await fetch('/intranet/api/whatsapp/send', {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ phone: stu.whatsapp.trim(), message: msg })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        showToast(`Credenciales enviadas por WhatsApp (+${data.to}) desde instancia +${data.from || ''}`, 'success');
+        return;
+      }
+      if (!data.notConnected) {
+        showToast(data.error || 'No se pudo enviar por instancia', 'error');
+        return;
+      }
+    } catch {}
+  }
+
+  const digits = String(stu.whatsapp || '').replace(/\D/g, '');
+  const phonePrefix = digits.length === 9 && digits.startsWith('9') ? `51${digits}` : digits;
+  window.open(`https://wa.me/${phonePrefix}?text=${encodeURIComponent(msg)}`, '_blank');
 }
 
 function copyCredentialsText(studentId) {
