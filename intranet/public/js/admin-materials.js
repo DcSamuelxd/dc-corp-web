@@ -113,6 +113,7 @@ function updateGradePreviewBadge(subId) {
 
 function renderSubmissionsAdmin(mat) {
   const subs = mat.submissions || [];
+  if (Number(mat.evaluation_enabled) !== 1 && !subs.length) return '';
   const expectedStudents = (studentsCache || []).filter(s => {
     const inGroup = (s.group_ids || []).includes(Number(mat.group_id)) || Number(s.group_id) === Number(mat.group_id);
     if (!inGroup) return false;
@@ -812,32 +813,42 @@ function renderMaterialsFiltered() {
       </div>
 
       <!-- Tabs internos compactos -->
+      ${(() => {
+        const showEntregasTab = Number(m.evaluation_enabled) === 1 || subsCount > 0;
+        const safeActiveTab = (!showEntregasTab && activeInnerTab === 'entregas') ? 'material' : activeInnerTab;
+        return `
       <div class="inline-flex p-1 rounded-xl bg-black/[0.05]">
         <button type="button" id="adminMatTabBtn-${m.id}-material" onclick="setAdminMaterialInnerTab(${m.id}, 'material')"
-          class="${activeInnerTab === 'material' ? 'px-3.5 py-1.5 rounded-lg bg-white text-[#1d1d1f] shadow-sm text-xs font-bold transition inline-flex items-center gap-1.5' : 'px-3.5 py-1.5 rounded-lg text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition inline-flex items-center gap-1.5'}">
+          class="${safeActiveTab === 'material' ? 'px-3.5 py-1.5 rounded-lg bg-white text-[#1d1d1f] shadow-sm text-xs font-bold transition inline-flex items-center gap-1.5' : 'px-3.5 py-1.5 rounded-lg text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition inline-flex items-center gap-1.5'}">
           <i class="fa-solid ${isSol ? 'fa-music' : 'fa-folder-open'} text-[#0071e3]"></i> Material y Pistas
         </button>
+        ${showEntregasTab ? `
         <button type="button" id="adminMatTabBtn-${m.id}-entregas" onclick="setAdminMaterialInnerTab(${m.id}, 'entregas')"
-          class="${activeInnerTab === 'entregas' ? 'px-3.5 py-1.5 rounded-lg bg-white text-[#1d1d1f] shadow-sm text-xs font-bold transition inline-flex items-center gap-1.5' : 'px-3.5 py-1.5 rounded-lg text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition inline-flex items-center gap-1.5'}">
+          class="${safeActiveTab === 'entregas' ? 'px-3.5 py-1.5 rounded-lg bg-white text-[#1d1d1f] shadow-sm text-xs font-bold transition inline-flex items-center gap-1.5' : 'px-3.5 py-1.5 rounded-lg text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition inline-flex items-center gap-1.5'}">
           <i class="fa-solid fa-clipboard-check text-emerald-600"></i> Entregas ${subsCount ? `<span class="px-1.5 py-0.2 rounded-full bg-emerald-500/15 text-emerald-700 text-[10px]">${subsCount}</span>` : ''}
         </button>
+        ` : ''}
         <button type="button" id="adminMatTabBtn-${m.id}-consultas" onclick="setAdminMaterialInnerTab(${m.id}, 'consultas')"
-          class="${activeInnerTab === 'consultas' ? 'px-3.5 py-1.5 rounded-lg bg-white text-[#1d1d1f] shadow-sm text-xs font-bold transition inline-flex items-center gap-1.5' : 'px-3.5 py-1.5 rounded-lg text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition inline-flex items-center gap-1.5'}">
+          class="${safeActiveTab === 'consultas' ? 'px-3.5 py-1.5 rounded-lg bg-white text-[#1d1d1f] shadow-sm text-xs font-bold transition inline-flex items-center gap-1.5' : 'px-3.5 py-1.5 rounded-lg text-[#6e6e73] hover:text-[#1d1d1f] text-xs font-semibold transition inline-flex items-center gap-1.5'}">
           <i class="fa-regular fa-comments text-indigo-600"></i> Consultas ${notesCount ? `<span class="px-1.5 py-0.2 rounded-full bg-indigo-500/15 text-indigo-700 text-[10px]">${notesCount}</span>` : ''}
         </button>
       </div>
 
-      <div id="adminMatTabPanel-${m.id}-material" class="${activeInnerTab === 'material' ? 'section-enter' : 'hidden'} space-y-3">
+      <div id="adminMatTabPanel-${m.id}-material" class="${safeActiveTab === 'material' ? 'section-enter' : 'hidden'} space-y-3">
         ${bodyContent}
       </div>
 
-      <div id="adminMatTabPanel-${m.id}-entregas" class="${activeInnerTab === 'entregas' ? 'section-enter' : 'hidden'}">
+      ${showEntregasTab ? `
+      <div id="adminMatTabPanel-${m.id}-entregas" class="${safeActiveTab === 'entregas' ? 'section-enter' : 'hidden'}">
         ${renderSubmissionsAdmin(m) || '<p class="text-xs text-[#6e6e73] py-6 text-center">Ningún estudiante ha enviado entregas en este tema todavía.</p>'}
       </div>
+      ` : ''}
 
-      <div id="adminMatTabPanel-${m.id}-consultas" class="${activeInnerTab === 'consultas' ? 'section-enter' : 'hidden'}">
+      <div id="adminMatTabPanel-${m.id}-consultas" class="${safeActiveTab === 'consultas' ? 'section-enter' : 'hidden'}">
         ${renderConsultasAdmin(m) || '<p class="text-xs text-[#6e6e73] py-6 text-center">No hay consultas de estudiantes en este tema todavía.</p>'}
       </div>
+        `;
+      })()}
     </div>
   `;
 }
