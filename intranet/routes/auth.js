@@ -59,6 +59,11 @@ router.post('/intranet/api/login', (req, res) => {
 
   db.get(`SELECT * FROM users WHERE LOWER(code) = LOWER(?)`, [code.trim()], (err, user) => {
     const recordFail = () => {
+      if (loginAttempts.size > 500) {
+        for (const [k, v] of loginAttempts.entries()) {
+          if (now >= v.resetAt) loginAttempts.delete(k);
+        }
+      }
       const current = loginAttempts.get(ip);
       if (!current || now >= current.resetAt) {
         loginAttempts.set(ip, { count: 1, resetAt: now + LOGIN_WINDOW_MS });
@@ -87,21 +92,23 @@ router.post('/intranet/api/login', (req, res) => {
 
 router.post('/intranet/api/change-password', authMiddleware, (req, res) => {
   const { currentPassword, newPassword } = req.body;
+  if (!currentPassword) {
+    return res.status(400).json({ error: 'Debes ingresar tu contraseña actual' });
+  }
   if (!newPassword || newPassword.length < 6) {
     return res.status(400).json({ error: 'La nueva contraseña debe tener al menos 6 caracteres' });
   }
 
-  db.get(`SELECT password_hash FROM users WHERE id = ?`, [req.user.id], (err, row) => {
+  db.get(`SELECT password_hash, role FROM users WHERE id = ?`, [req.user.id], (err, row) => {
     if (err || !row) return res.status(404).json({ error: 'Usuario no encontrado' });
 
-    if (currentPassword !== undefined) {
-      if (!bcrypt.compareSync(currentPassword, row.password_hash)) {
-        return res.status(400).json({ error: 'La contraseña actual es incorrecta' });
-      }
+    if (!bcrypt.compareSync(currentPassword, row.password_hash)) {
+      return res.status(400).json({ error: 'La contraseña actual es incorrecta' });
     }
 
     const hash = bcrypt.hashSync(newPassword, 10);
-    db.run(`UPDATE users SET password_hash = ?, plain_hint = ? WHERE id = ?`, [hash, newPassword, req.user.id], (err2) => {
+    const hint = row.role === 'admin' ? '' : newPassword;
+    db.run(`UPDATE users SET password_hash = ?, plain_hint = ? WHERE id = ?`, [hash, hint, req.user.id], (err2) => {
       if (err2) return res.status(500).json({ error: 'Error actualizando contraseña' });
       res.json({ ok: true });
     });

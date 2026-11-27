@@ -6,6 +6,9 @@ const { dataDir } = require('./config');
 const db = new sqlite3.Database(path.join(dataDir, 'intranet.db'));
 
 db.serialize(() => {
+  db.run(`PRAGMA journal_mode = WAL`);
+  db.run(`PRAGMA synchronous = NORMAL`);
+  db.run(`PRAGMA busy_timeout = 5000`);
   db.run(`CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     code TEXT UNIQUE NOT NULL,
@@ -320,6 +323,24 @@ db.serialize(() => {
     status TEXT NOT NULL DEFAULT 'Emitido',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
+
+  // --- Control de Mensualidades e Ingresos Academia ---
+  db.run(`CREATE TABLE IF NOT EXISTS student_payments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    student_id INTEGER NOT NULL,
+    month_key TEXT NOT NULL,
+    amount REAL NOT NULL DEFAULT 0,
+    status TEXT NOT NULL DEFAULT 'Pagado',
+    note TEXT DEFAULT '',
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(student_id, month_key)
+  )`);
+
+  // --- Índices de rendimiento para VPS 1x1 ---
+  db.run(`CREATE INDEX IF NOT EXISTS idx_att_group_date ON attendance (group_id, date)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_sg_group ON student_groups (group_id)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_sub_mat_stu ON submissions (material_id, student_id)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_notif_user_type ON notifications (user_id, type, reference_id)`);
 });
 
 function verifyGroupAccess(user, groupId, cb) {
