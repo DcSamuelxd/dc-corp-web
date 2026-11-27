@@ -94,6 +94,23 @@ const uploadTi = multer({
   }
 });
 
+const stickerStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, waStickersDir),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname || '').toLowerCase() || '.webp';
+    cb(null, `stk-${Date.now()}-${Math.round(Math.random() * 1e5)}${ext}`);
+  }
+});
+const uploadSticker = multer({
+  storage: stickerStorage,
+  limits: { fileSize: 2 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = ['.webp', '.png', '.jpg', '.jpeg', '.gif'];
+    const ext = path.extname(file.originalname || '').toLowerCase();
+    cb(null, allowed.includes(ext));
+  }
+});
+
 module.exports = {
   PORT,
   JWT_SECRET,
@@ -102,7 +119,9 @@ module.exports = {
   uploadsDir,
   avatarsDir,
   tiDir,
+  waStickersDir,
   upload,
   uploadAvatar,
-  uploadTi
+  uploadTi,
+  uploadSticker
 };

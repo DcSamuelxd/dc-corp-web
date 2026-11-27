@@ -346,14 +346,30 @@ db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS wa_messages (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     peer_phone TEXT NOT NULL,
+    peer_jid TEXT DEFAULT '',
     peer_name TEXT DEFAULT '',
     direction TEXT NOT NULL DEFAULT 'in',
+    category TEXT NOT NULL DEFAULT 'libre',
+    media_type TEXT NOT NULL DEFAULT 'text',
+    media_file TEXT DEFAULT '',
     body TEXT NOT NULL DEFAULT '',
     wa_msg_id TEXT DEFAULT '',
     is_read INTEGER NOT NULL DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   )`);
+  db.run(`ALTER TABLE wa_messages ADD COLUMN peer_jid TEXT DEFAULT ''`, () => {});
+  db.run(`ALTER TABLE wa_messages ADD COLUMN category TEXT DEFAULT 'libre'`, () => {});
+  db.run(`ALTER TABLE wa_messages ADD COLUMN media_type TEXT DEFAULT 'text'`, () => {});
+  db.run(`ALTER TABLE wa_messages ADD COLUMN media_file TEXT DEFAULT ''`, () => {});
   db.run(`CREATE INDEX IF NOT EXISTS idx_wa_messages_peer ON wa_messages (peer_phone, created_at DESC)`);
+
+  db.run(`CREATE TABLE IF NOT EXISTS wa_stickers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    file_name TEXT UNIQUE NOT NULL,
+    sha256 TEXT UNIQUE,
+    label TEXT DEFAULT '',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  )`);
 });
 
 function verifyGroupAccess(user, groupId, cb) {
