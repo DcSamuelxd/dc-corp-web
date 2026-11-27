@@ -36,7 +36,9 @@ function togglePassVisibility() {
 const existingToken = localStorage.getItem('dc_token');
 const existingRole = localStorage.getItem('dc_role');
 if (existingToken && existingRole) {
-  window.location.replace((existingRole === 'admin' || existingRole === 'teacher') ? '/intranet/panel' : '/intranet/estudiante');
+  if (existingRole === 'admin') window.location.replace('/intranet/hub');
+  else if (existingRole === 'teacher') window.location.replace('/intranet/panel');
+  else window.location.replace('/intranet/estudiante');
 }
 
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
@@ -63,7 +65,9 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     localStorage.setItem('dc_role', data.role);
     localStorage.setItem('dc_name', data.full_name);
 
-    window.location.replace((data.role === 'admin' || data.role === 'teacher') ? '/intranet/panel' : '/intranet/estudiante');
+    if (data.role === 'admin') window.location.replace('/intranet/hub');
+    else if (data.role === 'teacher') window.location.replace('/intranet/panel');
+    else window.location.replace('/intranet/estudiante');
   } catch (err) {
     errorBox.innerText = err.message;
     errorBox.classList.remove('hidden');
