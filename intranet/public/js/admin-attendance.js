@@ -394,6 +394,10 @@ async function saveCellAction(sessionType, status) {
   });
 
   if (res.ok) {
+    const data = await res.json().catch(() => ({}));
+    if (data.wa && data.wa.queued) {
+      showToast(`Asistencia guardada y aviso de llegada (${data.arrival_time || ''}) enviado por WhatsApp`, 'success');
+    }
     closeCellModal();
     loadWeeklyGrid();
   }
@@ -486,6 +490,10 @@ async function saveReforzamientoAction() {
   });
 
   if (res.ok) {
+    const data = await res.json().catch(() => ({}));
+    if (data.wa && data.wa.queued) {
+      showToast(`Asistencia guardada y aviso de llegada (${data.arrival_time || ''}) enviado por WhatsApp`, 'success');
+    }
     closeCellModal();
     loadWeeklyGrid();
   }
@@ -615,7 +623,7 @@ async function loadDailyExportPreview() {
   `).join('');
 }
 
-function sendDailyReportWhatsApp() {
+async function sendDailyReportWhatsApp() {
   const dateStr = document.getElementById('exportDatePicker').value || formatISO(new Date());
   const recs = lastDailySummaryData.records || [];
   if (!recs.length) {
@@ -651,7 +659,31 @@ function sendDailyReportWhatsApp() {
   });
 
   lines.push('Portal: https://dccorp.lat/intranet');
-  window.open(`https://wa.me/?text=${encodeURIComponent(lines.join('\n'))}`, '_blank');
+  const fullText = lines.join('\n');
+
+  try {
+    const linkRes = await fetch('/intranet/api/whatsapp/linked', { headers: { Authorization: `Bearer ${token}` } });
+    if (linkRes.ok) {
+      const linkData = await linkRes.json();
+      if (linkData.connected) {
+        const target = prompt('Ingresa el número de WhatsApp destino (o deja el número vinculado):', linkData.phoneNumber || '');
+        if (target && target.trim()) {
+          const sendRes = await fetch('/intranet/api/whatsapp/send', {
+            method: 'POST',
+            headers: authHeaders(),
+            body: JSON.stringify({ phone: target.trim(), message: fullText })
+          });
+          const sendData = await sendRes.json().catch(() => ({}));
+          if (sendRes.ok) {
+            showToast(`Reporte enviado por instancia WhatsApp (+${sendData.from || linkData.phoneNumber})`, 'success');
+            return;
+          }
+        }
+      }
+    }
+  } catch {}
+
+  window.open(`https://wa.me/?text=${encodeURIComponent(fullText)}`, '_blank');
 }
 
 function roundRectPath(ctx, x, y, w, h, r) {
