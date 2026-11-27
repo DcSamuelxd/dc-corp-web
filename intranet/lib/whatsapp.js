@@ -3,6 +3,7 @@ const fs = require('fs');
 const { dataDir } = require('./config');
 
 const waAuthDir = path.join(dataDir, 'wa-auth');
+const sentCacheFile = path.join(dataDir, 'wa-sent-cache.json');
 
 const waState = {
   sock: null,
@@ -12,15 +13,19 @@ const waState = {
   lastError: ''
 };
 
+let isConnectingLock = false;
+let reconnectTimer = null;
 const messageQueue = [];
 let processingQueue = false;
+
 const sentMessagesCache = new Map();
 const retryCounterStore = new Map();
+
 const msgRetryCounterCache = {
   get: (key) => retryCounterStore.get(key),
   set: (key, val) => {
     retryCounterStore.set(key, val);
-    if (retryCounterStore.size > 500) {
+    if (retryCounterStore.size > 1000) {
       retryCounterStore.delete(retryCounterStore.keys().next().value);
     }
   },
@@ -28,12 +33,60 @@ const msgRetryCounterCache = {
   flushAll: () => retryCounterStore.clear()
 };
 
+// Cargar caché persistente de mensajes enviados para responder a retry receipts tras reconexiones
+function loadPersistentSentCache() {
+  try {
+    if (fs.existsSync(sentCacheFile)) {
+      const raw = JSON.parse(fs.readFileSync(sentCacheFile, 'utf8'));
+      if (Array.isArray(raw)) {
+        raw.forEach(([k, v]) => {
+          if (k && v) sentMessagesCache.set(k, v);
+        });
+      }
+    }
+  } catch {}
+}
+
+function savePersistentSentCache() {
+  try {
+    const entries = Array.from(sentMessagesCache.entries()).slice(-200);
+    fs.writeFileSync(sentCacheFile, JSON.stringify(entries), 'utf8');
+  } catch {}
+}
+
+loadPersistentSentCache();
+
 function cacheSentMessage(msgObj) {
   if (!msgObj || !msgObj.key || !msgObj.key.id || !msgObj.message) return;
   sentMessagesCache.set(msgObj.key.id, msgObj.message);
-  if (sentMessagesCache.size > 250) {
+  while (sentMessagesCache.size > 300) {
     const firstKey = sentMessagesCache.keys().next().value;
     sentMessagesCache.delete(firstKey);
+  }
+  savePersistentSentCache();
+}
+
+function destroyCurrentSocket() {
+  if (reconnectTimer) {
+    clearTimeout(reconnectTimer);
+    reconnectTimer = null;
+  }
+  const old = waState.sock;
+  waState.sock = null;
+  if (old) {
+    try {
+      if (old.ev && typeof old.ev.removeAllListeners === 'function') {
+        old.ev.removeAllListeners('connection.update');
+        old.ev.removeAllListeners('creds.update');
+        old.ev.removeAllListeners('messages.upsert');
+      }
+    } catch {}
+    try {
+      old.end(undefined);
+    } catch {}
+    try {
+      if (old.ws && typeof old.ws.close === 'function') old.ws.close();
+    } catch {}
   }
 }
 
@@ -77,13 +130,22 @@ async function connectWhatsApp() {
     return getWhatsAppStatus();
   }
 
-  if (waState.status === 'connected' || waState.status === 'connecting') {
+  if (isConnectingLock || waState.status === 'connected' || waState.status === 'connecting') {
     return getWhatsAppStatus();
   }
 
+  isConnectingLock = true;
+  destroyCurrentSocket();
+
   const { baileys, QRCode } = libs;
   const makeWASocket = baileys.default || baileys.makeWASocket;
-  const { useMultiFileAuthState, DisconnectReason, fetchLatestBaileysVersion } = baileys;
+  const {
+    useMultiFileAuthState,
+    DisconnectReason,
+    fetchLatestBaileysVersion,
+    makeCacheableSignalKeyStore,
+    Browsers
+  } = baileys;
 
   if (!fs.existsSync(waAuthDir)) fs.mkdirSync(waAuthDir, { recursive: true });
   waState.status = 'connecting';
@@ -109,20 +171,53 @@ async function connectWhatsApp() {
       child: () => silentLogger
     };
 
+    const authConfig = {
+      creds: state.creds,
+      keys: typeof makeCacheableSignalKeyStore === 'function'
+        ? makeCacheableSignalKeyStore(state.keys, silentLogger)
+        : state.keys
+    };
+
+    const browserTuple = (Browsers && typeof Browsers.ubuntu === 'function')
+      ? Browsers.ubuntu('Chrome')
+      : ['Ubuntu', 'Chrome', '22.04.4'];
+
     const sock = makeWASocket({
       version,
-      auth: state,
+      auth: authConfig,
       printQRInTerminal: false,
       logger: silentLogger,
-      browser: ['DC CORP Intranet', 'Chrome', '1.0.0'],
+      browser: browserTuple,
       syncFullHistory: false,
-      markOnlineOnConnect: true,
-      keepAliveIntervalMs: 25000,
-      connectTimeoutMs: 30000,
-      defaultQueryTimeoutMs: 30000,
-      retryRequestDelayMs: 350,
+      markOnlineOnConnect: false,
+      generateHighQualityLinkPreview: false,
+      keepAliveIntervalMs: 20000,
+      connectTimeoutMs: 45000,
+      defaultQueryTimeoutMs: 45000,
+      retryRequestDelayMs: 250,
       maxMsgRetryCount: 5,
       msgRetryCounterCache,
+      patchMessageBeforeSending: (message) => {
+        const requiresPatch = Boolean(
+          message.buttonsMessage ||
+          message.templateMessage ||
+          message.listMessage
+        );
+        if (requiresPatch) {
+          return {
+            viewOnceMessage: {
+              message: {
+                messageContextInfo: {
+                  deviceListMetadataVersion: 2,
+                  deviceListMetadata: {}
+                },
+                ...message
+              }
+            }
+          };
+        }
+        return message;
+      },
       getMessage: async (key) => {
         if (key && key.id && sentMessagesCache.has(key.id)) {
           return sentMessagesCache.get(key.id);
@@ -133,6 +228,16 @@ async function connectWhatsApp() {
 
     waState.sock = sock;
     sock.ev.on('creds.update', saveCreds);
+
+    // Pre-cachear cualquier mensaje saliente apenas se genera para que getMessage responda al instante
+    sock.ev.on('messages.upsert', ({ messages }) => {
+      if (!Array.isArray(messages)) return;
+      for (const m of messages) {
+        if (m && m.key && m.key.fromMe) {
+          cacheSentMessage(m);
+        }
+      }
+    });
 
     sock.ev.on('connection.update', async (update) => {
       const { connection, lastDisconnect, qr } = update;
@@ -154,25 +259,34 @@ async function connectWhatsApp() {
       } else if (connection === 'close') {
         const statusCode = lastDisconnect?.error?.output?.statusCode;
         const loggedOut = statusCode === DisconnectReason.loggedOut;
-        waState.sock = null;
+        const badSession = statusCode === DisconnectReason.badSession;
+
+        destroyCurrentSocket();
         waState.qrDataUrl = '';
-        if (loggedOut) {
+
+        if (loggedOut || badSession) {
           waState.status = 'disconnected';
           waState.phoneNumber = '';
-          waState.lastError = 'Sesión cerrada desde WhatsApp. Vuelve a escanear el QR.';
+          waState.lastError = 'Sesión cerrada o expirada. Vuelve a escanear el QR.';
           fs.rmSync(waAuthDir, { recursive: true, force: true });
         } else {
           waState.status = 'disconnected';
-          waState.lastError = 'Conexión cerrada. Reconectando automáticamente...';
-          setTimeout(() => {
-            if (fs.existsSync(waAuthDir)) connectWhatsApp().catch(() => {});
-          }, 5000);
+          waState.lastError = 'Reconectando sesión de WhatsApp...';
+          reconnectTimer = setTimeout(() => {
+            reconnectTimer = null;
+            if (fs.existsSync(path.join(waAuthDir, 'creds.json'))) {
+              connectWhatsApp().catch(() => {});
+            }
+          }, 3000);
         }
       }
     });
   } catch (err) {
+    destroyCurrentSocket();
     waState.status = 'disconnected';
     waState.lastError = err.message || 'Error al iniciar WhatsApp';
+  } finally {
+    isConnectingLock = false;
   }
 
   return getWhatsAppStatus();
@@ -182,9 +296,9 @@ async function disconnectWhatsApp() {
   try {
     if (waState.sock) {
       await waState.sock.logout().catch(() => {});
-      waState.sock = null;
     }
   } catch {}
+  destroyCurrentSocket();
   if (fs.existsSync(waAuthDir)) {
     fs.rmSync(waAuthDir, { recursive: true, force: true });
   }
@@ -203,15 +317,24 @@ async function sendWhatsAppNow(phone, text) {
   if (!normalized) {
     throw new Error('Número de WhatsApp inválido');
   }
+
+  const sock = waState.sock;
   let targetJid = `${normalized}@s.whatsapp.net`;
   try {
-    const [exists] = await waState.sock.onWhatsApp(normalized);
+    const [exists] = await sock.onWhatsApp(normalized);
     if (exists && exists.exists && exists.jid) {
       targetJid = exists.jid;
     }
   } catch {}
 
-  const sent = await waState.sock.sendMessage(targetJid, { text });
+  // Sincronizar llaves Signal de todos los dispositivos del destinatario tras periodos de inactividad
+  try {
+    if (typeof sock.assertSessions === 'function') {
+      await sock.assertSessions([targetJid], false);
+    }
+  } catch {}
+
+  const sent = await sock.sendMessage(targetJid, { text });
   cacheSentMessage(sent);
   return { ok: true, to: normalized };
 }
@@ -232,7 +355,6 @@ async function processQueue() {
     try {
       await sendWhatsAppNow(item.phone, item.text);
     } catch {}
-    // Pausa de 3.5 segundos entre envíos para evitar bloqueos por spam
     await new Promise(resolve => setTimeout(resolve, 3500));
   }
   processingQueue = false;
